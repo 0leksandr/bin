@@ -1,0 +1,2 @@
+#!/bin/sh
+ps aux |grep -i $1 |grep -v "grep -i $1" |grep -v "grep -i --color=auto $1" |grep -v "$0 $@" |grep -i --color=auto $1

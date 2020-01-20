@@ -1,0 +1,18 @@
+#!/bin/sh
+files="*"
+
+pattern=.[!.]*
+if [ "$(echo $pattern)" != "$pattern" ]; then
+    files="$files $pattern"
+fi
+
+pattern=..?*
+if [ "$(echo $pattern)" != "$pattern" ]; then
+    files="$files $pattern"
+fi
+
+# du -sch -- .[!.]* * |sort -hr
+# du -sch -- ..?* .[!.]* * |sort -hr
+du -sch -- $files |sort -hr
+# find . -maxdepth 1 -exec du -sh -- {} +
+# find . -maxdepth 1 -execdir du -sh -- {} + |sort -hr

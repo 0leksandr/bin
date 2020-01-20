@@ -1,0 +1,4 @@
+#!/bin/bash
+# bash /home/oleksandr/Programs/wps-office_10.1.0.5707~a21_x86_64/et "$1"
+/usr/bin/et "$1"
+exit 0

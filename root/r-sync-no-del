@@ -1,0 +1,2 @@
+#!/bin/sh
+rsync -aE --info=progress2,stats2,misc1,flist0 "$@"

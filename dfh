@@ -1,0 +1,2 @@
+#!/bin/sh
+df -h --output=target,size,used,avail,pcent /home/nezhraba /

@@ -1,0 +1,2 @@
+#!/bin/sh
+find "$(_path $@)" -iname "*$1*" -exec ls -1dp {} + |grep -i --color=auto "$1"

@@ -1,0 +1,4 @@
+#!/bin/sh
+sh $1 && \
+sleep 5m && \
+exit 0

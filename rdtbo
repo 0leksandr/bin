@@ -1,0 +1,11 @@
+#!/bin/bash
+filename="$@"
+touch "$filename"
+echo '' > "$filename"
+reset
+echo "$@"
+
+# rdtb "$@" > >(tee -a "$filename") 2> >(tee -a "$filename" >&2)
+# rdtb "$@" 2>&1 | tee -a "$filename"
+dtb "$@" |& tee -a "$filename"
+date-ft  |& tee -a "$filename"

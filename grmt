@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# git remote add -m origin "https://github.com/0leksandr/$1.git"
+
+# git remote add origin "https://github.com/0leksandr/$1.git"
+# git remote set-branches --add origin master

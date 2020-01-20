@@ -1,0 +1,2 @@
+#!/bin/sh
+find . -type d -name \.git |grep -Ev '^\./\.git$' # |xargs -r -- rm

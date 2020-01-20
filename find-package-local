@@ -1,0 +1,2 @@
+#!/bin/sh
+dpkg -l |grep -i --color=auto $@

@@ -1,0 +1,17 @@
+#!/bin/sh
+opts=""
+if [ $# -ge 1 ]; then
+    if [ "$1" = "-here" ] || [ "$1" = "-h" ]; then
+        opts="-maxdepth 1"
+    else
+        opts="-iname '*$1*'"
+    fi
+fi
+
+random_file=$(eval "find . $opts -type f" | shuf -n 1)
+# random_file=$(find $opts1 . $opts2 -type f | grep "$grepp" | shuf -n 1)
+# random_file=$($command)
+# random_file=$(command)
+
+echo "$random_file"
+gopen "$random_file"

@@ -1,0 +1,68 @@
+#!/bin/bash
+
+_highlander
+
+file="$HOME/_/Programs/text@nezhraba/text.txt"
+
+#define shutdown time
+shutdowntime=$(date -d $1 +%s)
+now=$(date +%s)
+if ! [ $shutdowntime ]; then
+    shutdowntime=$(expr $now + 5 \* 60)
+fi
+if [ $shutdowntime -le $now ]; then
+    shutdowntime=$(date -d "tomorrow $1" +%s)
+fi
+
+function timediff {
+    seconds=$(expr $2 - $1)
+    minutes=$(expr $seconds / 60)
+    seconds=$(expr $seconds -  $minutes \* 60)
+    hours=$(expr $minutes / 60)
+    minutes=$(expr $minutes - $hours \* 60)
+    echo "$(printf '%02d:%02d:%02d' $hours $minutes $seconds)"
+}
+
+echo > $file
+
+alerted=0
+
+while true; do
+    cur=$(date +%s)
+
+    #boot late after shutdowntime
+    if [[ $cur -ge $(expr $shutdowntime + 10) ]]; then
+        echo "--------" > $file
+        notify-send --urgency=critical --icon=terminal "Too late for shutdown"
+        break
+    #alert
+    elif [[ ( $(expr $shutdowntime - $cur) -le $(expr 3 \* 60) ) && $alerted == 0 ]]; then
+        notify-send --urgency=critical --icon=terminal "Shutdown in 3 minutes"
+        beep
+        alerted=1
+    fi
+
+    #shutdown
+    if [ $cur -ge $shutdowntime ]; then
+        echo > $file
+        shutdown -P now
+        break
+    fi
+
+    #write to widget
+    if [[ $# == 2  || $(expr $shutdowntime - $cur) -le $(expr 60 \* 60 \* 2) ]]; then
+        if [ $# == 2 ] && [ $2 != '+' ]; then
+            starttime=$(date -d$2 +%s)
+            timevalue=$(bc <<< "scale=1;($shutdowntime - $cur) * 2 / ($shutdowntime - $starttime)")
+#            timevalue=$(printf %.1f $timevalue)
+            countdown="$(timediff $starttime $cur) / $(timediff $cur $shutdowntime) $timevalue"
+        else
+            countdown=$(timediff $cur $shutdowntime)
+        fi
+        echo $countdown > $file
+    fi
+
+    sleep 1
+done
+
+exit 0

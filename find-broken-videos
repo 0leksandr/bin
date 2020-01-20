@@ -1,0 +1,19 @@
+#!/bin/sh
+# find . -maxdepth 1 \( -not -path . -type f -or -xtype l \) -exec ffmpeg -v error -i {} -f null - \;
+# find -L . \( -not -path . \( -type f -or -xtype l \) \) -exec sh -c 'echo "{}" && ffmpeg -v error -i "{}" -f null -' \;
+
+findcommand='find -L . -not -path . \( -type f -or -xtype l \)'
+nrfiles=$(eval "$findcommand"| wc -l)
+ii=0
+eval "$findcommand" |while read fname; do
+  ii=$(expr $ii + 1)
+  if [ $ii -le 160 ]; then
+    continue
+  fi
+  printf "\t"; echo "$ii/$nrfiles $fname"
+  if [ $(mimetype -b - "$fname"| grep 'video') ]; then
+    < /dev/null ffmpeg -v error -f null - -i "$fname"
+  else
+    printf "\tnot a video\n"
+  fi
+done

@@ -1,0 +1,10 @@
+#!/bin/sh
+command="docker container ls --all"
+echo "$command"
+eval "$command"
+
+printf "\n"
+
+command="docker images"
+echo "$command"
+eval "$command"

@@ -1,0 +1,11 @@
+#!/bin/sh
+file=$HOME/_/Programs/backgrounds/$(date +%H-%M)
+echo $file
+current=$(gsettings get org.cinnamon.desktop.background picture-uri)
+echo $current
+if [ -f "$file" ]; then
+    # set-background $(cat $file)
+    echo "setting to"
+    echo $(cat $file)
+fi
+echo "$current" > "$file"

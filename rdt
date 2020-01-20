@@ -1,0 +1,4 @@
+#!/bin/sh
+reset
+echo "$@"
+dt "$@"

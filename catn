@@ -1,0 +1,2 @@
+#!/bin/sh
+cat -n $1 |head -n$3 |tail -n$(calc $3-$2+1)

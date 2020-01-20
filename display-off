@@ -1,0 +1,4 @@
+#!/bin/sh
+xset dpms force off
+../bash/mouse_disable.sh
+../bash/mouse_enable.sh

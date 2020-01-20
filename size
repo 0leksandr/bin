@@ -1,0 +1,3 @@
+#!/bin/sh
+du -sh -- "$@" |sort -hr
+exit 0

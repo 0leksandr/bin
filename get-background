@@ -1,0 +1,2 @@
+#!/bin/sh
+gsettings get org.cinnamon.desktop.background picture-uri

@@ -1,0 +1,19 @@
+#!/bin/sh
+#kill other instances of the script
+# procname=$(basename "$0")
+procname=$(ps -o comm= $PPID)
+this_pid=$(pgrep -n "$procname")
+# pgrep -x "$procname" |grep -v "$this_pid" |xargs -r kill
+
+procs=$(pgrep -x "$procname" |grep -v -x "$this_pid")
+parent=$this_pid
+while true; do
+    parent=$(ps -o ppid= -p $parent)
+    procs=$(echo "$procs" |grep -v -x "$parent")
+    if [ $parent = "1" ]; then
+        break
+    fi
+done
+ # echo "highlander procs: $procs"
+ # alert "highlander procs: $procs"
+$(echo "$procs" |xargs -r kill)

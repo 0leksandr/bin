@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# docker rmi --force $(docker images --filter "dangling=true" --quiet)
+
+# docker system prune --all --filter "since=1h" --force
+
+docker container ls --all --format "{{.ID}} {{.RunningFor}}"   |grep -E "(second|minute)s? ago" |awk '{ print $1 }' |xargs -r -- docker rm
+docker images             --format "{{.ID}} {{.CreatedSince}}" |grep -E "(second|minute)s? ago" |awk '{ print $1 }' |xargs -r -- docker rmi --force

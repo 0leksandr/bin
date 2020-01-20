@@ -1,0 +1,8 @@
+#!/bin/sh
+cat /etc/*release   ;hr
+cat /etc/*release/* ;hr
+uname -a            ;hr
+lsb_release -d      ;hr
+hostnamectl         ;hr
+cat /proc/version   ;hr
+cat /etc/issue      ;hr

@@ -1,0 +1,4 @@
+#!/bin/bash
+# bash /home/oleksandr/Programs/wps-office_10.1.0.5707~a21_x86_64/wps "$1"
+# /usr/bin/wps "$1"
+env WINEPREFIX="/home/nezhraba/.wine" wine-development C:\\windows\\command\\start.exe /Unix /home/nezhraba/.wine/dosdevices/c:/users/nezhraba/Start\ Menu/Programs/Microsoft\ Office/Microsoft\ Office\ Word\ 2007.lnk "$1"

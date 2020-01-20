@@ -1,0 +1,27 @@
+#!/bin/sh
+late="21:15"
+early="05:00"
+
+current=""
+
+while true; do
+    now=$(date +%s)
+    if [ $now -ge $(date -d $late +%s) ] || [ $now -le $(date -d $early +%s) ]; then
+        if [ "$current" != "0.5" ]; then
+            brightness 0.5 + &
+            # set-background "$HOME/_/Картинки/Wallpapers/stars/Amazing-Space-Photography-9.jpg"
+            set-background "$HOME/_/Картинки/Wallpapers/colors/891252751.jpg"
+            current="0.5"
+        fi
+    else
+        if [ "$current" != "1.0" ]; then
+            brightness 1.0 + &
+            # set-background "$HOME/Pictures/Grand Place at dusk.jpg"
+            # set-background "/usr/share/backgrounds/linuxmint-serena/dmarcu_romania.jpg"
+            # set-background "$HOME/_/Картинки/Wallpapers/NY/ben-o-bro-wpU4veNGnHg-unsplash.jpg"
+            set-background "$HOME/_/Картинки/Wallpapers/NY/luca-bravo-TaCk3NspYe0-unsplash.jpg"
+            current="1.0"
+        fi
+    fi
+    sleep 1
+done

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+apt search $1
+exit 0
+
+if [ $# -le 1 ]; then
+    apt-cache search $1
+else
+    pattern=$2
+    if [[ $pattern == "!" ]]; then
+        pattern=$1
+    fi
+    apt-cache search $1 |grep -i --color=auto $pattern
+fi

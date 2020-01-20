@@ -1,0 +1,11 @@
+#!/bin/sh
+
+printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+exit 0
+
+ii=0
+while [ $ii -lt 80 ]; do
+    printf "-"
+    ii=$(expr $ii + 1)
+done
+printf "\n"
