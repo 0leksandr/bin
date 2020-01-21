@@ -19,7 +19,8 @@ while true; do
             # set-background "$HOME/Pictures/Grand Place at dusk.jpg"
             # set-background "/usr/share/backgrounds/linuxmint-serena/dmarcu_romania.jpg"
             # set-background "$HOME/_/Картинки/Wallpapers/NY/ben-o-bro-wpU4veNGnHg-unsplash.jpg"
-            set-background "$HOME/_/Картинки/Wallpapers/NY/luca-bravo-TaCk3NspYe0-unsplash.jpg"
+            # set-background "$HOME/_/Картинки/Wallpapers/NY/luca-bravo-TaCk3NspYe0-unsplash.jpg"
+            set-background "$HOME/_/Картинки/Wallpapers/colors/Chip_Wallpapers (16).jpg"
             current="1.0"
         fi
     fi
