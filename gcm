@@ -5,7 +5,7 @@ git add .
 git commit -a -m "$1"
 printf "\n"
 
-if [ $(git remote -v) ]; then
+if [ "$(git remote -v)" ]; then
     gpsh
 fi
 
