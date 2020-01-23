@@ -1,2 +1,2 @@
 #!/bin/sh
-df -h --output=target,size,used,avail,pcent /home/nezhraba /
+df -h --type=ext4 --output=target,size,used,avail,pcent

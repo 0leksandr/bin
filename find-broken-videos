@@ -7,9 +7,9 @@ nrfiles=$(eval "$findcommand"| wc -l)
 ii=0
 eval "$findcommand" |while read fname; do
   ii=$(expr $ii + 1)
-  if [ $ii -le 160 ]; then
-    continue
-  fi
+  # if [ $ii -le 160 ]; then
+  #   continue
+  # fi
   printf "\t"; echo "$ii/$nrfiles $fname"
   if [ $(mimetype -b - "$fname"| grep 'video') ]; then
     < /dev/null ffmpeg -v error -f null - -i "$fname"
