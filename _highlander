@@ -10,10 +10,16 @@ parent=$this_pid
 while true; do
     parent=$(ps -o ppid= -p $parent)
     procs=$(echo "$procs" |grep -v -x "$parent")
-    if [ $parent = "1" ] || [ $parent = "0" ]; then
+    if [ "$parent" = "1" ]; then
+        break
+    fi
+
+    if [ "$parent" = "0" ]; then
+        alert "parent $parent"
         break
     fi
     if ! echo "$parent" | egrep -q '^[0-9]+$'; then
+        alert "parent $parent"
         break
     fi
 done
