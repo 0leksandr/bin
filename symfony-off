@@ -1,3 +1,0 @@
-#!/bin/sh
-sed -i -r 's/^([^#].*symfony.*$)/# \1/' $HOME/_/Programs/bashrc
-# reload-terminal
