@@ -3,14 +3,10 @@
 # echo "${@:2}"
 # exit 0
 
-if [ $# -ge 2 ]; then
-    # echo "${@:2}"
-    # echo "'${@:2}'"
-    # echo "\"${@:2}\""
-
+if [ $# -gt $1 ]; then
     ii=0
     for arg in "$@"; do
-        if [ $ii -ne 0 ]; then
+        if [ $ii -ge $1 ]; then
             echo "$arg"
         fi
         ii=$(expr $ii + 1)
