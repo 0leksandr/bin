@@ -1,1 +1,2 @@
-../vendor/windows/GomPlayer/gom.sh
+#!/bin/sh
+openwine ~/_/Programs/vendor/windows/GomPlayer/GOM.EXE "$1"

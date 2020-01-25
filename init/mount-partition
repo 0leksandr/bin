@@ -1,0 +1,12 @@
+#!/bin/sh
+# $1 partition $2 directory
+# https://www.howtogeek.com/116742/how-to-create-a-separate-home-partition-after-installing-ubuntu/
+
+# sudo blkid |grep "$1"
+# sudo blkid |grep -E -o "LABEL=\"$1\" UUID=\"([^\"]+)\""
+# sudo blkid |grep "$1" |awk '/UUID="([^"]+)"/{print $1}'
+uuid=`sudo blkid |gawk "{ if (match(\\$0,/LABEL=\\"$1\\" UUID=\\"([^\\"]+)\\"/,m)) print m[1] }"`
+# sudo blkid |awk "match(\$0, /UUID/) { print substr(\$0, RSTART, RLENGTH) }"
+
+sudo cp /etc/fstab /etc/fstab.backup && \
+sudo sh -c "echo \"UUID=$uuid     $2     ext4     nodev,nosuid     0     2\" >> /etc/fstab"

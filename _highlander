@@ -15,11 +15,11 @@ while true; do
     fi
 
     if [ "$parent" = "0" ]; then
-        alert "parent $parent"
+        alert "parent 0 $parent"
         break
     fi
     if ! echo "$parent" | egrep -q '^[0-9]+$'; then
-        alert "parent $parent"
+        alert "parent not nr $parent"
         break
     fi
 done

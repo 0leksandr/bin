@@ -1,1 +1,6 @@
-../vendor/windows/AIMP2/aimp2.sh
+#!/bin/bash
+path=$1
+path=${path/#\/mnt\/Data\//D:\/}
+path=${path/#\//Z:\/}
+wine ~/_/Programs/vendor/windows/AIMP2/AIMP2.exe "$path"
+# sh -c "cd $HOME/_/Programs/vendor/windows/AIMP2/ && wine AIMP2.exe"

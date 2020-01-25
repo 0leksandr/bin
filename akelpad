@@ -1,1 +1,2 @@
-../vendor/windows/AkelPad/akelpad.sh
+#!/bin/sh
+openwine ~/_/Programs/vendor/windows/AkelPad/AkelPad.exe "$1" ~/_/Programs/.wine2

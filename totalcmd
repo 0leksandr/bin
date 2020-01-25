@@ -1,1 +1,2 @@
-../vendor/windows/Total_Commander/totalcmd.sh
+#!/bin/sh
+cd ~/_/Programs/vendor/windows/Total_Commander/ && LANG=uk_UA.UTF-8 wine "Podarok Edition.exe"

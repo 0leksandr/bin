@@ -1,0 +1,16 @@
+#!/bin/sh
+dir_from=~/_/Programs/backups/etc_apt_sources.list.d
+dir_to=/etc/apt/sources.list.d
+
+sed -i -r 's/xenial/bionic/' $dir_from/*
+sed -i -r 's/sylvia/tina/' $dir_from/*
+sudo cp $dir_from/* $dir_to/
+sudo chown root:root $dir_to/*
+
+# reg="^(# )?deb(-src)? (\[[^]]+\] )?(https?:\/\/[^ ]+).+$"
+# repos=$(cat $dir_from/* |grep -E "$reg")
+# while read line; do
+#     echo $line
+#     ppa=$(echo "$line" |sed -r "s/$reg/\4/")
+#     echo $ppa
+# done <<< "$repos"

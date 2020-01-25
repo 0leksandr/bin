@@ -1,1 +1,3 @@
-../vendor/windows/Picasa3/picasaphotoviewer.sh
+#!/bin/sh
+notify-send "$@"
+openwine /home/nezhraba/Programs/vendor/windows/Picasa3/PicasaPhotoViewer.exe "$1"

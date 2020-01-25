@@ -1,0 +1,3 @@
+#!/bin/sh
+cd ~/Programs/wine-3.0/ && ./wine "$@"
+exit 0

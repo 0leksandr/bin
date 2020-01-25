@@ -1,0 +1,7 @@
+#!/bin/sh
+profile=$1
+if [ ! $profile ]; then
+    profile=8
+fi
+cd ~/Programs/vpn/Free-OpenVPN-Connect-SCRIPT-for-Linux-1.1.1/ && ./FreeVPNconnect.sh $profile
+exit 0

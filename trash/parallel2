@@ -1,0 +1,14 @@
+#!/bin/bash
+
+LIST2KILL=""
+LIST2WAIT=""
+for cmd in "$@"; do {
+  eval "$cmd" & pid=$!
+  LIST2WAIT+=" $pid"
+  LIST2KILL+="$pid,";
+} done
+LIST2KILL=${LIST2KILL:0:-1}
+
+trap "pkill --parent $LIST2KILL" SIGINT
+
+wait $LIST2WAIT

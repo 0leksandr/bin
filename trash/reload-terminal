@@ -1,0 +1,6 @@
+#!/bin/sh
+# exec bash
+# source ~/.bashrc
+# . ~/.bashrc
+# gnome-shell --replace
+exit 0 && bash

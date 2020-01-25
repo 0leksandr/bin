@@ -1,0 +1,17 @@
+#!/bin/sh
+program="$1"
+path="$2"
+
+if [ "$path" != "" ]; then
+    if [ `expr index "$path" /` = 0 ]; then
+        filename=$path
+    else
+        filename=`expr "$path" : '.*/\([^/]*\)'`
+        dirLen=$(( `expr length "$path"` - `expr length "$filename"` - 1 ))
+        cd `expr substr "$path" 1 "$dirLen"`
+    fi
+fi
+
+"$program" "$filename"
+
+exit 0
