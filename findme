@@ -1,2 +1,3 @@
 #!/bin/sh
-find "$(_path 2 $@)" -iname "*$1*" -exec ls -1dp {} + |grep -i --color=auto "$1"
+gp=$(echo "$1" |sed -r 's/\*/.*/g')
+find "$(_path 2 $@)" -iname "*$1*" -exec ls -dp {} \; |grep -i --color=auto "$gp"
