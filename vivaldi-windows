@@ -2,8 +2,5 @@
 list="$HOME/.temp/$(basename $0).txt"
 case "$1" in
 save) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([^ ]+) +machine (.*)$/\1 \2/' > "$list" ;;
-move) cat "$list" |sed -r 's/^([^ ]+) (.*)$/wmctrl -F -r "\2" -t \1/' |awk '{system($0)}'
-    # |xargs sh -c
-    # |awk '{system("echo $0" + $0)}'
-    ;;
+move) cat "$list" |sed -r 's/^([^ ]+) (.*)$/wmctrl -F -r "\2" -t \1/' |awk '{system($0)}' ;;
 esac
