@@ -1,7 +1,2 @@
 #!/bin/sh
-if [ $1 ]; then
-    path=$1
-else
-    path="."
-fi
-find "$path" -xtype l -exec ls -la --color=auto {} \;
+find "$(_path 1 $@)" -xtype l -exec ls -la --color=auto {} \;

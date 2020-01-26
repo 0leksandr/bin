@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 if [ "$1" = "-f" ]; then
-    /bin/rm -rf "$2"
+    /bin/rm -rf "${@:2}"
 else
     trash "$@"
 fi

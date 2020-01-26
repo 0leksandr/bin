@@ -2,7 +2,7 @@
 git add .
 # git add -u
 # git add -u -- .
-git commit -a -m "$1"
+git commit -a -m "$@"
 printf "\n"
 
 if [ "$(git remote -v)" ]; then
