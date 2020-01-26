@@ -1,0 +1,11 @@
+Some scripts:
+- `beep`: simple sound alert
+- `brightness`: change screen brightness with `redshift`
+- `connected7`: primitive check for having Internet access
+- `copy`: execute command and copy its result to clipboard
+- `ejectusb`: disconnect all USB devices
+- `find-broken-links`, `find-broken-videos`: quite useful
+- `gcln`, `gcm`, `gpsh`, `grmtadd`, `gst`: short and slightly improved versions of common `git` commands
+- `_highlander`: "there can be only one" instance of a script
+- `parallel`: run multiple commands in parallel
+- `sizes`: list sizes of all files/directories in a directory

@@ -1,21 +1,13 @@
 #!/bin/sh
 _highlander
 
-# if [ $# -le 1 ]; then
-#     pkill light-my
-# fi
-
 # pkill redshift
 # sleep 2
 # nohup redshift -l 50:30 -t 6500K:3100K -b $1 &>/dev/null &
 # exit 0
 
 if [ $# -le 1 ]; then
- # echo "launching bg"
     $($0 $@ background) &
- # echo "sleeping"
- # sleep 10
- # echo "done sleeping"
 else
     while true; do
         redshift -o -l 50:30 -t 6500K:3100K -b $1

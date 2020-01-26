@@ -1,12 +1,12 @@
 #!/bin/sh
-LIST2KILL=""
-LIST2WAIT=""
+list2kill=""
+list2wait=""
 for cmd in "$@"; do {
   eval "$cmd" & pid=$!
-  LIST2WAIT="$LIST2WAIT $pid"
-  LIST2KILL="$LIST2KILL pkill -P $pid;"
+  list2wait="$list2wait $pid"
+  list2kill="$list2kill pkill -P $pid;"
 } done
 
-trap "$LIST2KILL" INT TERM
+trap "$list2kill" INT TERM
 
-wait $LIST2WAIT
+wait $list2wait
