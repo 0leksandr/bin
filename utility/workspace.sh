@@ -1,4 +1,7 @@
 #!/bin/bash
+wmctrl -n 10
+exit
+
 gsettings set org.cinnamon.desktop.wm.preferences num-workspaces $(calc $(gsettings get org.cinnamon.desktop.wm.preferences num-workspaces) - 1)
 exit 0
 
