@@ -1,14 +1,14 @@
 #!/bin/sh
 #kill other instances of the script
-# procname=$(basename "$0")
-procname=$(ps -o comm= $PPID)
-this_pid=$(pgrep -n "$procname")
-# pgrep -x "$procname" |grep -v "$this_pid" |xargs -r kill
 
+procname=$(ps -o comm= $PPID)
+# procname=$(realpath "$procname")
+this_pid=$(pgrep -n -x "$procname")
 procs=$(pgrep -x "$procname" |grep -v -x "$this_pid")
 parent=$this_pid
 while true; do
     parent=$(ps -o ppid= -p $parent)
+    parent=$(echo "$parent" |sed -r 's/^ +//' |sed -r 's/ +$//') # trim whitespaces
     procs=$(echo "$procs" |grep -v -x "$parent")
     if [ "$parent" = "1" ]; then
         break
@@ -19,10 +19,8 @@ while true; do
         break
     fi
     if ! echo "$parent" | egrep -q '^[0-9]+$'; then
-        alert "parent not nr $parent"
+        alert "parent is not a nr: [$parent]"
         break
     fi
 done
- # echo "highlander procs: $procs"
- # alert "highlander procs: $procs"
 $(echo "$procs" |xargs -r kill)

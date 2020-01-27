@@ -1,6 +1,7 @@
 #!/bin/sh
 list="$HOME/.temp/$(basename $0).txt"
 case "$1" in
-save) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([^ ]+) +machine (.*)$/\1 \2/' > "$list" ;;
-move) cat "$list" |sed -r 's/^([^ ]+) (.*)$/wmctrl -F -r "\2" -t \1/' |awk '{system($0)}' ;;
+save) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' > "$list" ;;
+move) cat "$list" |sed -r 's/^([0-9]+) (.*)$/wmctrl -F -r "\2" -t \1/' |awk '{system($0)}' ;;
+*) echo "options: save, move"
 esac
