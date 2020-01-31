@@ -4,3 +4,5 @@
 
 git remote add origin "git@github.com:0leksandr/$1.git"
 git remote set-branches --add origin master
+
+gpsh
