@@ -1,4 +1,4 @@
 #!/bin/sh
 # gp=$(echo "$1" |sed -r 's/\*/.*/g')
 # find "$(_path 2 $@)" -iname "*$1*" -exec ls -dp {} \; |grep -i --color=auto "$gp"
-find "$(_path 2 $@)" -regextype awk -iregex ".*($1)[^/]*" -exec ls -dp {} \; |grep -iE --color=auto "$1"
+find $(_path 2 "$@") -regextype awk -iregex ".*($1)[^/]*" -exec ls -dp {} \; |grep -iE --color=auto "$1"
