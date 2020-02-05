@@ -1,17 +1,41 @@
 #!/bin/sh
-list="$HOME/.temp/$(basename $0).txt"
+file="$HOME/.temp/$(basename $0).txt"
+pattern="^([0-9]+) (.*)\$"
 case "$1" in
-save) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' > "$list" ;;
-move)
-    # cat "$list" |sed -r 's/'\''/'\''\\'\'''\''/' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
-    cat "$list" |while read line; do
-        # line=$(echo "$line" |sed -r 's/'\''/'\''\\'\'''\''/')
-        pattern="^([0-9]+) (.*)\$"
-        workspace=$(echo "$line" |sed -r "s/$pattern/\\1/")
-        window=$(echo "$line" |sed -r "s/$pattern/\\2/")
-        wmctrl -Fr "$window" -t $workspace
-        wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
-    done
-    ;;
-*) echo "options: save, move"
+    list) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' |sort ;;
+    save)
+        list=$($0 list)
+        if [ "$list" ]; then
+            echo "$list" > "$file"
+        fi
+        ;;
+    move)
+        # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
+        cat "$file" |while read line; do
+            # line=$(echo "$line" |sed -r 's/'\''/'\''\\'\'''\''/')
+            workspace=$(echo "$line" |sed -r "s/$pattern/\\1/")
+            window=$(echo "$line" |sed -r "s/$pattern/\\2/")
+            wmctrl -Fr "$window" -t $workspace
+            wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
+        done
+        ;;
+    listen)
+        _highlander
+        while true; do
+            t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
+            t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
+            if [ "$t1" = "$t2" ]; then
+                sleep 5
+echo "moving"
+                eval "$0 move"
+                break
+            fi
+            sleep 1
+        done
+        while true; do
+            sleep 15
+            eval "$0 save"
+        done
+        ;;
+    *) echo "options: save move listen"
 esac
