@@ -35,6 +35,9 @@ case "$1" in
         fi
         while true; do
             sleep 15
+            if [ ! "$($0 list)" ]; then
+                break
+            fi
             eval "$0 save"
         done
         ;;
