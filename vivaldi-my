@@ -1,2 +1,2 @@
 #!/bin/sh
-parallel "vivaldi-snapshot > /dev/null" "vivaldi-windows listen"
+parallel "vivaldi-snapshot" "vivaldi-windows listen"

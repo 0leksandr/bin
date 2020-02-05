@@ -21,17 +21,18 @@ case "$1" in
         ;;
     listen)
         _highlander
-        while true; do
-            t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
-            t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
-            if [ "$t1" = "$t2" ]; then
-                sleep 5
-echo "moving"
-                eval "$0 move"
-                break
-            fi
-            sleep 1
-        done
+        if [ ! "$($0 list)" ]; then
+            while true; do
+                t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
+                t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
+                if [ "$t1" = "$t2" ]; then
+                    sleep 5
+                    eval "$0 move"
+                    break
+                fi
+                sleep 1
+            done
+        fi
         while true; do
             sleep 15
             eval "$0 save"
