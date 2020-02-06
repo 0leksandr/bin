@@ -2,6 +2,17 @@
 file="$HOME/.temp/$(basename $0).txt"
 pattern="^([0-9]+) (.*)\$"
 case "$1" in
+    # test)
+    #     t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
+    #     echo "$t2"; hr
+    #     echo "$($0 list |sed -r 's/^([0-9]+) (.*)\\\\$/test/' |sort)"; hr
+    #     echo "$0 list |sed -r 's/$pattern/\\\\2/' |sort"; hr
+    #     if [ "$($0 list |sed -r 's/$pattern/\\\\2/' |sort)" = "$t2" ]; then
+    #         echo "equal"
+    #     else
+    #         echo "not equal"
+    #     fi
+    #     ;;
     list) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' |sort ;;
     save)
         list=$($0 list)
@@ -12,7 +23,6 @@ case "$1" in
     move)
         # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
         cat "$file" |while read line; do
-            # line=$(echo "$line" |sed -r 's/'\''/'\''\\'\'''\''/')
             workspace=$(echo "$line" |sed -r "s/$pattern/\\1/")
             window=$(echo "$line" |sed -r "s/$pattern/\\2/")
             wmctrl -Fr "$window" -t $workspace
@@ -26,7 +36,7 @@ case "$1" in
                 t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
                 if [ "$t1" = "$t2" ]; then
-                    sleep 5
+                    sleep 3
                     eval "$0 move"
                     break
                 fi
