@@ -2,26 +2,10 @@
 file="$HOME/.temp/$(basename $0).txt"
 pattern="^([0-9]+) (.*)\$"
 case "$1" in
-    # test)
-    #     t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
-    #     echo "$t2"; hr
-    #     echo "$($0 list |sed -r 's/^([0-9]+) (.*)\\\\$/test/' |sort)"; hr
-    #     echo "$0 list |sed -r 's/$pattern/\\\\2/' |sort"; hr
-    #     if [ "$($0 list |sed -r 's/$pattern/\\\\2/' |sort)" = "$t2" ]; then
-    #         echo "equal"
-    #     else
-    #         echo "not equal"
-    #     fi
-    #     ;;
     list) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' |sort ;;
-    save)
-        list=$($0 list)
-        if [ "$list" ]; then
-            echo "$list" > "$file"
-        fi
-        ;;
+    save) eval "$0 list" > "$file" ;;
     move)
-        # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
+        # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
         cat "$file" |while read line; do
             workspace=$(echo "$line" |sed -r "s/$pattern/\\1/")
             window=$(echo "$line" |sed -r "s/$pattern/\\2/")
@@ -32,19 +16,21 @@ case "$1" in
     listen)
         _highlander
         if [ ! "$($0 list)" ]; then
-            while true; do
+            i=0
+            while [ $i -lt 15 ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
                 if [ "$t1" = "$t2" ]; then
                     sleep 3
-                    eval "$0 move"
                     break
                 fi
                 sleep 1
+                i=$(calc -p -- "$i + 1")
             done
+            eval "$0 move"
         fi
         while true; do
-            sleep 15
+            sleep 5
             if [ ! "$($0 list)" ]; then
                 break
             fi

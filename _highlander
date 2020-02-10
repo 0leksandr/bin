@@ -1,5 +1,5 @@
 #!/bin/sh
-#kill other instances of the script
+# kill other instances of the script
 
 procname=$(ps -o comm= $PPID)
 # procname=$(realpath "$procname")
@@ -15,7 +15,7 @@ while true; do
     fi
 
     if [ "$parent" = "0" ]; then
-        alert "parent 0 $parent"
+        alert "parent = 0"
         break
     fi
     if ! echo "$parent" | egrep -q '^[0-9]+$'; then

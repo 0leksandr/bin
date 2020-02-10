@@ -1,2 +1,3 @@
 #!/bin/sh
-sudo chown -R $USER:$GROUPS $@
+# sudo chown -R $USER:$GROUPS $@
+sudo chown -R $USER:$USER $(_path 1 "$@")

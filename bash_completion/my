@@ -1,6 +1,11 @@
 _my_commands()
 {
-    local PATH=$HOME/_/Programs/bin
-    _command_offset 1
+    if [ $SHELL = $(which bash) ]; then
+        local PATH=$HOME/_/Programs/bin
+        _command_offset 1
+    fi
+    if [ $SHELL = $(which zsh) ]; then
+        COMPREPLY=( $(compgen -c) )
+    fi
 } &&
 complete -F _my_commands copy dt dtb parallel proc rdt rdtb rdtbo tb whatsin

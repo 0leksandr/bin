@@ -1,0 +1,3 @@
+#!/bin/sh
+git config remote.origin.url $(git config remote.origin.url |sed -r 's https://github\.com/(.*) git@github.com:\1 ')
+find . -type d -name \.git |grep -Ev '^\./\.git$' # |xargs -r -- rm

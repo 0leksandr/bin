@@ -1,2 +1,3 @@
 #!/bin/sh
 docker system prune --force --volumes
+docker images --all |grep -E '^<none> +<none>' |awk '{print $3}' |xargs -r -- docker rmi --force

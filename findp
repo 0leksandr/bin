@@ -1,4 +1,4 @@
 #!/bin/sh
 # find "$@" -printf '%P\n'
 # find "$@" | cut -c3-
-find "$@" |sed -r 's/^\.\///'
+find "$@" |sed -r 's|^\./||'

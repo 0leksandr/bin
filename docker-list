@@ -5,6 +5,6 @@ eval "$command"
 
 printf "\n"
 
-command="docker images"
+command="docker images --all"
 echo "$command"
 eval "$command"
