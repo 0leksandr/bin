@@ -2,7 +2,12 @@
 
 # git remote add -m origin "https://github.com/0leksandr/$1.git"
 
-git remote add origin "git@github.com:0leksandr/$1.git"
+remote="$1"
+if [ "$remote" = "" ]; then
+    remote=$(pwd |sed -r 's ^.*/([^/]+)$ \1 ')
+fi
+
+git remote add origin "git@github.com:0leksandr/$remote.git"
 git remote set-branches --add origin master
 
 gpsh
