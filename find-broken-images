@@ -1,5 +1,5 @@
 #!/bin/sh
-findcommand='find . -maxdepth 1 -not -path . -type f'
+findcommand='find . -not -path . -type f'
 nrfiles=$(eval "$findcommand"| wc -l)
 ii=0
 eval "$findcommand" |while read fname; do
