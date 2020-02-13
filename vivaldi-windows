@@ -3,7 +3,7 @@ file="$HOME/.temp/$(basename $0).txt"
 pattern="^([0-9]+) (.*)\$"
 case "$1" in
     list) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' |sort ;;
-    save) eval "$0 list" > "$file" ;;
+    save) $0 list > "$file" ;;
     move)
         # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
         cat "$file" |while read line; do
@@ -27,14 +27,18 @@ case "$1" in
                 sleep 1
                 i=$(calc -p -- "$i + 1")
             done
-            eval "$0 move"
+            $0 move
         fi
+        prev=0
         while true; do
             sleep 5
             if [ ! "$($0 list)" ]; then
                 break
             fi
-            eval "$0 save"
+            if [ "$($0 list |wc -l)" -ge $prev ]; then
+                $0 save
+            fi
+            prev="$($0 list |wc -l)"
         done
         ;;
     *) echo "options: save move listen"
