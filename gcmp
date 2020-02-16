@@ -1,0 +1,10 @@
+#!/bin/sh
+_gcm "$@"
+printf "\n"
+
+if [ "$(git remote -v)" ]; then
+    gpsh
+fi
+printf "\n"
+
+gst

@@ -1,13 +1,5 @@
 #!/bin/sh
-git add .
-# git add -u
-# git add -u -- .
-git commit -a -m "$@"
-printf "\n"
-
-if [ "$(git remote -v)" ]; then
-    gpsh
-fi
+_gcm "$@"
 printf "\n"
 
 gst
