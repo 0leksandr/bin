@@ -1,2 +1,3 @@
 #!/bin/sh
-git diff --cached
+# git diff --cached
+git diff HEAD

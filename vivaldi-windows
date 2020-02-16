@@ -27,6 +27,7 @@ case "$1" in
                 t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
                 if [ "$t1" = "$t2" ]; then
+alert "equal|i[$i]"
                     sleep 3
                     break
                 fi
