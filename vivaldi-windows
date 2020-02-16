@@ -3,6 +3,12 @@ file="$HOME/.temp/$(basename $0).txt"
 pattern="^([0-9]+) (.*)\$"
 case "$1" in
     list) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' |sort ;;
+    full)
+        $0 list |while read line; do
+            window=$(echo "$line" |sed -r "s/$pattern/\\2/")
+            wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
+        done
+        ;;
     save) $0 list > "$file" ;;
     move)
         # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
@@ -10,7 +16,7 @@ case "$1" in
             workspace=$(echo "$line" |sed -r "s/$pattern/\\1/")
             window=$(echo "$line" |sed -r "s/$pattern/\\2/")
             wmctrl -Fr "$window" -t $workspace
-            wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
+            # wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
         done
         ;;
     listen)
@@ -29,6 +35,10 @@ case "$1" in
             done
             $0 move
         fi
+
+        sleep 2
+        $0 full
+
         prev=0
         while true; do
             sleep 5
@@ -41,5 +51,5 @@ case "$1" in
             prev="$($0 list |wc -l)"
         done
         ;;
-    *) echo "options: save move listen"
+    *) echo "options: list full save move listen"
 esac
