@@ -1,22 +1,23 @@
 #!/bin/sh
 file="$HOME/.temp/$(basename $0).txt"
-pattern="^([0-9]+) (.*)\$"
+pattern="^([^ ]+) ([0-9]+) (.*)\$"
 case "$1" in
-    list) wmctrl -l |grep Vivaldi |sed -r 's/^0x\w+ +-?([0-9]+) +machine (.*)$/\1 \2/' |sort ;;
+    list) wmctrl -l |grep Vivaldi |sed -r 's/^(0x\w+) +-?([0-9]+) +machine (.*)$/\1 \2 \3/' |sort ;;
     full)
         $0 list |while read line; do
-            window=$(echo "$line" |sed -r "s/$pattern/\\2/")
-            wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
+            id=$(echo "$line" |sed -r "s/$pattern/\\1/")
+            if ! [ "$(xprop -id "$id" |grep '_NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT')" ]; then
+                wmctrl -i -r "$id" -b add,maximized_vert,maximized_horz
+            fi
         done
         ;;
     save) $0 list > "$file" ;;
     move)
-        # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -Fr '\''\2'\'' -t \1/' |awk '{system($0)}'
+        # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -F -r '\''\2'\'' -t \1/' |awk '{system($0)}'
         cat "$file" |while read line; do
-            workspace=$(echo "$line" |sed -r "s/$pattern/\\1/")
-            window=$(echo "$line" |sed -r "s/$pattern/\\2/")
-            wmctrl -Fr "$window" -t $workspace
-            # wmctrl -Fr "$window" -b add,maximized_vert,maximized_horz
+            workspace=$(echo "$line" |sed -r "s/$pattern/\\2/")
+            window=$(echo "$line" |sed -r "s/$pattern/\\3/")
+            wmctrl -F -r "$window" -t $workspace
         done
         ;;
     listen)
@@ -24,8 +25,8 @@ case "$1" in
         if [ ! "$($0 list)" ]; then
             i=0
             while [ $i -lt 15 ]; do
-                t1=$($0 list |sed -r "s/$pattern/\\2/" |sort)
-                t2=$(cat "$file" |sed -r "s/$pattern/\\2/" |sort)
+                t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
+                t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
 alert "equal|i[$i]"
                     sleep 3
