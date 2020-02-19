@@ -2,8 +2,6 @@
 reset                                                    && \
 date-ft                                                  && \
 dir="/media/$USER/Hard Disk Drive/Backup"                && \
-
-test; if [ 1 -eq 2 ]; then
                                                             \
 dirl="$dir/L"                                            && \
 mkdir -p "$dirl"                                         && \
@@ -24,6 +22,7 @@ sudo r-sync                                                 \
     --exclude=/tmp/                                         \
     / "$dirl"                                            && \
 date-ft                                                  && \
+hr                                                       && \
                                                             \
 dir_="$dir/_"                                            && \
 mkdir -p "$dir_"                                         && \
@@ -33,17 +32,20 @@ r-sync                                                      \
     --exclude=/Фільми/                                      \
     --exclude=/Programs/backups/                            \
     --exclude=/Programs/vendor/clion*                       \
+    --exclude=/Programs/vendor/GoLand*                      \
     --exclude=/Programs/vendor/PhpStorm*                    \
     --exclude=/Programs/vendor/pycharm*                     \
+  --exclude=/localhost/worms1d/var/mongo/ \
+  --exclude=/localhost/symfony-test/test4/var/mysql/ \
     /home/$USER/_/ "$dir_"                               && \
 date-ft                                                  && \
-
-test; fi
+hr                                                       && \
                                                             \
 dir1="$dir/1"                                            && \
 mkdir -p "$dir1"                                         && \
 r-sync /home/$USER/_/1/ "$dir1"                          && \
-date-ft                                                  && \
                                                             \
-beep                                                     && \
-exit 0
+test
+date-ft
+
+beep
