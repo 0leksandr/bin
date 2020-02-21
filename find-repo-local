@@ -1,3 +1,4 @@
 #!/bin/sh
 # cat /etc/apt/sources.list /etc/apt/sources.list.d/* |grep "^[^#].*$1"
-findtext "^[^#].*$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
+# findtext "^[^#].*$1" /etc/apt/sources.list /etc/apt/sources.list.d/*
+findtext "$1" /etc/apt/sources.list /etc/apt/sources.list.d/*

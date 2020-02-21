@@ -1,0 +1,2 @@
+#!/bin/sh
+find . -type f -exec stat --printf="$1 " {} \; -exec echo {} \;

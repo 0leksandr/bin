@@ -1,0 +1,2 @@
+#!/bin/sh
+_find-files "%x" |sort -r |head $@
