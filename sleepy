@@ -2,6 +2,12 @@
 
 _highlander
 
+if [ "$1" != "background" ]; then
+    $0 background "$@" &
+    exit
+fi
+set -- "${@:2}"
+
 file="$HOME/_/Programs/text@nezhraba/text.txt"
 
 #define shutdown time

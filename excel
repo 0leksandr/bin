@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # bash /home/oleksandr/Programs/wps-office_10.1.0.5707~a21_x86_64/et "$1"
-/usr/bin/et "$1"
-exit 0
+# /usr/bin/et "$1"
+openwine "/home/nezhraba/.wine/drive_c/Program Files/Microsoft Office/Office12/EXCEL.EXE" "$1"
