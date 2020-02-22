@@ -1,2 +1,2 @@
 #!/bin/sh
-gsettings get org.cinnamon.desktop.background picture-uri
+gsettings get org.cinnamon.desktop.background picture-uri |sed -r "s ^'file://(.*)'$ \1 "
