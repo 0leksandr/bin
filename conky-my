@@ -1,6 +1,7 @@
 #!/bin/sh
-# /usr/bin/conky -c ~/.conky/Conky_Arc_Light/.conkyrc
 parallel \
     "/usr/bin/conky -c ~/.conky/Conky_Arc_Light/.conkyrc" \
     "/usr/bin/conky -c ~/.conky/greenish/config/greenish"
-# /usr/bin/conky -c conkyrc_seamod/conkyrc_seamod
+# /usr/bin/conky -c ~/.conky/conkyrc_seamod/conkyrc_seamod
+# /usr/bin/conky -c ~/.conky/lsd-conky/.conkyrc
+# /usr/bin/conky -c ~/.conky/InfinitySVG/.conkyrc
