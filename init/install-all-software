@@ -1,6 +1,6 @@
 #!/bin/bash
 # $1 apt-list-installed.log
-if [ ! $1 ]; then
+if [ ! "$1" ]; then
     echo "no apt-list-installed.log provided"
     exit 1
 fi
@@ -26,7 +26,7 @@ $package/"
         continue
     fi
 
-    echo $package                                      |tee -a $log
-    sudo apt-get install -y $package                   |tee -a $log
-    printf "\n\n"                                      |tee -a $log
+    echo $package                    |tee -a $log
+    sudo apt-get install -y $package |tee -a $log
+    printf "\n\n"                    |tee -a $log
 done <$1

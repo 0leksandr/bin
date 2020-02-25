@@ -1,2 +1,4 @@
 #!/bin/sh
-find $(_path 2 "$@") \( -type d -name .git -prune \) -o -type f -print0 | xargs -0 sed -i -r "s$1g"
+from=$(echo "$1" |sed -r 's / \\/ ')
+to=$(echo "$2" |sed -r 's / \\/ ')
+find $(_path 3 "$@") \( -type d -name .git -prune \) -o -type f -print0 | xargs -0 sed -i -r "s/$from/$to/g"

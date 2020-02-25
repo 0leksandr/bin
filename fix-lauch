@@ -1,7 +1,0 @@
-#!/bin/sh
-
-pkill -i telegram
-telegram &
-
-pkill -i skype
-skypeforlinux &
