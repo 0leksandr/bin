@@ -1,4 +1,12 @@
 #!/bin/sh
+if [ $# -eq 1 ]; then
+    # eval "$0 $(echo "$1" |awk 'NF > 0' |sed -r "s ' \\\' g" |sed -r "s ^.*\$ \'\\0\' " |tr '\n' ' ')"
+    commands="$(echo "$1" |awk 'NF > 0' |sed -r "s ' \\\' g" |sed -r "s ^.*\$ \'\\0\' ")"
+    if [ $(echo "$commands" |wc -l) -gt 1 ]; then
+        eval "$0 $(echo "$commands" |tr '\n' ' ')"
+        exit 0
+    fi
+fi
 
 list2kill=""
 list2wait=""
