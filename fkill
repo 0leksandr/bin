@@ -1,2 +1,19 @@
 #!/bin/sh
-proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/' |xargs -r -- kill -9
+
+# proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/' |xargs -r -- kill -9
+
+if echo "$1" | egrep -q '^[0-9]+$'; then
+    pid="$1"
+else
+    pid=$(proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
+fi
+children=$(pgrep -P $pid)
+if [ "$children" ]; then
+    # echo $children |xargs -- $0
+    echo "$children" |while read child; do
+        $0 $child
+    done
+fi
+if ps -p $pid > /dev/null; then
+    kill -9 $pid
+fi

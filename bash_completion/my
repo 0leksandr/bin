@@ -8,4 +8,4 @@ _my_commands()
         COMPREPLY=( $(compgen -c) )
     fi
 } &&
-complete -F _my_commands copy parallel proc whatsin restart  dt dtb rdt rdtb rdtbo tb
+complete -F _my_commands copy fkill parallel proc restart whatsin  dt dtb rdt rdtb rdtbo tb

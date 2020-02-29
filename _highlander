@@ -8,7 +8,7 @@ procs=$(pgrep -x "$procname" |grep -v -x "$this_pid")
 parent=$this_pid
 while true; do
     parent=$(ps -o ppid= -p $parent)
-    parent=$(echo "$parent" |sed -r 's/^ +//' |sed -r 's/ +$//') # trim whitespaces
+    parent=$(echo "$parent" |sed -r 's/(^ +)|( +$)//g') # trim whitespaces
     procs=$(echo "$procs" |grep -v -x "$parent")
     if [ "$parent" = "1" ]; then
         break
