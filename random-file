@@ -4,7 +4,7 @@ if [ $# -ge 1 ]; then
     if [ "$1" = "-here" ] || [ "$1" = "-h" ]; then
         opts="-maxdepth 1"
     else
-        opts="-iname '*$1*'"
+        opts="-regextype awk -iregex '.*$1.*'"
     fi
 fi
 
