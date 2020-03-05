@@ -24,7 +24,7 @@ case "$1" in
         _highlander
         if [ ! "$($0 list)" ]; then
             i=0
-            while [ $i -lt 20 ]; do
+            while [ $i -lt 30 ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
