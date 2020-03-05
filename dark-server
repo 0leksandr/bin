@@ -1,2 +1,0 @@
-#!/bin/sh
-http-server ~/MEGAsync/browser\ extensions/darkreader/ -a 127.0.0.1 -p 9473

@@ -35,7 +35,7 @@ if [ "$all_or_nothing" ]; then
     # bash -c "wait -n"
     while true; do
         for pid in $list2wait; do
-#            if ! ps --pid="$pid" > /dev/null; then
+            # if ! ps --pid="$pid" > /dev/null; then
             if ! ps |grep -E -q "^ *$pid "; then
                 eval "$list2kill"
                 exit 1

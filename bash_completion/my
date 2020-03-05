@@ -1,4 +1,4 @@
-_my_commands()
+_complete_full()
 {
     if [ $SHELL = $(which bash) ]; then
         local PATH=$HOME/_/Programs/bin
@@ -8,4 +8,12 @@ _my_commands()
         COMPREPLY=( $(compgen -c) )
     fi
 } &&
-complete -F _my_commands copy fkill parallel proc restart whatsin  dt dtb rdt rdtb rdtbo tb
+complete -F _complete_full copy fkill parallel proc restart whatsin  dt dtb rdt rdtb rdtbo tb
+
+
+_complete_by_options() {
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    list=$(${COMP_WORDS[0]} help |sed -r 's/Options: (.*)/\1/')
+    COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
+}
+complete -F _complete_by_options light-my vivaldi-windows

@@ -52,5 +52,5 @@ case "$1" in
             prev="$($0 list |wc -l)"
         done
         ;;
-    *) echo "options: list full save move listen"
+    *) echo "Options: list full save move listen"
 esac

@@ -1,5 +1,5 @@
 #!/bin/sh
-parallel "
+parallel -n "
     /usr/bin/conky -c ~/_/Programs/vendor/conky/Conky_Arc_Light/.conkyrc
     /usr/bin/conky -c ~/_/Programs/vendor/conky/greenish/config/greenish
     # /usr/bin/conky -c ~/_/Programs/vendor/conky/InfinitySVG/.conkyrc

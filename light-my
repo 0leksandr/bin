@@ -1,6 +1,80 @@
 #!/bin/sh
 late="21:15"
 early="05:00"
+# daytime_file="$(echo "~/MEGAsync/browser extensions/darkreader/index.html" |sed -r 's| |\\ |g')"
+daytime_file="$(realpath ~/MEGAsync/browser\ extensions/darkreader/index.html)"
+
+case "$1" in
+    day|night) echo "$1" > "$daytime_file" ;;
+    update)
+        prev=""
+        while true; do
+            now=$(date +%s)
+            if [ $now -ge $(date -d $late +%s) ] || [ $now -le $(date -d $early +%s) ]; then
+                daytime="night"
+            else
+                daytime="day"
+            fi
+
+            if [ "$daytime" != "$prev" ]; then
+                prev="$daytime"
+                echo "$daytime" > "$daytime_file"
+            fi
+
+            sleep 1
+        done
+        ;;
+    server)
+        # http-server ~/MEGAsync/browser\ extensions/darkreader/ -a 127.0.0.1 -p 9473
+        # http-server "$(dirname "$daytime_file")/" -a 127.0.0.1 -p 9473
+        eval "http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473"
+        # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473
+        ;;
+    main)
+        prev=""
+        while true; do
+            daytime=$(cat "$daytime_file")
+            if [ "$daytime" != "$prev" ]; then
+                if [ "$daytime" = "night" ]; then
+                    brightness 0.5
+                    prev_dt="day"
+                else
+                    brightness 1.0
+                    prev_dt="night"
+                fi
+
+                bgs_file="$HOME/.temp/backgrounds.txt"
+                touch "$bgs_file"
+                # save cur bg
+                if [ "$prev" != "" ]; then
+                    sed -i "/^$prev_dt:.*\$/d" "$bgs_file"
+                    echo "$prev_dt: $(get-background)" >> "$bgs_file"
+                fi
+                # set bg for current time-of-day
+                bg="$(cat "$bgs_file" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
+                if [ "$bg" ]; then
+                    set-background "$bg"
+                fi
+
+                prev="$daytime"
+            fi
+            sleep 1
+        done
+        ;;
+    all)
+        parallel -n "
+            $0 update
+            $0 server
+            $0 main
+        "
+        ;;
+    *)
+        # echo "Options: day night update server main"
+        echo "Options: day night"
+        ;;
+esac
+
+exit 0
 
 current=""
 prev=""
@@ -18,18 +92,19 @@ while true; do
 
     if [ "$current" != "$prev" ]; then
         brightness "$current"
+        echo $daytime > "$daytime_file"
 
-        filename="$HOME/.temp/backgrounds.txt"
-        touch "$filename"
+        bgs_file="$HOME/.temp/backgrounds.txt"
+        touch "$bgs_file"
 
         # save cur bg
         if [ "$prev" != "" ]; then
-            sed -i "/^$prev_dt:.*\$/d" "$filename"
-            echo "$prev_dt: $(get-background)" >> "$filename"
+            sed -i "/^$prev_dt:.*\$/d" "$bgs_file"
+            echo "$prev_dt: $(get-background)" >> "$bgs_file"
         fi
 
         # set new bg
-        bg="$(cat "$filename" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
+        bg="$(cat "$bgs_file" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
         if [ "$bg" ]; then
             set-background "$bg"
         fi
