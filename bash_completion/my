@@ -16,4 +16,4 @@ _complete_by_options() {
     list=$(${COMP_WORDS[0]} help |sed -r 's/Options: (.*)/\1/')
     COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
 }
-complete -F _complete_by_options light-my vivaldi-windows
+complete -F _complete_by_options light-mode vivaldi-windows

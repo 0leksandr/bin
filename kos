@@ -1,2 +1,3 @@
 #!/bin/sh
+sleep 15
 wine $HOME/_/Programs/other/Games/sol.exe
