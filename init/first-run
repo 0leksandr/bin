@@ -1,9 +1,4 @@
 #!/bin/sh
-# echo "PATH=\"\$HOME/_/Programs/bin:\$PATH\"" >> ~/.profile
-echo "\n\n. \"`realpath ../../profile`\"" >> ~/.profile
-
-# cat ../bashrc >> ~/.bashrc
-echo "\n\n. \"`realpath ../../bashrc`\"" >> ~/.bashrc
-
-# find /usr/bin/ -xtype l -exec ls -la {} \;
-# sudo sh -c "echo \"\\n. `realpath ../../profile_root`\" >> /etc/environment"
+echo "\n\n. \"`realpath ../rc/profile`\"" >> ~/.profile
+echo "\n\n. \"`realpath ../rc/bashrc`\"" >> ~/.bashrc
+# sudo sh -c "echo \"\\n. `realpath ./rc/profile_root`\" >> /etc/environment"

@@ -1,0 +1,5 @@
+dir="$HOME/_/Programs/bin"
+if [ -d $dir ] ; then
+    PATH="$dir:$PATH"
+    # export PATH
+fi
