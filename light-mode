@@ -1,8 +1,13 @@
 #!/bin/sh
-late="21:15"
-early="05:00"
+day="05:00"
+evening="19:30"
+night="21:15"
 # daytime_file="$(echo "~/MEGAsync/browser extensions/darkreader/index.html" |sed -r 's| |\\ |g')"
 daytime_file="$(realpath ~/MEGAsync/browser\ extensions/darkreader/index.html)"
+
+day="$(date -d $day +%s)"
+evening="$(date -d $evening +%s)"
+night="$(date -d $night +%s)"
 
 case "$1" in
     day|night) echo "$1" > "$daytime_file" ;;
@@ -10,11 +15,20 @@ case "$1" in
         prev=""
         while true; do
             now=$(date +%s)
-            if [ $now -ge $(date -d $late +%s) ] || [ $now -le $(date -d $early +%s) ]; then
-                daytime="night"
-            else
+            if [ $now -ge $day ] && [ $now -lt $evening ]; then
                 daytime="day"
+            else
+                if [ $now -lt $night ]; then
+                    daytime="evening"
+                else
+                    daytime="night"
+                fi
             fi
+            # if [ $now -ge $(date -d $late +%s) ] || [ $now -le $(date -d $early +%s) ]; then
+            #     daytime="night"
+            # else
+            #     daytime="day"
+            # fi
 
             if [ "$daytime" != "$prev" ]; then
                 prev="$daytime"
@@ -35,13 +49,20 @@ case "$1" in
         while true; do
             daytime=$(cat "$daytime_file")
             if [ "$daytime" != "$prev" ]; then
-                if [ "$daytime" = "night" ]; then
-                    brightness 0.5
-                    prev_dt="day"
-                else
-                    brightness 1.0
-                    prev_dt="night"
-                fi
+                case "$daytime" in
+                    day)
+                        brightness 1.0
+                        prev_dt="night"
+                        ;;
+                    evening)
+                        brightness 0.5
+                        prev_dt="day"
+                        ;;
+                    night)
+                        brightness 0.25
+                        prev_dt="evening"
+                        ;;
+                esac
 
                 bgs_file="$HOME/.temp/backgrounds.txt"
                 touch "$bgs_file"
@@ -73,44 +94,3 @@ case "$1" in
         echo "Options: day night"
         ;;
 esac
-
-exit 0
-
-current=""
-prev=""
-while true; do
-    now=$(date +%s)
-    if [ $now -ge $(date -d $late +%s) ] || [ $now -le $(date -d $early +%s) ]; then
-        current="0.5"
-        daytime="night"
-        prev_dt="day"
-    else
-        current="1.0"
-        daytime="day"
-        prev_dt="night"
-    fi
-
-    if [ "$current" != "$prev" ]; then
-        brightness "$current"
-        echo $daytime > "$daytime_file"
-
-        bgs_file="$HOME/.temp/backgrounds.txt"
-        touch "$bgs_file"
-
-        # save cur bg
-        if [ "$prev" != "" ]; then
-            sed -i "/^$prev_dt:.*\$/d" "$bgs_file"
-            echo "$prev_dt: $(get-background)" >> "$bgs_file"
-        fi
-
-        # set new bg
-        bg="$(cat "$bgs_file" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
-        if [ "$bg" ]; then
-            set-background "$bg"
-        fi
-
-        prev="$current"
-    fi
-
-    sleep 1
-done
