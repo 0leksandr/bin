@@ -1,2 +1,2 @@
 #!/bin/sh
-findp $(_path 2 "$@") -regextype awk -iregex ".*($1)[^/]*" -exec ls -dp {} \; |grep -iE --color=auto "$1"
+eval "findp $(_path 2 "$@") -regextype awk -iregex '.*($1)[^/]*' -exec ls -dp {} \;" |grep -iE --color=auto "$1"

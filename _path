@@ -7,10 +7,17 @@ if [ $# -gt $1 ]; then
     ii=0
     for arg in "$@"; do
         if [ $ii -ge $1 ]; then
-            echo "$arg"
+            if [ "$arg" = "." ]; then
+                printf "$arg"
+            else
+                printf "'$arg'"
+            fi
+            if [ $ii -ne $(($# - 1)) ]; then
+                printf ' '
+            fi
         fi
         ii=$(expr $ii + 1)
     done
 else
-    echo "."
+    printf "."
 fi

@@ -1,6 +1,13 @@
 #!/bin/sh
 # grep -aHrinE --color=auto --exclude-dir=.git "$1" $(_path 2 "$@")
-grep --binary-files=text --with-filename --recursive --ignore-case --line-number --extended-regexp --color=auto --exclude-dir=.git -- "$1" $(_path 2 "$@")
-
-# # grep -aHrinEo --color=auto --exclude-dir=.git "$1" $(_path 2 "$@")
-# grep --binary-files=text --with-filename --recursive --ignore-case --line-number --extended-regexp --only-matching --color=auto --exclude-dir=.git -- ".{1000}$1.{1000}" $(_path 2 "$@") |grep -E "$1"
+eval "grep                  \
+    --binary-files=text     \
+    --with-filename         \
+    --recursive             \
+    --ignore-case           \
+    --line-number           \
+    --extended-regexp       \
+    --color=auto            \
+    --exclude-dir=.git      \
+    -- '$1' $(_path 2 "$@") \
+"
