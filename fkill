@@ -1,15 +1,20 @@
 #!/bin/sh
 if echo "$1" | egrep -q '^[0-9]+$'; then
-    pid="$1"
+    pids="$1"
 else
-    pid=$(proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
+    pids=$(proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
 fi
-children=$(pgrep -P $pid)
-if [ "$children" ]; then
-    echo "$children" |while read child; do
-        $0 $child
+
+if [ "$pids" ]; then
+    echo "$pids" |while read pid; do
+        children=$(pgrep -P $pid)
+        if [ "$children" ]; then
+            echo "$children" |while read child; do
+                $0 $child
+            done
+        fi
+        if ps -p $pid > /dev/null; then
+            kill -9 $pid
+        fi
     done
-fi
-if ps -p $pid > /dev/null; then
-    kill -9 $pid
 fi
