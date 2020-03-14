@@ -10,7 +10,7 @@ evening="$(date -d $evening +%s)"
 night="$(date -d $night +%s)"
 
 case "$1" in
-    day|night) echo "$1" > "$daytime_file" ;;
+    day|evening|night) echo "$1" > "$daytime_file" ;;
     update)
         prev=""
         while true; do
@@ -24,11 +24,6 @@ case "$1" in
                     daytime="night"
                 fi
             fi
-            # if [ $now -ge $(date -d $late +%s) ] || [ $now -le $(date -d $early +%s) ]; then
-            #     daytime="night"
-            # else
-            #     daytime="day"
-            # fi
 
             if [ "$daytime" != "$prev" ]; then
                 prev="$daytime"
@@ -91,6 +86,6 @@ case "$1" in
         ;;
     *)
         # echo "Options: day night update server main"
-        echo "Options: day night"
+        echo "Options: day evening night"
         ;;
 esac
