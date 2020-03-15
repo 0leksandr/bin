@@ -45,7 +45,7 @@ if [ $SHELL = $(which zsh) ]; then
 
     # errors red
     autoload colors && colors
-    exec 2>>( sed -u "s/^/${fg[red]}/; s/\$/${reset_color}/" )
+    eval "exec 2>>( sed -u 's/^/${fg[red]}/; s/\$/${reset_color}/' )"  # eval to not break basic Ubuntu shell
 
     setopt NO_HUP  # keep bg procs on exit
 fi
