@@ -1,5 +1,5 @@
 #!/bin/sh
-command="docker container ls --all"
+command="docker-containers"
 echo "$command"
 eval "$command"
 

@@ -1,0 +1,2 @@
+#!/bin/sh
+tar -cz -f "$1.tar.gz" "$1"
