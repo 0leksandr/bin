@@ -15,10 +15,10 @@ case "$1" in
         prev=""
         while true; do
             now=$(date +%s)
-            if [ $now -ge $day ] && [ $now -lt $evening ]; then
+            if [ $day -le $now ] && [ $now -lt $evening ]; then
                 daytime="day"
             else
-                if [ $now -lt $night ]; then
+                if [ $evening -le $now ] && [ $now -lt $night ]; then
                     daytime="evening"
                 else
                     daytime="night"

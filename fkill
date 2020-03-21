@@ -14,7 +14,9 @@ if [ "$pids" ]; then
             done
         fi
         if ps -p $pid > /dev/null; then
-            kill -9 $pid
+            # kill -9 $pid
+            # echo "kill -9 $pid"
+            kill -9 "$pid"
         fi
     done
 fi
