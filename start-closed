@@ -1,0 +1,9 @@
+#!/bin/sh
+$("$1") &
+reg="^([^ ]+) +-?[0-9]+ +[^ ]+ +$2\$"
+id=""
+while [ ! "$id" ]; do
+    id="$(wmctrl -l |grep -E "$reg" |sed -r "s/$reg/\\1/")"
+    sleep 0.1
+done
+wmctrl -ic "$id"
