@@ -5,9 +5,12 @@ case "$1" in
     list) wmctrl -l |grep Vivaldi |sed -r 's/^(0x\w+) +-?([0-9]+) +machine (.*)$/\1 \2 \3/' |sort ;;
     full)
         $0 list |while read line; do
-            id=$(echo "$line" |sed -r "s/$pattern/\\1/")
-            if ! [ "$(xprop -id "$id" |grep '_NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT')" ]; then
-                wmctrl -i -r "$id" -b add,maximized_vert,maximized_horz
+            # if [ ! "$2" ] || [ "$line" |grep "$2" ]; then
+            if [ "$(echo "$line" |grep "$2")" ]; then
+                id=$(echo "$line" |sed -r "s/$pattern/\\1/")
+                if ! [ "$(xprop -id "$id" |grep '_NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT')" ]; then
+                    wmctrl -i -r "$id" -b add,maximized_vert,maximized_horz
+                fi
             fi
         done
         ;;
@@ -35,10 +38,11 @@ case "$1" in
                 i=$(calc -p -- "$i + 1")
             done
             $0 move
+            $0 full
+        else
+            sleep 3
+            $0 full 'Start Page - Vivaldi'
         fi
-
-        sleep 1
-        $0 full
 
         prev=0
         while true; do
@@ -52,5 +56,5 @@ case "$1" in
             prev="$($0 list |wc -l)"
         done
         ;;
-    *) echo "Options: list full save move listen"
+    *) echo "Options: list full save move listen" ;;
 esac
