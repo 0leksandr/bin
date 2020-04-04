@@ -43,7 +43,9 @@ while true; do
         break
     #alert
     elif [[ ( $(expr $shutdowntime - $cur) -le $(expr 3 \* 60) ) && $alerted == 0 ]]; then
-        notify-send --urgency=critical --icon=terminal "Shutdown in 3 minutes"
+        # notify-send --urgency=critical --icon=terminal "Shutdown in 3 minutes"
+        alert "Shutdown in 3 minutes"
+        say "Shutdown in 3 minutes"
         beep
         alerted=1
     fi

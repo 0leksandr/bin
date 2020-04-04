@@ -44,16 +44,18 @@ case "$1" in
             $0 full 'Start Page - Vivaldi'
         fi
 
-        prev=0
+        # prev=0
+        prev=""
         while true; do
             sleep 5
-            if [ ! "$($0 list)" ]; then
+            cur="$($0 list)"
+            if [ ! "$cur" ]; then
                 break
             fi
-            if [ "$($0 list |wc -l)" -ge $prev ]; then
+            if [ "$cur" != "$prev" ]; then
                 $0 save
             fi
-            prev="$($0 list |wc -l)"
+            prev="$cur"
         done
         ;;
     *) echo "Options: list full save move listen" ;;
