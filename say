@@ -1,10 +1,17 @@
 #!/bin/sh
-
-# espeak -ven-us+f4 -s170 "$@"
-
-# file=/tmp/test.wav
-# pico2wave -w="$file" "$1"
-# aplay "$file"
-# rm "$file"
-
-festival -b '(voice_cmu_us_slt_arctic_hts)' '(SayText "'"$1"'")'
+app="$2"
+if [ ! "$app" ]; then
+    app=2
+fi
+case "$app" in
+    1|espeak) espeak -ven-us+f4 -s170 "$@" ;;
+    2|pico2wave)
+        file="$HOME/.temp/pico2wave/$1.wav"
+        if ! [ -f "$file" ]; then
+            pico2wave -w="$file" "$1"
+        fi
+        aplay "$file" 2> /dev/null
+        # rm "$file"
+        ;;
+    3|festival) festival -b '(voice_cmu_us_slt_arctic_hts)' '(SayText "'"$1"'")' ;;
+esac

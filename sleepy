@@ -36,28 +36,34 @@ alerted=0
 while true; do
     cur=$(date +%s)
 
-    #boot late after shutdowntime
+    # boot late after shutdowntime
     if [[ $cur -ge $(expr $shutdowntime + 10) ]]; then
         echo "--------" > $file
         notify-send --urgency=critical --icon=terminal "Too late for shutdown"
         break
-    #alert
-    elif [[ ( $(expr $shutdowntime - $cur) -le $(expr 3 \* 60) ) && $alerted == 0 ]]; then
-        # notify-send --urgency=critical --icon=terminal "Shutdown in 3 minutes"
-        alert "Shutdown in 3 minutes"
-        say "Shutdown in 3 minutes"
-        beep
-        alerted=1
     fi
 
-    #shutdown
+    # alert
+    if [[ ( $(expr $shutdowntime - $cur) -le $(expr 3 \* 60) ) && $alerted == 0 ]]; then
+        # notify-send --urgency=critical --icon=terminal "Shutdown in 3 minutes"
+        beep
+        alert "Shutdown in 3 minutes"
+        say "Shutdown in 3 minutes" festival &
+        alerted=1
+    fi
+    seconds_left="$(expr $shutdowntime - $cur)"
+    if [[ $seconds_left -le 10 ]]; then
+        say $seconds_left festival &
+    fi
+
+    # shutdown
     if [ $cur -ge $shutdowntime ]; then
         echo > $file
         shutdown -P now
         break
     fi
 
-    #write to widget
+    # write to widget
     if [[ $# == 2  || $(expr $shutdowntime - $cur) -le $(expr 60 \* 60 \* 2) ]]; then
         if [ $# == 2 ] && [ $2 != '+' ]; then
             starttime=$(date -d$2 +%s)
