@@ -1,4 +1,12 @@
 #!/bin/sh
+
+if [ "$1" = "control" ]; then
+    while proc conky |grep -v control > /dev/null; do sleep 1; done
+    say "conky down" pico2wave
+    exit 0
+fi
+$0 control &
+
 parallel -n "
     /usr/bin/conky -c ~/_/Programs/vendor/conky/Conky_Arc_Light/.conkyrc
     /usr/bin/conky -c ~/_/Programs/vendor/conky/greenish/config/greenish
