@@ -8,12 +8,13 @@ _highlander
 
 if [ $# -le 1 ]; then
     $($0 $@ background) &
-else
-    while true; do
-        redshift -o -l 50:30 -t 6500K:3100K -b $1
-        sleep 5
-    done
+    exit 0
 fi
+
+while true; do
+    redshift -o -l 50:30 -t 6500K:3100K -b $1
+    sleep 5
+done
 
 # pkill redshift
 # redshift -l 50:30 -t 6500K:3100K -b $1

@@ -1,2 +1,2 @@
 #!/bin/sh
-dpkg -l |grep -i --color=auto "$@"
+dpkg -l |grep -iE --color=auto "$1"
