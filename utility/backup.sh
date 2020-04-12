@@ -9,10 +9,12 @@ sudo r-sync                                                 \
     --exclude=*/\.cache/                                    \
     --exclude=*/cache/                                      \
     --exclude=/dev/                                         \
-    --exclude=/home/$USER/_/                                \
-    --exclude=/home/$USER/VirtualBox\ VMs                   \
-    --exclude=/home/$USER/.local/share/Trash/               \
-    --exclude=/home/$USER/.vagrant.d/                       \
+    --exclude=$HOME/_/                                      \
+    --exclude=$HOME/VirtualBox\ VMs/                        \
+    --exclude=$HOME/.config/vivaldi-snapshot-fuck/          \
+    --exclude=$HOME/.local/share/Trash/                     \
+    --exclude=$HOME/.steam/                                 \
+    --exclude=$HOME/.vagrant.d/                             \
     --exclude=/lost+found/                                  \
     --exclude=/media/                                       \
     --exclude=/mnt/                                         \
@@ -28,22 +30,25 @@ dir_="$dir/_"                                            && \
 mkdir -p "$dir_"                                         && \
 r-sync                                                      \
     --exclude=/1/                                           \
-    --exclude=/V/                                           \
-    --exclude=/Фільми/                                      \
+    --exclude=/[1]/                                         \
+    --exclude=/[12]/                                        \
+    --exclude=/[Private]/                                   \
     --exclude=/Programs/backups/                            \
     --exclude=/Programs/vendor/clion*                       \
     --exclude=/Programs/vendor/GoLand*                      \
     --exclude=/Programs/vendor/PhpStorm*                    \
     --exclude=/Programs/vendor/pycharm*                     \
+    --exclude=/V/                                           \
+    --exclude=/Фільми/                                      \
   --exclude=/localhost/worms1d/var/mongo/ \
   --exclude=/localhost/symfony-test/test4/var/mysql/ \
-    /home/$USER/_/ "$dir_"                               && \
+    $HOME/_/ "$dir_"                                     && \
 date-ft                                                  && \
 hr                                                       && \
                                                             \
 dir1="$dir/1"                                            && \
 mkdir -p "$dir1"                                         && \
-r-sync /home/$USER/_/1/ "$dir1"                          && \
+r-sync $HOME/_/1/ "$dir1"                                && \
                                                             \
 test
 date-ft
