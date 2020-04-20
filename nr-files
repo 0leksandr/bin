@@ -1,2 +1,2 @@
 #!/bin/sh
-ls -A1 |wc -l
+eval "ls -A1 $(_path 1 "$@") |wc -l"
