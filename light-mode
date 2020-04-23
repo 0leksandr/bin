@@ -1,7 +1,7 @@
 #!/bin/sh
 day="05:00"
-evening="20:00"
-night="21:30"
+evening="20:15"
+night="22:00"
 # daytime_file="$(echo "~/MEGAsync/browser extensions/darkreader/index.html" |sed -r 's| |\\ |g')"
 daytime_file="$(realpath ~/MEGAsync/browser\ extensions/darkreader/index.html)"
 
@@ -45,43 +45,26 @@ case "$1" in
         # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473
         ;;
     main)
-log_file="$HOME/.temp/backgrounds.log"
-touch $log_file
-echo '' >> $log_file
-echo "$(date-ft): $0 $1 started" >> $log_file
         prev=""
         while true; do
             daytime=$(cat "$daytime_file")
             if [ "$daytime" != "$prev" ]; then
-echo "$(date-ft): from file: daytime[$daytime]" >> $log_file
                 case "$daytime" in
-                    day)
-                        brightness 1.0
-                        prev_dt="night"
-                        ;;
-                    evening)
-                        brightness 0.5
-                        prev_dt="day"
-                        ;;
-                    night)
-                        brightness 0.25
-                        prev_dt="evening"
-                        ;;
+                    day)     brightness 1.0  ;;
+                    evening) brightness 0.5  ;;
+                    night)   brightness 0.25 ;;
                 esac
 
                 bgs_file="$HOME/.temp/backgrounds.txt"
                 touch "$bgs_file"
                 # save cur bg
                 if [ "$prev" != "" ]; then
-echo "$(date-ft): saving prev_dt[$prev_dt] as get-background[$(get-background)]" >> $log_file
-                    sed -i "/^$prev_dt:.*\$/d" "$bgs_file"
-                    echo "$prev_dt: $(get-background)" >> "$bgs_file"
+                    sed -i "/^$prev:.*\$/d" "$bgs_file"
+                    echo "$prev: $(get-background)" >> "$bgs_file"
                 fi
                 # set bg for current time-of-day
                 bg="$(cat "$bgs_file" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
-echo "$(date-ft): bg[$bg]" >> $log_file
                 if [ "$bg" ]; then
-echo "$(date-ft): setting bg[$bg]" >> $log_file
                     set-background "$bg"
                 fi
 
