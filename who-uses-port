@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo netstat -ltnp | grep -w ":$1"
