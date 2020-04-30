@@ -46,11 +46,9 @@ r-sync                                                      \
 date-ft                                                  && \
 hr                                                       && \
                                                             \
-dir1="$dir/1"                                            && \
-mkdir -p "$dir1"                                         && \
-r-sync $HOME/_/1/ "$dir1"                                && \
-                                                            \
 test
 date-ft
 
 beep
+
+# r-sync $HOME/_/1/ "$dir1"

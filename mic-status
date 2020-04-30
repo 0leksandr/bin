@@ -1,0 +1,2 @@
+#!/bin/sh
+amixer get Capture |tail -n1 |sed -r 's ^.*\[(on|off)\]$ \1 g'

@@ -1,7 +1,7 @@
 #!/bin/sh
 day="05:00"
-evening="20:15"
-night="22:00"
+evening="20:30"
+night="22:15"
 # daytime_file="$(echo "~/MEGAsync/browser extensions/darkreader/index.html" |sed -r 's| |\\ |g')"
 daytime_file="$(realpath ~/MEGAsync/browser\ extensions/darkreader/index.html)"
 

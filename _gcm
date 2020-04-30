@@ -1,5 +1,8 @@
 #!/bin/sh
-git add .
-# git add -u
-# git add -u -- .
-git commit -a -m "$@"
+# git add .
+# # git add -u
+# # git add -u -- .
+# git commit -a -m "$@"
+
+eval "git add $(_path 2 "$@")"
+git commit -m "$1"

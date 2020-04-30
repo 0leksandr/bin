@@ -1,0 +1,10 @@
+#!/bin/sh
+if [ $# -eq 2 ]; then
+    host="$1"
+    port="$2"
+else
+    reg='^([^:]+):([0-9]+)$'
+    host="$(echo "$1" |sed -r "s $reg \\1 ")"
+    port="$(echo "$1" |sed -r "s $reg \\2 ")"
+fi
+timeout 3s nc -vz "$host" "$port" 2>/dev/null && echo yes || echo no

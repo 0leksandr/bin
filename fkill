@@ -1,22 +1,39 @@
 #!/bin/sh
+# echo "starting [$1]"
+# echo "0[$0]"
+# echo "basename[$(basename $0)]"
 if echo "$1" | egrep -q '^[0-9]+$'; then
     pids="$1"
 else
-    pids=$(proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
+    # pids=$(proc "$1" |grep -v "$0" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
+    pids=$(proc "$1" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
 fi
+# echo "pids[$pids]"
 
 if [ "$pids" ]; then
     echo "$pids" |while read pid; do
-        children=$(pgrep -P $pid)
-        if [ "$children" ]; then
-            echo "$children" |while read child; do
-                $0 $child
-            done
-        fi
+# echo "pid[$pid]"
+# echo "ps -p [$(ps -p $pid)]"
+# echo "ps -q [$(ps -q $pid)]"
         if ps -p $pid > /dev/null; then
-            # kill -9 $pid
-            # echo "kill -9 $pid"
-            kill -9 "$pid"
+# echo "active"
+            if ! [ "$(ps -p $pid |grep $(basename $0))" ]; then
+# echo "not this one"
+                children=$(pgrep -P $pid)
+# echo "children[$children]"
+                if [ "$children" ]; then
+                    echo "$children" |while read child; do
+                        $0 $child
+                    done
+                fi
+                if ps -p $pid > /dev/null; then
+                    # kill -9 $pid
+                    # echo "kill -9 $pid"
+                    kill -9 "$pid"
+                fi
+            fi
         fi
     done
 fi
+# echo "done [$1]"
+# echo ""

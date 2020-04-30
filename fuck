@@ -1,0 +1,3 @@
+#!/bin/sh
+fkill "$1"
+echo "Yeah! Fuck it!!"

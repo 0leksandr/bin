@@ -1,0 +1,6 @@
+#!/bin/sh
+amixer set Capture toggle
+
+# pactl set-sink-mute 0 0
+# pactl set-sink-mute 0 1
+# pactl set-sink-mute 0 toggle
