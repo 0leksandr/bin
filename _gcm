@@ -4,5 +4,7 @@
 # # git add -u -- .
 # git commit -a -m "$@"
 
+# echo "git add $(_path 2 "$@")"
+# echo "git commit -m '$1'"
 eval "git add $(_path 2 "$@")"
 git commit -m "$1"
