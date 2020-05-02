@@ -1,0 +1,40 @@
+#!/bin/sh
+if [ $# -ge 1 ]; then
+    pid="$1"
+else
+    pid="$(_parent)"
+fi
+if [ $# -ge 2 ]; then
+    delim="$2"
+else
+    delim="\n"
+fi
+
+children="$pid"
+first="1"
+while true; do
+    added=""
+    echo "$children" |while read child; do
+        grandchildren=$(pgrep -P "$child")
+        if [ "$grandchildren" ]; then
+            echo "$grandchildren" |while read grandchild; do
+                if [ $grandchild -ne $$ ]; then
+                    if ! echo "$children" |grep -q -x "$grandchild"; then
+                        if [ ! "$first" ]; then
+                            printf "$delim"
+                        fi
+                        first=""
+                        printf $grandchild
+                        children="$children\n$grandchild"
+                        added="1"
+                    fi
+                fi
+            done
+        fi
+    done
+    if [ ! "$added" ]; then
+        break
+    fi
+done
+
+# echo "$children"

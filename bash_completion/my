@@ -8,7 +8,7 @@ _complete_full()
         COMPREPLY=( $(compgen -c) )
     fi
 } &&
-complete -F _complete_full copy fkill parallel proc restart whatsin  dt dtb rdt rdtb rdtbo tb
+complete -F _complete_full copy fkill fuck parallel proc procx restart whatsin  dt dtb rdt rdtb rdtbo tb
 
 
 _complete_by_options() {

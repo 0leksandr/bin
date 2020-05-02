@@ -3,24 +3,27 @@
 
 procname=$(ps -o comm= $PPID)
 # procname=$(realpath "$procname")
-this_pid=$(pgrep -n -x "$procname")
-procs=$(pgrep -x "$procname" |grep -v -x "$this_pid")
-parent=$this_pid
-while true; do
-    parent=$(ps -o ppid= -p $parent)
-    parent=$(echo "$parent" |sed -r 's/(^ +)|( +$)//g') # trim whitespaces
-    procs=$(echo "$procs" |grep -v -x "$parent")
-    if [ "$parent" = "1" ]; then
-        break
-    fi
 
-    if [ "$parent" = "0" ]; then
-        alert "parent = 0"
-        break
-    fi
-    if ! echo "$parent" | egrep -q '^[0-9]+$'; then
-        alert "parent is not a nr: [$parent]"
-        break
-    fi
-done
-$(echo "$procs" |xargs -r kill)
+pgrep -x "$procname" |grep -v -x -E "($(_parents $$ "|"))" |xargs -r fkill
+
+# this_pid=$(pgrep -n -x "$procname")
+# procs=$(pgrep -x "$procname" |grep -v -x "$this_pid")
+# parent=$this_pid
+# while true; do
+#     parent=$(ps -o ppid= -p $parent)
+#     parent=$(echo "$parent" |sed -r 's/(^ +)|( +$)//g') # trim whitespaces
+#     procs=$(echo "$procs" |grep -v -x "$parent")
+#     if [ "$parent" = "1" ]; then
+#         break
+#     fi
+
+#     if [ "$parent" = "0" ]; then
+#         alert "parent = 0"
+#         break
+#     fi
+#     if ! echo "$parent" | egrep -q '^[0-9]+$'; then
+#         alert "parent is not a nr: [$parent]"
+#         break
+#     fi
+# done
+# $(echo "$procs" |xargs -r kill)

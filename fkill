@@ -9,7 +9,7 @@ fi
 if [ "$pids" ]; then
     echo "$pids" |while read pid; do
         if ps -p $pid > /dev/null; then
-            if ! [ "$(ps -p $pid |grep $(basename $0))" ]; then
+            if echo $pid |grep -E -v -x -q "($$|$(_parents $$ "|"))"; then  # except this `fkill` and its parents
                 children=$(pgrep -P $pid)
                 if [ "$children" ]; then
                     echo "$children" |while read child; do
@@ -17,9 +17,8 @@ if [ "$pids" ]; then
                     done
                 fi
                 if ps -p $pid > /dev/null; then
-                    # kill -9 $pid
-                    # echo "kill -9 $pid"
-                    kill -9 "$pid"
+                    # echo "kill -9 $pid [$(ps -o comm= $pid)]"
+                    kill -9 $pid
                 fi
             fi
         fi
