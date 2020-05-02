@@ -1,6 +1,4 @@
 #!/bin/sh
-# ps aux |grep -i $1 |grep -v "grep -i $1" |grep -v "grep -i --color=auto $1" |grep -v "$0 $@" |grep -i --color=auto $1
-
 if [ $# -eq 2 ]; then
     flags="-i $1"
     search="$2"
@@ -9,6 +7,6 @@ else
     search="$1"
 fi
 procs="$(ps aux)"
-procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($$|$(_parents $$ "|")) ")"  # except this `proc` and its parents
+procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
 procs="$(echo "$procs" |grep $flags "$search")"
 echo "$procs" |grep --color=auto "$search"

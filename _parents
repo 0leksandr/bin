@@ -2,12 +2,14 @@
 if [ $# -ge 1 ]; then
     pid="$1"
 else
-    pid=$PPID
+    # pid=$PPID
+    pid=$$
 fi
 if [ $# -ge 2 ]; then
     delim="$2"
 else
-    delim="\n"
+    # delim="\n"
+    delim="|"
 fi
 
 parent="$pid"
