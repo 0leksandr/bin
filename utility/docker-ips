@@ -1,0 +1,5 @@
+#!/bin/sh
+docker ps --format='{{.Names}}' |while read name; do
+    printf "$name\t"
+    docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$name"
+done

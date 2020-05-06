@@ -1,0 +1,3 @@
+#!/bin/sh
+xdotool key --clearmodifiers XF86AudioPlay
+# sleep 1 && xdotool key XF86AudioPlay

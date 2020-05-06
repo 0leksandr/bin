@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ "$(mic-status)" != "$1" ]; then
+    mic-toggle
+fi
+mic-status
