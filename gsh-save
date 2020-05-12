@@ -1,0 +1,2 @@
+#!/bin/sh
+git stash save "$(_git-current-branch)"

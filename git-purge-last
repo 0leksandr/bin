@@ -1,0 +1,3 @@
+#!/bin/sh
+branch="$(_git-current-branch)"
+git rebase --onto "$branch"~1 "$branch"~0 "$branch"
