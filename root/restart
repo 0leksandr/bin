@@ -1,4 +1,4 @@
 #!/bin/sh
-pkill -i "$1"
-# fkill "$1"
+# pkill -i "$1"
+fkill "$1"
 $("$1") &
