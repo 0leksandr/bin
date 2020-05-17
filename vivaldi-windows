@@ -1,5 +1,7 @@
 #!/bin/sh
-file="$HOME/.temp/$(basename $0).txt"
+file_prefix="$HOME/.temp/$(basename $0)"
+file="$file_prefix.txt"
+file_bac="$file_prefix.bac"
 pattern="^([^ ]+) ([0-9]+) (.*)\$"
 case "$1" in
     list) wmctrl -l |grep Vivaldi |sed -r 's/^(0x\w+) +-?([0-9]+) +machine (.*)$/\1 \2 \3/' |sort ;;
@@ -16,8 +18,10 @@ case "$1" in
         ;;
     save) $0 list > "$file" ;;
     move)
-        # cat "$file" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -F -r '\''\2'\'' -t \1/' |awk '{system($0)}'
-        cat "$file" |while read line; do
+        target="$2"
+        if [ ! "$target" ]; then target="$file"; fi
+        # cat "$target" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -F -r '\''\2'\'' -t \1/' |awk '{system($0)}'
+        cat "$target" |while read line; do
             workspace=$(echo "$line" |sed -r "s/$pattern/\\2/")
             window=$(echo "$line" |sed -r "s/$pattern/\\3/")
             wmctrl -F -r "$window" -t $workspace
@@ -40,6 +44,7 @@ case "$1" in
                 sleep 1
                 i=$(calc -p -- "$i + 1")
             done
+            cp "$file" "$file_bac"
             $0 move
             $0 full
         else
