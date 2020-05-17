@@ -1,11 +1,13 @@
 #!/bin/sh
-if [ $# -eq 2 ]; then
-    flags="-i $1"
-    search="$2"
-else
-    flags="-i"
-    search="$1"
-fi
+flags="-i"
+while getopts ":x" opt; do  # order is important?!
+    case $opt in
+        x) flags="$flags -w" ;;
+    esac
+done
+for last; do :; done
+search="$last"
+
 procs="$(ps aux)"
 procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
 procs="$(echo "$procs" |grep $flags "$search")"

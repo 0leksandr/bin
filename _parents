@@ -3,7 +3,7 @@ if [ $# -ge 1 ]; then
     pid="$1"
 else
     # pid=$PPID
-    pid=$$  # include actual caller (parent of this `_parent`)
+    pid=$$  # --include actual caller (parent of this `_parent`)-- include this `_parent`
 fi
 if [ $# -ge 2 ]; then
     delim="$2"

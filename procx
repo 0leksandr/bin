@@ -1,2 +1,2 @@
 #!/bin/sh
-proc -w "$1"
+proc -x "$1"

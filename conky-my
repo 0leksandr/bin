@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "control" ]; then
-    while procx conky |grep -v control > /dev/null; do sleep 1; done
+    while ps aux |grep -w "$(realpath $0)" |grep -v control > /dev/null; do sleep 1; done
     say "conky down" pico2wave
     exit 0
 fi
