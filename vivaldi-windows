@@ -17,6 +17,11 @@ case "$1" in
         done
         ;;
     save) $0 list > "$file" ;;
+    backup)
+        bac_version=1
+        while [ -f "$file_bac.$bac_version" ]; do bac_version=$(($bac_version + 1)); done
+        cp "$file" "$file_bac.$bac_version"
+        ;;
     move)
         target="$2"
         if [ ! "$target" ]; then target="$file"; fi
@@ -44,7 +49,7 @@ case "$1" in
                 sleep 1
                 i=$(calc -p -- "$i + 1")
             done
-            cp "$file" "$file_bac"
+            $0 backup
             $0 move
             $0 full
         else
@@ -54,9 +59,10 @@ case "$1" in
 
         prev=0
         while true; do
-            sleep 3
+            sleep 5
             cur="$($0 list)"
             if [ ! "$cur" ]; then
+                $0 backup
                 break
             fi
             cur_nr="$(echo "$cur" |wc -l)"
@@ -66,5 +72,5 @@ case "$1" in
             prev="$cur_nr"
         done
         ;;
-    *) echo "Options: list full save move listen" ;;
+    *) echo "Options: list full save backup move listen" ;;
 esac
