@@ -1,10 +1,10 @@
 #!/bin/sh
-command="docker-containers"
-echo "$command"
-eval "$command"
-
-printf "\n"
-
-command="docker images --all"
-echo "$command"
-eval "$command"
+for command in \
+    "docker-containers" \
+    "docker images --all" \
+    "docker system df" \
+; do
+    echo "$command"
+    eval "$command"
+    printf "\n"
+done
