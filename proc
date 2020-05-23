@@ -1,8 +1,9 @@
 #!/bin/sh
 flags="-i"
-while getopts ":x" opt; do  # order is important?!
+while getopts ":x:E" opt; do  # order is important?!
     case $opt in
         x) flags="$flags -w" ;;
+        E) flags="$flags -E" ;;
     esac
 done
 for last; do :; done
@@ -10,5 +11,5 @@ search="$last"
 
 procs="$(ps aux)"
 procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
-procs="$(echo "$procs" |grep $flags "$search")"
-echo "$procs" |grep --color=auto "$search"
+# procs="$(echo "$procs" |grep $flags "$search")"
+echo "$procs" |grep $flags --color=auto "$search"

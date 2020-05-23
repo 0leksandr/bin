@@ -1,16 +1,11 @@
 #!/bin/sh
 while true; do
     for cmd in "$@"; do
-echo "cmd[$cmd]"
-echo "procx[$(procx "$cmd")]"
-echo "ps[$(ps aux |grep -i "$cmd")]"
         if [ ! "$(procx "$cmd")" ]; then
-echo "restarting.."
-            # alert "process down; restarting: $cmd"
-            # # eval "$cmd" &
+            alert "process down; restarting: $cmd"
+            # eval "$cmd" &
             # $("$cmd") &
-            # sh -c "$cmd" & # <-
-            alert "process down: $cmd"
+            sh -c "$cmd" & # run in detached mode - no connection with this parent `must-run
         fi
     done
     sleep 10
