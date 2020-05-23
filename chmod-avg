@@ -1,0 +1,12 @@
+#!/bin/sh
+path="$(_path 1 "$@")"
+_chmod () {
+    type=""
+    if [ "$2" ]; then
+        type="-type $2"
+    fi
+    # -perm -o+x
+    eval "find $path $type -exec chmod $1 {} +"
+}
+_chmod 775 d
+_chmod 664 f

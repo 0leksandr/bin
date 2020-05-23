@@ -1,3 +1,0 @@
-#!/bin/sh
-find . -perm -o+x -exec chmod go-rwx {} +
-find . -perm -u+x -type f -exec chmod u-x {} +
