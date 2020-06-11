@@ -4,10 +4,13 @@
 # # git add -u -- .
 # git commit -a -m "$@"
 
-for command in \
-    "git add $(_path 2 "$@")" \
-    "git commit -m '$1'" \
-; do
-    echo "$command"
-    eval "$command"
-done
+# for command in \
+#     "git add $(_path 2 "$@")" \
+#     "git commit -m '$1'" \
+# ; do
+#     echo "$command"
+#     eval "$command"
+# done
+
+eval "git add $(_path 2 "$@")"
+eval "git commit -m '$1'"  # `git commit -m "$1"` does not work

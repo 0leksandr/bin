@@ -1,10 +1,10 @@
 #!/bin/sh
 sudo test
 
-# dir=$(dirname $0)/backups
-dir=$HOME/_/Programs/backups
-dird=$dir/logs/$(date +%F-%H%M%S)
-mkdir $dird
+logs="$(_backup-programs update)"
+dird="$(echo "$logs" |sed '1q;d')"
+log="$(echo "$logs" |sed '2q;d')"
+dir="$dird/.."
 
 aptlist=$dird/apt-list-installed.txt
 apt list --installed > $aptlist
@@ -13,9 +13,6 @@ sed -i '1d' $aptlist
 dpkg -l > $dird/dpkg-l.txt
 
 cp /var/log/dpkg.log $dird
-
-log=$dird/update.log
-touch $log
 
 r-sync /etc/apt/sources.list.d/ $dir/etc_apt_sources.list.d  |tee -a $log
 sudo r-sync-no-del /var/cache/apt/ $dir/var_cache_apt        |tee -a $log
