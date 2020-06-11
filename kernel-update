@@ -1,0 +1,3 @@
+#!/bin/sh
+log="$(_backup-programs kernel |sed '2q;d')"
+$HOME/_/Programs/vendor/ubuntu-mainline-kernel.sh -i |tee -a "$log"
