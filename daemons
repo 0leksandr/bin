@@ -5,7 +5,7 @@ while true; do
             alert "process down; restarting: $cmd"
             # eval "$cmd" &
             # $("$cmd") &
-            sh -c "$cmd" & # run in detached mode - no connection with this parent `must-run
+            sh -c "$cmd" & # run in detached mode - no connection with this parent `daemons`
         fi
     done
     sleep 10
