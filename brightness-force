@@ -1,3 +1,0 @@
-#!/bin/sh
-fkill brightness
-xrandr --output "$(xrandr -q |grep " connected" |sed -r 's_^([^ ]+) .*$_\1_g')" --brightness "$1"

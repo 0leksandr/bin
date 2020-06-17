@@ -1,6 +1,11 @@
 #!/bin/sh
 _highlander
 
+if [ $(echo "$1 > 1." |bc) -eq 1 ]; then
+    xrandr --output "$(xrandr -q |grep " connected" |sed -r 's_^([^ ]+) .*$_\1_g')" --brightness "$1"
+    exit
+fi
+
 # pkill redshift
 # sleep 2
 # nohup redshift -l 50:30 -t 6500K:3100K -b $1 &>/dev/null &
@@ -8,11 +13,11 @@ _highlander
 
 if [ $# -le 1 ]; then
     $($0 $@ background) &
-    exit 0
+    exit
 fi
 
 while true; do
-    redshift -o -l 50:30 -t 6500K:3100K -b $1
+    redshift -o -l 50:30 -t 6500K:3100K -b "$1"
     sleep 5
 done
 
