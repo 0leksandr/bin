@@ -1,8 +1,14 @@
 #!/bin/sh
-cat /etc/*release   ;hr
-cat /etc/*release/* ;hr
-uname -a            ;hr
-lsb_release -d      ;hr
-hostnamectl         ;hr
-cat /proc/version   ;hr
-cat /etc/issue      ;hr
+for command in \
+    "cat /etc/*release" \
+    "cat /etc/*release/*" \
+    "uname -a" \
+    "lsb_release -d" \
+    "hostnamectl" \
+    "cat /proc/version" \
+    "cat /etc/issue"\
+; do
+    echo "$command"
+    eval "$command"
+    hr
+done

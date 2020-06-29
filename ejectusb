@@ -1,3 +1,2 @@
 #!/bin/sh
 ( umount /media/nezhraba/* || sudo umount /media/nezhraba/* ) && beep
-exit 0
