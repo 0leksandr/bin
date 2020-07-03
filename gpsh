@@ -1,12 +1,12 @@
 #!/bin/sh
-command="git push --progress origin $(_git-current-branch)"
+current_branch="$(_git-current-branch)"
+command="git push --progress origin $current_branch"
 # linked=$(git remote show origin |grep "HEAD branch: master" && exit 0 || exit 1)
-linked=$(git remote show -n origin |grep "master" && exit 0 || exit 1)
-if [ "$linked" ]; then
-    $($command)
-else
-    $($command --set-upstream)
+linked=$(git remote show -n origin |grep -w "$current_branch" && exit 0 || exit 1)
+if [ ! "$linked" ]; then
+    command="$command --set-upstream"
 fi
+eval "$command"
 
 # 16:16:09.342: [pdffiller] git -c credential.helper= -c core.quotepath=false -c log.showSignature=false \
 # push --progress --porcelain origin refs/heads/bom_request-1-payment-gateway:bom_request-1-payment-gateway --set-upstream

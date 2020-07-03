@@ -24,4 +24,3 @@ beep                                                         |tee -a $log
 sudo apt-get upgrade -V --show-progress                      |tee -a $log
 printf "\n\n\n\n"                                            |tee -a $log
 sudo apt-get autoremove                                      |tee -a $log
-exit 0
