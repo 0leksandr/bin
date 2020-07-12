@@ -21,9 +21,9 @@ xkb_symbols "unicode" {
     key <AE07> {    [               7,    question,      greater               ]       };
     key <AE08> {    [               8,    asterisk,       degree, enfilledcircbullet  ]       };
     key	<AE09> {    [		    9,	 parenleft,  bracketleft,    braceleft ]       };
-    key	<AE10> {    [		    0,	parenright, bracketright,    braceright]       };
-    key	<AE11> {    [	    	minus,	underscore,       emdash,    endash    ]       };
-    key	<AE12> {    [	    	equal,	      plus, 	notequal,    plusminus ]       };
+    key	<AE10> {    [		    0,	parenright, bracketright,   braceright ]       };
+    key	<AE11> {    [	    	minus,	underscore,       emdash,       endash ]       };
+    key	<AE12> {    [	    	equal,	      plus,     approxeq,     notequal ]       };
 
     key	<AD03> {    [      Cyrillic_u,	Cyrillic_U,  Byelorussian_shortu,  Byelorussian_SHORTU	]};
     key	<AD04> {    [     Cyrillic_ka, Cyrillic_KA,	registered	       ]       };						// Registered tm

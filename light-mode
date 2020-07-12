@@ -44,6 +44,12 @@ case "$1" in
         eval "http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473"
         # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473
         ;;
+    redshift)
+        while true; do
+            redshift -o -l 50:30 -t 6500K:3100K
+            sleep 5
+        done
+        ;;
     main)
         prev=""
         while true; do
@@ -77,6 +83,7 @@ case "$1" in
         parallel -n "
             $0 update
             $0 server
+            # $0 redshift
             $0 main
         "
         ;;

@@ -21,6 +21,6 @@ printf "\n\n\n\n"                                            |tee -a $log
 sudo apt-get update                                          |tee -a $log
 printf "\n\n\n\n"                                            |tee -a $log
 beep                                                         |tee -a $log
-sudo apt-get upgrade -V --show-progress                      |tee -a $log
+sudo apt-get dist-upgrade -V --show-progress                 |tee -a $log
 printf "\n\n\n\n"                                            |tee -a $log
 sudo apt-get autoremove                                      |tee -a $log

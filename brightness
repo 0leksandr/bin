@@ -1,8 +1,15 @@
 #!/bin/sh
 _highlander
 
-if [ $(echo "$1 > 1." |bc) -eq 1 ]; then
+# filename="~/.temp/brightness.txt"
+
+force () {
     xrandr --output "$(xrandr -q |grep " connected" |sed -r 's_^([^ ]+) .*$_\1_g')" --brightness "$1"
+    # echo "$1" > "$filename"
+}
+
+if [ $(echo "$1 > 1." |bc) -eq 1 ]; then
+    force "$1"
     exit
 fi
 
@@ -11,16 +18,16 @@ fi
 # nohup redshift -l 50:30 -t 6500K:3100K -b $1 &>/dev/null &
 # exit 0
 
-if [ $# -le 1 ]; then
-    $($0 $@ background) &
-    exit
-fi
+# if [ $# -le 1 ]; then
+#     $($0 $@ background) &
+#     exit
+# fi
 
-while true; do
-    redshift -o -l 50:30 -t 6500K:3100K -b "$1"
-    sleep 5
-done
+# current=$(cat "$filename")
+# echo "current[$current]"
+# redshift -o -l 50:30 -t 6500K:3100K -b "$1"
 
-# pkill redshift
-# redshift -l 50:30 -t 6500K:3100K -b $1
+pkill redshift
+force 1
+redshift -l 50:30 -t 6500K:3100K -b "$1" &
 # redshift -l 50:30 -t 6500K:3100K -b $1 -m vidmode

@@ -88,7 +88,7 @@ xkb_symbols "intl" {
     key <AE09> { [	   9,  parenleft, leftsinglequotemark, dead_breve ] };
     key <AE10> { [	   0, parenright, rightsinglequotemark, dead_abovering ] };
     key <AE11> { [     minus, underscore,           yen,    dead_belowdot ] };
-    key <AE12> { [     equal,       plus,      approxeq,         division ] };
+    key <AE12> { [     equal,       plus,      approxeq,         notequal ] };
 
     key <AD01> { [	   q,          Q,        aacute,           Aacute ] };
     key <AD02> { [	   w,          W,         aring,            Aring ] };

@@ -11,7 +11,6 @@ sudo r-sync                                                 \
     --exclude=/dev/                                         \
     --exclude=$HOME/_/                                      \
     --exclude=$HOME/VirtualBox\ VMs/                        \
-    --exclude=$HOME/.config/vivaldi-snapshot-fuck/          \
     --exclude=$HOME/.local/share/Trash/                     \
     --exclude=$HOME/.steam/                                 \
     --exclude=$HOME/.vagrant.d/                             \
@@ -40,7 +39,6 @@ r-sync                                                      \
     --exclude=/Programs/vendor/pycharm*                     \
     --exclude=/V/                                           \
     --exclude=/Фільми/                                      \
-  --exclude=/localhost/worms1d/var/mongo/ \
   --exclude=/localhost/symfony-test/test4/var/mysql/ \
     $HOME/_/ "$dir_"                                     && \
 date-ft                                                  && \

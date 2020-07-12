@@ -1,0 +1,14 @@
+#/bin/sh
+set -e
+
+dir="/usr/share/X11/xkb/symbols"
+
+for layout in "us" "ua"; do
+    if [ -f "$dir/$layout" ]; then
+        sudo mv "$dir/$layout" "$dir/$layout"_0
+    fi
+    sudo cp "$HOME/_/Programs/bin/init/$layout" "$dir/$layout"
+    sudo chmod -x "$dir/$layout"
+done
+
+sudo dpkg-reconfigure xkb-data
