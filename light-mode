@@ -83,7 +83,7 @@ case "$1" in
         parallel -n "
             $0 update
             $0 server
-            # $0 redshift
+            $0 redshift
             $0 main
         "
         ;;
