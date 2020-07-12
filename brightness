@@ -1,6 +1,11 @@
 #!/bin/sh
 _highlander
 
+if [ $# -le 1 ]; then
+    $0 "$1" background >/dev/null 2>/dev/null &
+    exit
+fi
+
 force () {
     xrandr --output "$(xrandr -q |grep " connected" |sed -r 's_^([^ ]+) .*$_\1_g')" --brightness "$1"
 }
@@ -9,5 +14,6 @@ if [ $(echo "$1 > 1." |bc) -eq 1 ]; then
     force "$1"
 else
     force 1
-    redshift -o -l 50:30 -t 6500K:3100K -b "$1"
+    # redshift -o -l 50:30 -t 6500K:3100K -b "$1"
+    redshift -l 50:30 -t 6500K:3100K -r -b "$1"
 fi
