@@ -15,5 +15,5 @@ if [ $(echo "$1 > 1." |bc) -eq 1 ]; then
 else
     force 1
     # redshift -o -l 50:30 -t 6500K:3100K -b "$1"
-    redshift -l 50:30 -t 6500K:3100K -r -b "$1"
+    redshift -l 50:30 -t 6500K:2100K -r -b "$1"
 fi

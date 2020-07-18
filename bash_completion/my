@@ -12,8 +12,13 @@ complete -F _complete_full copy fkill fuck parallel proc procx restart whatsin  
 
 
 _complete_by_options() {
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    list=$(${COMP_WORDS[0]} help |sed -r 's/Options: (.*)/\1/')
-    COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
+    if [ $COMP_CWORD -eq 1 ]; then
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        list=$(${COMP_WORDS[0]} help |sed -r 's/Options: (.*)/\1/')
+        COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
+    else
+        # default - list files
+        COMPREPLY=( $(ls -CF --group-directories-first) )
+    fi
 }
 complete -F _complete_by_options light-mode vivaldi-windows

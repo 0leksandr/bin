@@ -9,8 +9,8 @@ if [ "$path" != "" ]; then
     else
         filename=$(expr "$path" : '.*/\([^/]*\)')
         dirLen=$(( $(expr length "$path") - $(expr length "$filename") - 1 ))
-        # cd $(expr substr "$path" 1 "$dirLen")
-        cd "`expr substr \"$path\" 1 \"$dirLen\"`"
+        cd "$(expr substr "$path" 1 "$dirLen")"
+        # cd "`expr substr \"$path\" 1 \"$dirLen\"`"
     fi
 fi
 

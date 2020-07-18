@@ -4,7 +4,7 @@ sudo test
 logs="$(_backup-programs update)"
 dird="$(echo "$logs" |sed '1q;d')"
 log="$(echo "$logs" |sed '2q;d')"
-dir="$dird/.."
+dir="$dird/../.."
 
 aptlist=$dird/apt-list-installed.txt
 apt list --installed > $aptlist

@@ -16,7 +16,6 @@ if [ "$pids" ]; then
                     done
                 fi
                 if ps -p $pid > /dev/null; then
-                    # echo "kill -9 $pid [$(procx $pid)]"
                     kill -9 $pid
                 fi
             fi

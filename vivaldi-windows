@@ -37,13 +37,13 @@ case "$1" in
         if [ ! "$($0 list)" ]; then
             while [ ! "$($0 list)" ]; do sleep 1; done
             sleep 2
-            limit=$(($($0 list |wc -l) * 2))
+            nr_windows=$($0 list |wc -l)
             i=0
-            while [ $i -lt $limit ]; do
+            while [ $i -lt $(($nr_windows * 2)) ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
-                    sleep 3
+                    sleep $(($nr_windows / 2))
                     break
                 fi
                 sleep 1
@@ -59,7 +59,7 @@ case "$1" in
 
         prev=0
         while true; do
-            sleep 5
+            sleep 10
             cur="$($0 list)"
             if [ ! "$cur" ]; then
                 $0 backup
