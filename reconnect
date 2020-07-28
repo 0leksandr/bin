@@ -13,4 +13,3 @@ fi
 if [ "$reconnect" ]; then
     nmcli radio wifi off && nmcli radio wifi on && sleep 3s && nmcli dev wifi connect TP-LINK_7DA0 password r15193429r
 fi
-exit 0

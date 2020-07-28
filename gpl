@@ -1,2 +1,11 @@
 #!/bin/sh
 git pull
+
+# # git config --global pull.ff only
+# git fetch --all
+# git status -sb
+# git rebase my_feature upstream/master
+
+# set -e
+# !git fetch origin --tags --prune
+# !git merge @{u} --ff-only && git l1
