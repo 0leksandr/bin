@@ -34,7 +34,7 @@ export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quo
 
 fi # BASH SHELL
 
-if [ $SHELL = $(which zsh) ]; then
+if [ $SHELL = "$(which zsh)" ]; then
     zstyle ":completion:*:commands" rehash 1
 
     bindkey \^U backward-kill-line
@@ -68,7 +68,7 @@ mkcdir () { mkdir -- "$1" && cd -- "$1" ;}
 
 # if [ $0 = "zsh" ]; then
 # if [ $0 != "bash" ]; then
-if [ $SHELL = $(which zsh) ]; then
+if [ $SHELL = "$(which zsh)" ]; then
     # autoload bashcompinit
     # bashcompinit
 
