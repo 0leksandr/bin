@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+branch="$1"
+key="$(basename $0)"
+
+if ! gst > /dev/null; then
+    git add .
+    git stash save "$key"
+fi
+
+git checkout "$branch"
+
+echo "$(git --no-pager stash list)" |while read stash; do
+    match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: On $branch: $key$/\1/")"
+    if [ "$(echo $match |grep -E '^[0-9]+$')" ]; then
+        git stash pop "stash@{$match}"
+        break
+    fi
+done
