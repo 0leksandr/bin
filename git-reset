@@ -1,8 +1,7 @@
 #!/bin/sh
-# # git add .
-# git rm --cached -r -f .
-
 git clean -n
 git clean -f
-git reset --hard
 git checkout -- .
+git add .
+# git rm --cached -r -f .
+git reset --hard

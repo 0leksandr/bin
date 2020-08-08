@@ -1,0 +1,9 @@
+#!/bin/sh
+command="git $@"
+echo "$(date-ft): $command" >> ~/.temp/git.log
+if [ "$7" = "checkout" ]; then
+    echo "git-switch" >> ~/.temp/git.log
+    git-switch "$8"
+else
+    eval "$command"
+fi
