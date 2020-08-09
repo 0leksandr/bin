@@ -1,9 +1,17 @@
-#!/bin/sh
-command="git $@"
-echo "$(date-ft): $command" >> ~/.temp/git.log
-if [ "$7" = "checkout" ]; then
-    echo "git-switch" >> ~/.temp/git.log
-    git-switch "$8"
-else
-    eval "$command"
+#!/bin/bash
+nr_args=$#
+if [ "${!nr_args}" = "--" ]; then
+    nr_args=$(($nr_args-1))
 fi
+if [ $nr_args -ge 2 ]; then
+    before_last=$((nr_args-1))
+    if [ "${!before_last}" = "checkout" ]; then
+        # eval "git-switch '${!nr_args}'"
+        git-switch "${!nr_args}"
+        exit 0
+    fi
+fi
+
+args=""
+for arg in "$@"; do args="$args $(printf "%q" "$arg")"; done
+eval "git $args"
