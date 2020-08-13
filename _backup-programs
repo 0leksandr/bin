@@ -2,7 +2,7 @@
 operation="$1"
 # dir=$(dirname $0)/backups
 dir=$HOME/_/Programs/backups
-dird="$dir/logs/$(date +%F-%H%M%S)-$operation"
+dird="$dir/logs/$(date-filename)-$operation"
 mkdir "$dird"
 log="$dird/$operation.log"
 touch "$log"
