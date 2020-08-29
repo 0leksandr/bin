@@ -1,4 +1,5 @@
 #!/bin/sh
+_highlander
 while true; do
     for cmd in "$@"; do
         if [ ! "$(procx "$cmd")" ]; then

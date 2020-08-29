@@ -1,8 +1,8 @@
 #!/bin/sh
 
-$HOME/_/Programs/bin/utility/bluetooth-off
-mic-off
-# volume 50%
+# $HOME/_/Programs/bin/utility/bluetooth-off
+# mic-off
+volume 40%
 light-mode all &
 
 sleep 5
@@ -22,10 +22,3 @@ sleep 10
 daemons 'light-mode all' 'conky-my' 'telegram' &
 
 alert "$0 finished"
-
-# for command in \
-#     "sleep 20 && daemons 'light-mode all' 'conky-my' 'telegram'" \
-#     "sleep 10 && beep && alert 'test $0'" \
-# ; do
-#     $("$cmd") &
-# done
