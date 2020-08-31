@@ -1,0 +1,3 @@
+#!/bin/sh
+reg='governor "([^"]+)"'
+cpupower frequency-info --policy |grep -E "$reg" |sed -r "s/^.*$reg.*$/\1/"

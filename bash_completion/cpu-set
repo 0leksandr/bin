@@ -1,0 +1,6 @@
+_complete_cpu_set()
+{
+    reg='available cpufreq governors: (.*)$'
+    COMPREPLY=( "$(cpupower frequency-info --governors |grep -E "$reg" |sed -r "s/^.*$reg/\1/" |tr ' ' '\n')" )
+}
+complete -F _complete_cpu_set cpu-set
