@@ -4,6 +4,7 @@ $HOME/_/Programs/bin/utility/bluetooth-off
 mic-off
 # volume 40%
 light-mode all &
+close-browser-tab &
 
 sleep 5
 # vivaldi-my &
@@ -18,6 +19,6 @@ start-closed slack 'Slack( \|.*)?'
 start-closed telegram 'Telegram( \([0-9]+\))?'
 
 sleep 10
-daemons 'light-mode all' 'conky-my' 'telegram' &
+daemons 'light-mode all' 'conky-my' 'telegram' 'cronus' 'close-browser-tab' &
 
 alert "$0 finished"
