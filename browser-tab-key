@@ -1,0 +1,21 @@
+#!/bin/sh
+url=127.0.0.1
+port=8703
+
+get_url_param() { echo "$1" |php -r "parse_str(urldecode(fgets(STDIN))['query'], \$params); echo \$params['$2'];" ;}
+
+reg='^\[[^]]+\]  "[^G]*GET[^/]+/([^"]+)".*$'
+# reg='^\[[^]]+\]  "[^G]*GET[^/]+/([[:print:]]+)[^[[:print:]]].*$'
+# grep + sed don't work..
+http-server  -a $url -p $port 2>/dev/null |while read line; do
+    if [ "$(echo "$line" |grep -E "$reg")" ]; then
+        uri="$(echo "$line" |sed -r "s~$reg~\1~")"
+        length=$(echo "$uri" |awk '{print length($0)}')
+        uri="$(echo "$uri" |cut -c1-$(($length-5)))"
+        # title="$(echo "$uri" |php -r 'echo urldecode(fgets(STDIN));')"
+        title=$(get_url_param "$uri" "title")
+        key=$(get_url_param "$uri" "key")
+        alert "closing browser tab [$title]"
+        xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 key "$key" windowactivate $(xdotool getactivewindow)
+    fi
+done

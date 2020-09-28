@@ -4,9 +4,7 @@ while true; do
     for cmd in "$@"; do
         if [ ! "$(procx "$cmd")" ]; then
             alert "process down; restarting: $cmd"
-            # eval "$cmd" &
-            # $("$cmd") &
-            sh -c "$cmd" & # run in detached mode - no connection with this parent `daemons`
+            run-detached "$cmd"
         fi
     done
     sleep 10

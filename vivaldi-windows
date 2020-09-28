@@ -59,7 +59,7 @@ case "$1" in
 
         prev=0
         while true; do
-            sleep 10
+            sleep 5
             cur="$($0 list)"
             if [ ! "$cur" ]; then
                 $0 backup
