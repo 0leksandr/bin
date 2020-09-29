@@ -1,24 +1,36 @@
 #!/bin/sh
 flags="-i"
 flagX=""
-while getopts ":x:E" opt; do  # order is important?!
-    case $opt in
-        x) flags="$flags -E"; flagX="1" ;;
-        E) flags="$flags -E" ;;
+flagP=""
+for input; do
+    case $input in
+        -x) flags="$flags -E"; flagX="1" ;;
+        -E) flags="$flags -E" ;;
+        -P) flagP="1" ;;
     esac
+    search="$input"  # last one..
 done
-for last; do :; done
-search="$last"
+
+if [ ! "$flagX" ]; then
+    parent=$(_parent)
+    if [ "$(proc -x -P $parent |sed -r 's/^.* ([^ ]+)$/\1/')" != "zsh" ]; then
+        error="$(basename $0) called from script without -x option"
+        echo "$error" >&2
+        alert "$error"
+    fi
+fi
 
 reg="$search"
 if [ "$flagX" ]; then
     col="([^ ]+ +)"
     pid="$search"
-    title="[^ ]*$search"
-    reg="^($col{10}$title |$col{10}$title$|$col{11}$title |$col{11}$title$|$col$pid )"
+    shell="((/bin/sh|/bin/bash) +)"
+    title="(/[^ ]+/)?$search"
+    reg="^($col{10}$shell?($title |$title$)|$col$pid )"
 fi
 
 procs="$(ps aux)"
-procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
-# procs="$(echo "$procs" |grep $flags "$search")"
+if [ ! "$flagP" ]; then
+    procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
+fi
 echo "$procs" |grep $flags "$reg" |grep $flags --color=auto "$search"

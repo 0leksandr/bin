@@ -2,8 +2,8 @@
 if [ $# -ge 1 ]; then
     pid="$1"
 else
-    # pid=$PPID
-    pid=$$  # --include actual caller (parent of this `_parent`)-- include this `_parent`
+    # pid=$PPID  # include actual caller (parent of this $0)
+    pid=$$  # include this $0
 fi
 
 if [ $# -ge 2 ]; then
