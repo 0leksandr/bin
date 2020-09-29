@@ -1,15 +1,24 @@
 #!/bin/sh
 flags="-i"
+flagX=""
 while getopts ":x:E" opt; do  # order is important?!
     case $opt in
-        x) flags="$flags -w" ;;
+        x) flags="$flags -E"; flagX="1" ;;
         E) flags="$flags -E" ;;
     esac
 done
 for last; do :; done
 search="$last"
 
+reg="$search"
+if [ "$flagX" ]; then
+    col="([^ ]+ +)"
+    pid="$search"
+    title="[^ ]*$search"
+    reg="^($col{10}$title |$col{10}$title$|$col{11}$title |$col{11}$title$|$col$pid )"
+fi
+
 procs="$(ps aux)"
 procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
 # procs="$(echo "$procs" |grep $flags "$search")"
-echo "$procs" |grep $flags --color=auto "$search"
+echo "$procs" |grep $flags "$reg" |grep $flags --color=auto "$search"

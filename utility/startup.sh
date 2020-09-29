@@ -1,12 +1,14 @@
 #!/bin/sh
+set -e
 
-control=$(run-detached "sleep 35 && alert '$0 was not finished correctly'")
+# self-control
+control=$(run-detached "sleep 50 && alert '$0 was not finished correctly'")
 
 $HOME/_/Programs/bin/utility/bluetooth-off
 mic-off
 # volume 40%
 light-mode all &
-close-browser-tab &
+browser-tab-key &
 
 sleep 5
 # vivaldi-my &

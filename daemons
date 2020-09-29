@@ -1,5 +1,18 @@
 #!/bin/sh
 _highlander
+
+# self-control
+codename="_$(basename $0)"
+run-detached "
+    while :; do
+        if ! procx $$ > /dev/null; then
+            alert '$codename failed'
+            break
+        fi
+        sleep 10
+    done
+"
+
 while true; do
     for cmd in "$@"; do
         if [ ! "$(procx "$cmd")" ]; then
