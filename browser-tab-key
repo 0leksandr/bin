@@ -15,9 +15,15 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         # title="$(echo "$uri" |php -r 'echo urldecode(fgets(STDIN));')"
         title=$(get_url_param "$uri" "title")
         key=$(get_url_param "$uri" "key")
-alert "sending key [$key] to browser tab [$title]"
+
+        list="$(vivaldi-windows list)"
         if [ "$title" != "" ] && [ "$key" != "" ]; then
             xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 key "$key" windowactivate $(xdotool getactivewindow)
+        fi
+        sleep 1
+        if [ "$(vivaldi-windows list)" = "$list" ]; then
+            alert "$(basename $0) failed"
+            exit
         fi
     fi
 done

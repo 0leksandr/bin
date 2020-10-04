@@ -2,7 +2,7 @@
 set -e
 
 # self-control
-control=$(run-detached "sleep 50 && alert '$0 was not finished correctly'")
+control=$(run-detached "sleep 45 && alert '$0 was not finished correctly'")
 
 $HOME/_/Programs/bin/utility/bluetooth-off
 mic-off

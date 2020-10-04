@@ -31,7 +31,7 @@ function timediff {
 
 echo > $file
 
-alerted=0
+alerted=()
 
 while true; do
     cur=$(date +%s)
@@ -44,14 +44,15 @@ while true; do
     fi
 
     # alert
-    if [[ ( $(expr $shutdowntime - $cur) -le $(expr 3 \* 60) ) && $alerted == 0 ]]; then
-        # notify-send --urgency=critical --icon=terminal "Shutdown in 3 minutes"
-        beep
-        alert "Shutdown in 3 minutes"
-        say "Shutdown in 3 minutes" festival &
-        alerted=1
-    fi
-    seconds_left="$(expr $shutdowntime - $cur)"
+    seconds_left=$(($shutdowntime - $cur))
+    for minute in 1 2 3; do
+        if [[ ( $seconds_left -le $(($minute * 60)) ) && ${alerted[$minute]} != 1 ]]; then
+            beep
+            alert "Shutdown in $minute minutes"
+            say "Shutdown in $minute minutes" festival &
+            alerted[$minute]=1
+        fi
+    done
     if [[ $seconds_left -le 10 ]]; then
         say $seconds_left festival &
     fi
