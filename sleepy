@@ -48,8 +48,10 @@ while true; do
     for minute in 1 2 3; do
         if [[ ( $seconds_left -le $(($minute * 60)) ) && ${alerted[$minute]} != 1 ]]; then
             beep
-            alert "Shutdown in $minute minutes"
-            say "Shutdown in $minute minutes" festival &
+            message="Shutdown in $minute minute"
+            if [ $minute -ne 1 ]; then message="$message"s; fi
+            alert "$message"
+            say "$message" festival &
             alerted[$minute]=1
         fi
     done
