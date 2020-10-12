@@ -22,7 +22,7 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         fi
         sleep 1
         if [ "$(vivaldi-windows list)" = "$list" ]; then
-            alert "$(basename $0) failed"
+            alert "$(basename $0) failed: key[$key] title[$title]"
             exit
         fi
     fi

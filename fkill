@@ -1,24 +1,2 @@
 #!/bin/sh
-if echo "$1" | egrep -q '^[0-9]+$'; then
-    pids="$1"
-else
-    pids=$(procx "$1" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
-fi
-
-if [ "$pids" ]; then
-    echo "$pids" |while read pid; do
-        if ps -p $pid > /dev/null; then
-            if echo $pid |grep -E -v -x -q "($(_parents))"; then  # except this `fkill` and its parents
-                children=$(pgrep -P $pid)
-                if [ "$children" ]; then
-                    echo "$children" |while read child; do
-                        $0 $child
-                    done
-                fi
-                if ps -p $pid > /dev/null; then
-                    kill -9 $pid
-                fi
-            fi
-        fi
-    done
-fi
+_fkill -x "$1"
