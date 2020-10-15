@@ -4,15 +4,14 @@ port=8703
 
 get_url_param() { echo "$1" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$2'];" ;}
 
-reg='^\[[^]]+\]  "[^G]*GET[^/]+/([^"]+)".*$'
+reg='^\[[^]]+\]  "[^G]*GET[^/]+/([^"]+[0-9a-zA-Z])[^"0-9a-zA-Z]*".*$'
 # reg='^\[[^]]+\]  "[^G]*GET[^/]+/([[:print:]]+)[^[[:print:]]].*$'
 # grep + sed don't work..
 http-server -a $url -p $port 2>/dev/null |while read line; do
     if [ "$(echo "$line" |grep -E "$reg")" ]; then
         uri="$(echo "$line" |sed -r "s~$reg~\1~")"
-        length=$(echo "$uri" |awk '{print length($0)}')
-        uri="$(echo "$uri" |cut -c1-$(($length-5)))"
-        # title="$(echo "$uri" |php -r 'echo urldecode(fgets(STDIN));')"
+        # length=$(echo "$uri" |awk '{print length($0)}')
+        # uri="$(echo "$uri" |cut -c1-$(($length-5)))"
         title=$(get_url_param "$uri" "title")
         key=$(get_url_param "$uri" "key")
 

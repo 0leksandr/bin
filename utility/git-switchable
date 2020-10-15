@@ -12,6 +12,7 @@ if [ $nr_args -ge 2 ]; then
     fi
 fi
 
-args=""
-for arg in "$@"; do args="$args $(printf "%q" "$arg")"; done
-eval "git $args"
+# args=""
+# for arg in "$@"; do args="$args $(printf "%q" "$arg")"; done
+# eval "git $args"
+_transfer git "$@"

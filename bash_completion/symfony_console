@@ -51,12 +51,6 @@ fi
 _complete_sf2_app_console() {
     local cur
 
-    # my
-    if [ ! -f "bin/console" ]; then
-        # not in symfony project
-        return 0
-    fi
-
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
 

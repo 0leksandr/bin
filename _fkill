@@ -2,9 +2,6 @@
 flag="$1"
 proc="$2"
 
-echo "flag[$flag]"
-echo "proc[$proc]"
-
 if echo "$proc" | egrep -q '^[0-9]+$'; then
     pids="$proc"
 else

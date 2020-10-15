@@ -1,1 +1,11 @@
-../vendor/symfony
+#!/bin/sh
+
+# console="bin/console"
+# if [ -f $console ]; then
+#     # in symfony project
+#     _transfer $console "$@"
+# else
+#     _transfer "$(dirname $0)"/../vendor/symfony "$@"
+# fi
+
+_transfer "$(dirname $0)"/../vendor/symfony "$@"
