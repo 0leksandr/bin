@@ -1,4 +1,4 @@
 _complete_git_switch() {
-    COMPREPLY=( "$(git branch -l |sed -r 's/^\*? +//')" )
+    COMPREPLY=( "$(git branch --list |sed -r 's/^\*? +//')" )
 }
 complete -F _complete_git_switch git-switch
