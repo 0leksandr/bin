@@ -26,6 +26,7 @@ for cmd in "$@"; do
         eval "$cmd" & pid=$!
         list2wait="$list2wait $pid"
         list2kill="$list2kill pkill -P $pid;"
+        # list2kill="$list2kill kill -SIGINT $pid;"
     fi
 done
 

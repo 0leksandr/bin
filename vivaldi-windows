@@ -16,7 +16,12 @@ case "$1" in
             fi
         done
         ;;
-    save) $0 list > "$file" ;;
+    save)
+        list="$($0 list)"
+        if [ "$list" ]; then
+            echo "$list" > "$file"
+        fi
+        ;;
     backup)
         bac_version=1
         while [ -f "$file_bac.$bac_version" ]; do bac_version=$(($bac_version + 1)); done
@@ -39,11 +44,11 @@ case "$1" in
             sleep 2
             nr_windows=$($0 list |wc -l)
             i=0
-            while [ $i -lt $(($nr_windows * 2)) ]; do
+            while [ $i -lt $(($nr_windows * 1)) ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
-                    sleep $(($nr_windows / 2))
+                    sleep $(($nr_windows / 2 + 5))
                     break
                 fi
                 sleep 1
@@ -66,14 +71,17 @@ case "$1" in
                 break
             fi
             cur_nr="$(echo "$cur" |wc -l)"
+echo "cur_nr[$cur_nr]"
             if [ $prev_nr -ne 0 ]; then
                 sleep=$(echo "$(($prev_nr - $cur_nr))^2" |bc)
                 if [ $sleep -eq 0 ]; then
                     sleep=1
                 fi
+echo "sleep [$sleep]"
                 sleep $(($sleep * 3))
             fi
             if [ "$cur" != "$prev" ]; then
+echo "saving"
                 $0 save
             fi
             prev="$cur"

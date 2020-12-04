@@ -1,3 +1,3 @@
 #!/bin/bash
+_highlander
 python3 ~/PycharmProjects/cronus/cronus.py "$@"
-exit 0
