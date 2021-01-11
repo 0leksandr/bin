@@ -1,2 +1,6 @@
 #!/bin/sh
-parallel "vivaldi-snapshot" "vivaldi-windows listen"
+parallel "
+    vivaldi-snapshot
+    # vivaldi
+    vivaldi-windows listen
+"

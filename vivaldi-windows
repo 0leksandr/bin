@@ -44,7 +44,7 @@ case "$1" in
             sleep 2
             nr_windows=$($0 list |wc -l)
             i=0
-            while [ $i -lt $(($nr_windows * 1)) ]; do
+            while [ $i -lt $(($nr_windows * 2)) ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
@@ -78,7 +78,7 @@ echo "cur_nr[$cur_nr]"
                     sleep=1
                 fi
 echo "sleep [$sleep]"
-                sleep $(($sleep * 3))
+                sleep $(($sleep * 5))
             fi
             if [ "$cur" != "$prev" ]; then
 echo "saving"

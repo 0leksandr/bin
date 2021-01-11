@@ -1,2 +1,8 @@
 #!/bin/sh
-amixer get Capture |tail -n1 |sed -r 's ^.*\[(on|off)\]$ \1 g'
+status="$(amixer get Capture |tail -n1 |sed -r 's ^.*\[(on|off)\]$ \1 g')"
+echo "$status"
+if [ "$status" = "on" ]; then
+    exit 0
+else
+    exit 1
+fi

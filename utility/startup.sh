@@ -2,11 +2,11 @@
 set -e
 
 # self-control
-control=$(run-detached "sleep 45 && alert '$0 was not finished correctly'")
+control=$(run-detached "sleep 50 && alert '$0 was not finished correctly'")
 
 $HOME/_/Programs/bin/utility/bluetooth-off
 # mic-off
-# volume 40%
+[ $(volume) -gt 40 ] && volume 40
 light-mode all &
 browser-tab-key &
 
@@ -19,9 +19,10 @@ sleepy 00:00
 
 sleep 5
 cronus $HOME/_/Programs/cronostab &
-start-closed skypeforlinux 'Skype'
+# start-closed skypeforlinux 'Skype'
 start-closed slack 'Slack( \|.*)?' &
 start-closed telegram 'Telegram( \([0-9]+\))?'
+steam &
 
 sleep 10
 daemons \

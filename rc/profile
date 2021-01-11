@@ -3,3 +3,6 @@ if [ -d $dir ] ; then
     PATH="$dir:$PATH"
     # export PATH
 fi
+
+export GTK_IM_MODULE="xim" # shrug emoji
+# export GTK_IM_MODULE="gtk-im-context-simple"

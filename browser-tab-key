@@ -19,10 +19,10 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         if [ "$title" != "" ] && [ "$key" != "" ]; then
             xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 key "$key" windowactivate $(xdotool getactivewindow)
         fi
-        sleep 1
+        sleep 3
         if [ "$(vivaldi-windows list)" = "$list" ]; then
             alert "$(basename $0) failed: key[$key] title[$title]"
-            exit
+            # exit
         fi
     fi
 done

@@ -4,9 +4,9 @@ flagX=""
 flagP=""
 for input; do
     case $input in
-        -x) flags="$flags -E"; flagX="1" ;;
-        -E) flags="$flags -E" ;;
-        -P) flagP="1" ;;
+        -x) flags="$flags -E"; flagX="1" ;; # exact command name
+        -E) flags="$flags -E" ;;            # extended regexp
+        -P) flagP="1" ;;                    # include caller and its parents
     esac
     search="$input"  # last one..
 done

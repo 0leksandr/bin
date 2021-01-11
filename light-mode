@@ -45,7 +45,8 @@ case "$1" in
         done
         ;;
     server)
-        pkill http-server
+        # pkill http-server
+        pkill "$daytime_file"
 
         # http-server ~/MEGAsync/browser\ extensions/darkreader/ -a 127.0.0.1 -p 9473
         # http-server "$(dirname "$daytime_file")/" -a 127.0.0.1 -p 9473

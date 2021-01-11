@@ -1,0 +1,4 @@
+# import the default Compose file for your locale
+include "%L"
+
+<Multi_key> <s> <h>  : "¯\\_(ツ)_/¯"
