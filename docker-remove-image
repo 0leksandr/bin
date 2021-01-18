@@ -1,0 +1,9 @@
+#!/bin/sh
+res_grep="$(docker images |grep "$1")"
+echo "$res_grep"
+ids="$(echo "$res_grep" |sed -r "s~^[^ ]+ +[^ ]+ +([^ ]+) .*$~\1~g")"
+
+# echo "$ids"| while read id; do
+#     docker-rmi --force "$id"
+# done
+docker rmi --force $(echo "$ids"| tr '\n' ' ')
