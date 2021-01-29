@@ -37,6 +37,15 @@ case "$1" in
             wmctrl -F -r "$window" -t $workspace
         done
         ;;
+    fix)
+        dir="$(dirname $file)"
+echo "dir[$dir]"
+        last () { printf "$dir/"; ls "$dir" -1v |tail -n1 ;}
+echo "last[$(last)]"
+        rm "$(last)"
+        cp "$(last)" "$file"
+        $0 move
+        ;;
     listen)
         _highlander
         if [ ! "$($0 list)" ]; then
@@ -77,6 +86,9 @@ echo "cur_nr[$cur_nr]"
                 if [ $sleep -eq 0 ]; then
                     sleep=1
                 fi
+                if [ $sleep -lt 0 ]; then
+                    sleep=$((-$sleep))
+                fi
 echo "sleep [$sleep]"
                 sleep $(($sleep * 5))
             fi
@@ -88,5 +100,5 @@ echo "saving"
             prev_nr="$cur_nr"
         done
         ;;
-    *) echo "Options: list full save backup move listen" ;;
+    *) echo "Options: list full save backup move fix listen" ;;
 esac
