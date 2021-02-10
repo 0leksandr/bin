@@ -39,9 +39,7 @@ case "$1" in
         ;;
     fix)
         dir="$(dirname $file)"
-echo "dir[$dir]"
         last () { printf "$dir/"; ls "$dir" -1v |tail -n1 ;}
-echo "last[$(last)]"
         rm "$(last)"
         cp "$(last)" "$file"
         $0 move
@@ -90,7 +88,10 @@ echo "cur_nr[$cur_nr]"
                     sleep=$((-$sleep))
                 fi
 echo "sleep [$sleep]"
+# al=0
+if [ $sleep -gt 1 ]; then alert "$0 sleep [$sleep]"; fi
                 sleep $(($sleep * 5))
+# if [ $al -eq 1 ]; then alert "$0 slept"; fi
             fi
             if [ "$cur" != "$prev" ]; then
 echo "saving"
@@ -100,5 +101,5 @@ echo "saving"
             prev_nr="$cur_nr"
         done
         ;;
-    *) echo "Options: list full save backup move fix listen" ;;
+    *) echo "Options: move fix" ;;
 esac
