@@ -1,5 +1,5 @@
 #!/bin/bash
-daytime_file="$(realpath ~/.temp/daytime.txt)"
+daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
 calc_ranges() {
     astro="$(hdate -s -l N50 -L E30 -z2 2>/dev/null)"
     when () { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}

@@ -88,10 +88,8 @@ echo "cur_nr[$cur_nr]"
                     sleep=$((-$sleep))
                 fi
 echo "sleep [$sleep]"
-# al=0
-if [ $sleep -gt 1 ]; then alert "$0 sleep [$sleep]"; fi
+# if [ $sleep -gt 1 ]; then alert "$0 sleep [$sleep]"; fi
                 sleep $(($sleep * 5))
-# if [ $al -eq 1 ]; then alert "$0 slept"; fi
             fi
             if [ "$cur" != "$prev" ]; then
 echo "saving"

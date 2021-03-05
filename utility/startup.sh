@@ -22,7 +22,7 @@ cronus $HOME/_/Programs/cronostab &
 # start-closed skypeforlinux 'Skype'
 start-closed slack 'Slack( \|.*)?' &
 start-closed telegram 'Telegram( \([0-9]+\))?'
-steam &
+# steam &
 
 sleep 10
 daemons \
