@@ -1,48 +1,69 @@
 #!/bin/sh
 nr_args=$#
+last_arg=""
 all_or_nothing=""
-if [ "$1" = "-n" ]; then
-    nr_args=$((nr_args - 1))
-    all_or_nothing="-n"
-fi
+on_exit_cmd=""
 
-if [ $nr_args -eq 1 ]; then
-    for arg in "$@"; do
-        if [ "$arg" != "-n" ]; then
-            commands="$(echo "$arg" |sed -r 's/^ *#.*$//' |awk 'NF > 0' |sed -r "s ^.*\$ '\0' ")"
-            if [ "$(echo "$commands" |wc -l)" -gt 1 ]; then
-                eval "$0 $all_or_nothing $(echo "$commands" |tr '\n' ' ')"
-                exit 1
-            fi
-        fi
-    done
-fi
-
-list2kill=""
-list2wait=""
-
-for cmd in "$@"; do
-    if [ "$cmd" != "-n" ]; then
-        eval "$cmd" & pid=$!
-        list2wait="$list2wait $pid"
-        list2kill="$list2kill pkill -P $pid;"
-        # list2kill="$list2kill kill -SIGINT $pid;"
+next_is_on_exit=""
+for arg in "$@"; do
+    if [ "$arg" = "-n" ]; then
+        nr_args=$((nr_args - 1))
+        all_or_nothing="-n"
+    elif [ "$arg" = "-e" ]; then
+        nr_args=$((nr_args - 2))
+        next_is_on_exit=1
+    elif [ "$next_is_on_exit" ]; then
+        next_is_on_exit=""
+        on_exit_cmd="$arg"
+    else
+        last_arg="$arg"
     fi
 done
 
-trap "$list2kill" INT TERM
+if [ $nr_args -eq 1 ]; then
+    commands="$(echo "$last_arg" |sed -r 's/^ *#.*$//' |awk 'NF > 0' |sed -r "s ^.*\$ '\0' ")"
+    if [ "$(echo "$commands" |wc -l)" -gt 1 ]; then
+        cmd="$0 $all_or_nothing $(echo "$commands" |tr '\n' ' ')"
+        if [ "$on_exit_cmd" ]; then cmd="$cmd -e $on_exit_cmd"; fi
+        eval "$cmd"
+        exit 1
+    fi
+fi
+
+on_exit=""
+list2wait=""
+
+next_is_on_exit=""
+for cmd in "$@"; do
+    if [ "$cmd" = "-e" ]; then
+        next_is_on_exit=1
+    elif [ "$next_is_on_exit" ]; then
+        next_is_on_exit=""
+    elif [ "$cmd" != "-n" ]; then
+        eval "$cmd" & pid=$!
+        list2wait="$list2wait $pid"
+        on_exit="$on_exit pkill -P $pid;"
+        # on_exit="$on_exit kill -SIGINT $pid;"
+    fi
+done
+on_exit="$on_exit $on_exit_cmd;"
+
+trap "$on_exit" INT TERM
 
 if [ "$all_or_nothing" ]; then
     # bash -c "wait -n"
     while true; do
         for pid in $list2wait; do
             # if ! ps --pid="$pid" > /dev/null; then
+            # if ! procx "$pid" > /dev/null; then  # too heavy
             if ! ps |grep -E -q "^ *$pid "; then
-                eval "$list2kill"
+                eval "$on_exit"
                 exit 1
             fi
         done
-        sleep 0.1
+
+        # sleep 0.1
+        sleep 1
     done
 else
     wait $list2wait

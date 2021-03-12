@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+sudo arecord -f S16_LE -d 10 -r 16000 /tmp/test-mic.wav
+echo "playing"
+aplay /tmp/test-mic.wav
