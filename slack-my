@@ -1,0 +1,12 @@
+#!/bin/sh
+name='Slack( \|.*)?'
+
+while :; do
+    if [ ! "$(_window-id "$name")" ]; then
+        fkill slack
+
+        # start-closed "$0 open" "$name"
+        start-closed '/usr/bin/slack' "$name"
+    fi
+    sleep $((5 * 60))
+done

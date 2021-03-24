@@ -3,4 +3,5 @@ parallel "
     vivaldi-snapshot
     # vivaldi
     vivaldi-windows listen
+    vivaldi-control
 "

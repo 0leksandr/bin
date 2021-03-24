@@ -89,7 +89,17 @@ echo "cur_nr[$cur_nr]"
                 fi
 echo "sleep [$sleep]"
 # if [ $sleep -gt 1 ]; then alert "$0 sleep [$sleep]"; fi
+
                 sleep $(($sleep * 5))
+                # sleep=$(($sleep * 5))
+                # while [ $sleep -ne 0 ]; do
+                #     sleep=$(($sleep - 1))
+                #     if [ ! "$($0 list)" ]; then
+                #         alert "vivaldi exited"
+                #         break
+                #     fi
+                #     sleep 1
+                # done
             fi
             if [ "$cur" != "$prev" ]; then
 echo "saving"
