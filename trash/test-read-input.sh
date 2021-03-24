@@ -4,6 +4,7 @@ if [ "" ]; then
     echo $aa
 
     read void
+    read
 
     if [ $(read aa) ]; then
         echo "yes"
