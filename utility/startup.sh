@@ -20,7 +20,7 @@ sleepy 00:00
 sleep 5
 cronus $HOME/_/Programs/cronostab &
 # start-closed skypeforlinux 'Skype'
-slack-my &
+start-closed slack 'Slack( \|.*)?'
 start-closed telegram 'Telegram( \([0-9]+\))?'
 # steam &
 

@@ -19,12 +19,14 @@ fi
 #     echo "a[$a]"
 # done
 
-while :; do
-    hr
-    timeout --foreground 5 sh -c 'read a; echo $a'|while read -r a; do
-        echo "a[$a]"
+if [ "" ]; then
+    while :; do
+        hr
+        timeout --foreground 5 sh -c 'read a; echo $a'|while read -r a; do
+            echo "a[$a]"
+        done
     done
-done
+fi
 
 if [ "" ]; then
     printf "%s\n" "Do you want to un-Mount the External Drives?"
@@ -39,4 +41,12 @@ if [ "" ]; then
                 "yes") echo "Unmounting stuff" ;;
             esac
     done
+fi
+
+if [ "1" ]; then
+    if [ "$(read)" ]; then
+        echo "yes"
+    else
+        echo "no"
+    fi
 fi
