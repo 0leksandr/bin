@@ -8,7 +8,7 @@ $HOME/_/Programs/bin/utility/bluetooth-off
 mic-off
 [ $(volume) -gt 40 ] && volume 40
 light-mode all &
-browser-tab-key &
+system-server &
 
 sleep 5
 # vivaldi-my &
@@ -30,7 +30,7 @@ daemons \
     "conky-my" \
     "telegram" \
     "cronus $HOME/_/Programs/cronostab" \
-    "browser-tab-key" \
+    "system-server" \
     "dropbox" \
 &
 
