@@ -1,0 +1,1 @@
+/home/nezhraba/go/sdk/go1.16.3/bin/go

@@ -84,9 +84,6 @@ done
 
 GLOBIGNORE=".:.."
 
-# export GOPATH="$HOME/GolandProjects/"
-export GOPATH="$HOME/go/"
-
 # set show-all-if-ambiguous on  # autocomplete with 1 tab. Not wonking..
 
 # export SHELL=$(which zsh) && exec zsh -l

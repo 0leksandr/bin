@@ -3,5 +3,5 @@ parallel "
     vivaldi-snapshot
     # vivaldi
     vivaldi-windows listen
-    vivaldi-control
+    sleep 5 && vivaldi-control
 "

@@ -4,5 +4,10 @@ if [ -d $dir ] ; then
     # export PATH
 fi
 
-export GTK_IM_MODULE="xim" # shrug emoji
+export GOPATH="$HOME/go"
+export GOROOT="$GOPATH/sdk/go1.16.3"
+# export PATH="$PATH:$GOPATH/bin"
+export GO111MODULE=off
+
+export GTK_IM_MODULE="xim"  # xcompose (shrug emoji)
 # export GTK_IM_MODULE="gtk-im-context-simple"

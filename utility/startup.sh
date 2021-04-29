@@ -31,6 +31,7 @@ daemons \
     "telegram" \
     "cronus $HOME/_/Programs/cronostab" \
     "browser-tab-key" \
+    "dropbox" \
 &
 
 fkill "$control"
