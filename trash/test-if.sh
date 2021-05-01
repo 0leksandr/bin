@@ -17,3 +17,9 @@ arg=""
 if [ "$arg" ]; then
     echo '""'
 fi
+
+if [ ! "$(echo '')" ]; then
+    echo "not"
+else
+    echo "fuck"
+fi

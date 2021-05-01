@@ -5,7 +5,8 @@ cmd="$1"
 
 # eval "$cmd" &
 # $("$cmd") &
-# nohup 
-sh -c "$cmd" > /dev/null 2>&1 &
+# nohup
+# sh -c "$cmd" > /dev/null 2>&1 &
+sh -c "$cmd" >/dev/null 2>/tmp/my-errors-pipe &
 
 echo "$!"

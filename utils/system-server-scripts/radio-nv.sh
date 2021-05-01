@@ -1,18 +1,18 @@
-#!/bin/sh
-title="$1"
+#!/bin/bash
+new_title="$1"
 
 dir="$HOME/Downloads"
-files () { ls -1 --sort=time "$dir" ;}
-nr_files=$(files |wc -l)
+files () { ls -1 --sort=none "$dir" |sort ;}
+old_files="$(files)"
 i=0
 while [ $i -lt 10 ]; do
-    nr_new=$(($(files |wc -l) - $nr_files))
-    if [ $nr_new -gt 0 ]; then
+    new_file="$(comm -1 -3 <(echo "$old_files") <(files))"  # bash, needed for process substitution
+    if [ "$new_file" ]; then
         j=0
-        while [ $j -lt 30 ]; do
-            file="$(files |tail -n $(($nr_files + 1)) |head -n 1)"
-            if echo "$file" |grep '\.mp3$' > /dev/null ; then
-                mv "$dir/$file" "$dir/$title.mp3"
+        while [ $j -lt 60 ]; do
+            if [ ! -f "$dir/$new_file" ]; then
+                title="$(echo "$new_file" |sed -r 's ^(.*)\.[^.]+$ \1 ')"
+                mv "$dir/$title" "$dir/$new_title.mp3"
                 break
             fi
             j=$((j+1))

@@ -4,11 +4,13 @@ set -e
 # self-control
 control=$(run-detached "sleep 50 && alert '$0 was not finished correctly'")
 
-$HOME/_/Programs/bin/utils/bluetooth-off
+utils="$HOME/_/Programs/bin/utils"
+$utils/bluetooth-off
 mic-off
 [ $(volume) -gt 40 ] && volume 40
 light-mode all &
 system-server &
+$utils/errors-pipe.sh &
 
 sleep 5
 # vivaldi-my &
@@ -26,12 +28,13 @@ start-closed telegram 'Telegram( \([0-9]+\))?'
 
 sleep 10
 daemons \
-    "light-mode all" \
     "conky-my" \
-    "telegram" \
     "cronus $HOME/_/Programs/cronostab" \
+    "light-mode all" \
     "system-server" \
+    "$utils/errors-pipe.sh" \
     "dropbox" \
+    "telegram" \
 &
 
 fkill "$control"
