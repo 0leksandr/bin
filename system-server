@@ -4,8 +4,6 @@ _highlander
 url=127.0.0.1
 port=8703
 
-get_url_param() { echo "$1" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$2'];" ;}
-
 reg='^\[[^]]+\]  "[^G]*GET[^/]+/([^"]+[0-9a-zA-Z])[^"0-9a-zA-Z]*".*$'
 # reg='^\[[^]]+\]  "[^G]*GET[^/]+/([[:print:]]+)[^[[:print:]]].*$'
 # grep + sed don't work..
@@ -15,49 +13,21 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         # length=$(echo "$uri" |awk '{print length($0)}')
         # uri="$(echo "$uri" |cut -c1-$(($length-5)))"
 
-        action=$(get_url_param "$uri" "action")
+        get_url_param (){ echo "$uri" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$1'];" ;}
+        action=$(get_url_param "action")
+        run_script (){
+            cmd="$(dirname $0)/utility/system-server-scripts/$action.sh"
+            for key in "$@"; do
+                cmd="$cmd '$(get_url_param "$key")'"
+            done
+            run-detached "$cmd"
+        }
+
         case "$action" in
-            browser-tab-key)
-                title=$(get_url_param "$uri" "title")
-                key=$(get_url_param "$uri" "key")
-
-                list="$(vivaldi-windows list)"
-                if [ "$title" != "" ] && [ "$key" != "" ]; then
-                    xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 key "$key" windowactivate $(xdotool getactivewindow)
-                fi
-                sleep 3
-                if [ "$(vivaldi-windows list)" = "$list" ]; then
-                    alert "$(basename $0) failed: key[$key] title[$title]"
-                fi
-                ;;
-            radio-nv)
-                title="$(get_url_param "$uri" 'title')"
-
-                dir="$HOME/Downloads"
-                files () { ls -1 --sort=time "$dir" ;}
-                nr_files=$(files |wc -l)
-                i=0
-                while [ $i -lt 10 ]; do
-                    nr_new=$(($(files |wc -l) - $nr_files))
-                    if [ $nr_new -gt 0 ]; then
-                        j=0
-                        while [ $j -lt 30 ]; do
-                            file="$(files |tail -n $(($nr_files + 1)) |head -n 1)"
-                            if echo "$file" |grep '\.mp3$' > /dev/null ; then
-                                mv "$dir/$file" "$dir/$title"
-                                # alert "$0: mv $dir/$file $dir/$title.mp3"
-                                break
-                            fi
-                            j=$((j+1))
-                            sleep 1
-                        done
-                        break
-                    fi
-                    i=$((i+1))
-                    sleep 1
-                done
-                ;;
-            *) alert "$0: unknown action: $action" ;;
+            browser-tab-key) run_script "title" "key" ;;
+            radio-nv)        run_script "title" ;;
+            test)            run_script "value" ;;
+            *)               alert "$0: unknown action: $action" ;;
         esac
     fi
 done
