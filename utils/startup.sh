@@ -4,7 +4,7 @@ set -e
 # self-control
 control=$(run-detached "sleep 50 && alert '$0 was not finished correctly'")
 
-$HOME/_/Programs/bin/utility/bluetooth-off
+$HOME/_/Programs/bin/utils/bluetooth-off
 mic-off
 [ $(volume) -gt 40 ] && volume 40
 light-mode all &

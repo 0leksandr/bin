@@ -16,7 +16,7 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         get_url_param (){ echo "$uri" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$1'];" ;}
         action=$(get_url_param "action")
         run_script (){
-            cmd="$(dirname $0)/utility/system-server-scripts/$action.sh"
+            cmd="$(dirname $0)/utils/system-server-scripts/$action.sh"
             for key in "$@"; do
                 cmd="$cmd '$(get_url_param "$key")'"
             done

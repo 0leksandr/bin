@@ -1,5 +1,5 @@
 #!/bin/sh
 xset dpms force off
 root="$(dirname $(realpath $0))"
-$root/utility/mouse-disable
-$root/utility/mouse-enable
+$root/utils/mouse-disable
+$root/utils/mouse-enable
