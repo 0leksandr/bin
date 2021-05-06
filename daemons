@@ -1,9 +1,8 @@
 #!/bin/sh
-_highlander
 
 # self-control
 codename="_$(basename $0)"
-run-detached "
+run-detached -q "
     while :; do
         if ! procx $$ > /dev/null; then
             alert '$codename failed'
@@ -13,10 +12,15 @@ run-detached "
     done
 "
 
+first="1"
+
 while true; do
     for cmd in "$@"; do
         if [ ! "$(procx "$cmd")" ]; then
-            alert "process down; restarting: $cmd"
+            if [ ! "$first" ]; then
+                alert "process down; restarting: $cmd"
+                first=""
+            fi
             run-detached "$cmd"
         fi
     done

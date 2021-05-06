@@ -1,6 +1,6 @@
 #!/bin/sh
 # $("$1") &
-run-detached "$1"
+run-detached -q "$1"
 id=""
 while [ ! "$id" ]; do
     sleep 0.1

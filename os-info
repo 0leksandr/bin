@@ -1,4 +1,5 @@
 #!/bin/sh
+# "inxi -Sxxx"
 for command in \
     "cat /etc/*release" \
     "cat /etc/*release/*" \

@@ -1,12 +1,28 @@
 #!/bin/sh
 # no connection with parents
 
-cmd="$1"
+if [ $# -eq 1 ]; then
+    name="$1"
+    cmd="$1"
+else
+    name="$1"
+    cmd="$2"
+fi
+
+if [ "$1" = "-q" ]; then
+    name=""
+    cmd="$2"
+fi
 
 # eval "$cmd" &
 # $("$cmd") &
 # nohup
-# sh -c "$cmd" > /dev/null 2>&1 &
-sh -c "$cmd" >/dev/null 2>/tmp/my-errors-pipe &
+
+if [ "$name" ]; then
+    errors="$(errors for "$name")"
+    sh -c "$cmd" >/dev/null 2>"$errors" &
+else
+    sh -c "$cmd" >/dev/null 2>&1 &
+fi
 
 echo "$!"

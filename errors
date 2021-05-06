@@ -1,0 +1,55 @@
+#!/bin/sh
+set -e
+dir=/tmp/errors
+
+case "$1" in
+    for)
+        name="$2"
+        if ! echo "$name" |grep -Ei '^[0-9a-z .-]{1,30}$' > /dev/null; then name="$PPID"; fi
+        pipe="$dir/$name"
+        echo "$pipe"
+        ;;
+    init)
+        mkdir -p "$dir"
+        if [ $(nr-files "$dir") -gt 0 ]; then rm -f "$dir"/*; fi
+        ;;
+    listen)
+        _highlander
+        while :; do
+            ls -1A "$dir" |while read pipe; do
+                file="$dir/$pipe"
+                if [ -f "$file" ]; then
+                    content="$(cat "$file")"
+                    if [ "$content" ]; then
+                        if [ "$(echo "$pipe" |grep -E '^[0-9]+$')" ]; then
+                            proc="$(procx $pipe)"
+                            if [ "$proc" ]; then pipe="$proc"; fi
+                        fi
+                        alert "$pipe: $content"
+                    fi
+                    rm -f "$file"
+                fi
+            done
+            sleep 5
+        done
+        ;;
+    test)
+        name="$2"
+        if ! echo "$name" |grep -Ei '^[0-9a-z .-]{1,30}$' > /dev/null; then name="$PPID"; fi
+        pipe="$dir/$name"
+        if [ ! -p "$pipe" ]; then
+            mkfifo "$pipe"
+            run-detached -q "
+                while :; do
+                    while read line <'$pipe'; do
+                        alert '$name: $line'
+                    done
+                    sleep 1
+                done
+            "
+        fi
+        echo "$pipe"
+        ;;
+    help) echo "Options: for init listen" ;;
+    *) echo "unknown option: $1" >"$($0 for $0)"; exit 1 ;;
+esac

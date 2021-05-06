@@ -1,3 +1,4 @@
+#!/bin/sh
 _complete_cpu_set()
 {
     reg='available cpufreq governors: (.*)$'

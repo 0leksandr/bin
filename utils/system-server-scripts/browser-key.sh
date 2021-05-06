@@ -8,5 +8,5 @@ if [ "$title" != "" ] && [ "$key" != "" ]; then
 fi
 sleep 3
 if [ "$(vivaldi-windows list)" = "$list" ]; then
-    alert "$(basename $0) failed: key[$key] title[$title]"
+    echo>&2 "$(basename $0) failed: key[$key] title[$title]"
 fi

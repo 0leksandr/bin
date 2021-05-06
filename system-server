@@ -24,10 +24,9 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         }
 
         case "$action" in
-            browser-tab-key) run_script "title" "key" ;;
-            radio-nv)        run_script "title" ;;
-            test)            run_script "value" ;;
-            *)               alert "$0: unknown action: $action" ;;
+            browser-key) run_script "title" "key" ;;
+            radio-nv)    run_script "title" ;;
+            *)           echo>&2 "$0: unknown action: [$action]" ;;
         esac
     fi
 done

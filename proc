@@ -15,7 +15,7 @@ if [ ! "$flagX" ]; then
     parent=$(_parent)
     if [ "$(proc -x -P $parent |sed -r 's/^.* ([^ ]+)$/\1/')" != "zsh" ]; then
         error="$(basename $0) called from script without -x option"
-        echo "$error" >&2
+        echo>&2 "$error"
         alert "$error"
     fi
 fi
