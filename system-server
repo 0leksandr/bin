@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 _highlander
 
 url=127.0.0.1
@@ -18,13 +18,17 @@ http-server -a $url -p $port 2>/dev/null |while read line; do
         run_script (){
             cmd="$(dirname $0)/utils/system-server-scripts/$action.sh"
             for key in "$@"; do
-                cmd="$cmd '$(get_url_param "$key")'"
+                if [ "${key:0:1}" = "-" ]; then  # bash
+                    cmd="$cmd $(get_url_param "${key:1}")"
+                else
+                    cmd="$cmd '$(get_url_param "$key")'"
+                fi
             done
             run-detached "$cmd"
         }
 
         case "$action" in
-            browser-key) run_script "title" "key" ;;
+            browser-key) run_script "title" "-key" ;;
             radio-nv)    run_script "title" ;;
             *)           echo>&2 "$0: unknown action: [$action]" ;;
         esac

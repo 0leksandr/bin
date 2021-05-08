@@ -1,10 +1,18 @@
 #!/bin/sh
 title="$1"
-key="$2"
 
 list="$(vivaldi-windows list)"
-if [ "$title" != "" ] && [ "$key" != "" ]; then
-    xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 key "$key" windowactivate $(xdotool getactivewindow)
+if [ "$title" != "" ] && [ $# -ge 2 ]; then
+    keys=""
+    first="1"
+    for key in "$@"; do
+        if [ "$first" ]; then
+            first=""
+        else
+            keys="$keys key $key"
+        fi
+    done
+    xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 $keys windowactivate $(xdotool getactivewindow)
 fi
 sleep 3
 if [ "$(vivaldi-windows list)" = "$list" ]; then

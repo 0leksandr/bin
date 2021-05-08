@@ -83,6 +83,7 @@ case "$1" in
         done
         ;;
     all)
+        echo $($0 which) > "$daytime_file"
         parallel -n "
             $0 update
             $0 server
