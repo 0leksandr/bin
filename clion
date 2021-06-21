@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE $HOME/_/Programs/vendor/clion-2020.1/bin/clion.sh
+IDE $HOME/_/Programs/vendor/clion/bin/clion.sh

@@ -55,7 +55,7 @@ case "$1" in
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
-                    sleep $(($nr_windows / 2 + 5))
+                    sleep $(($nr_windows / 2 + 10))
                     break
                 fi
                 sleep 1

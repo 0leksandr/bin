@@ -14,7 +14,8 @@ if [ "$title" != "" ] && [ $# -ge 2 ]; then
     done
     xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 $keys windowactivate $(xdotool getactivewindow)
 fi
-sleep 3
-if [ "$(vivaldi-windows list)" = "$list" ]; then
-    echo>&2 "$(basename $0) failed: key[$key] title[$title]"
-fi
+
+# sleep 3
+# if [ "$(vivaldi-windows list)" = "$list" ]; then
+#     echo>&2 "$(basename $0) failed: key[$key] title[$title]"
+# fi

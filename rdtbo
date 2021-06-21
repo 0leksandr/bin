@@ -1,5 +1,5 @@
 #!/bin/bash
-filename="$@"
+filename="$@ $(date +"%F_%H%M%S").txt"
 touch "$filename"
 echo '' > "$filename"
 reset
