@@ -23,3 +23,8 @@ if [ ! "$(echo '')" ]; then
 else
     echo "fuck"
 fi
+
+while [ ! "$(echo '')" ]; do
+    echo "while"
+    break
+done

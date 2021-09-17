@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ $(xrandr --query |grep ' connected' |wc -l) -gt 1 ]; then
+    echo 1
+    exit
+else
+    exit 1
+fi

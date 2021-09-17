@@ -2,6 +2,11 @@
 dics_dir="/home/nezhraba/_/Parallango/dics"
 dic_file="${dics_dir}/ukr/ukr.txt"
 
+dir="$(dirname $0)"
+if [ $($dir/external-display-connected) ]; then
+    exit
+fi
+
 case $# in
     0)
         while :; do

@@ -11,7 +11,8 @@ fi
 
 if [ "$1" = "-q" ]; then
     name=""
-    cmd="$2"
+else
+    name="$(echo '$name'| sed -r 's/[^a-zA-Z0-9]/_/g')"
 fi
 
 # eval "$cmd" &

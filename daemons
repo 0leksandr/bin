@@ -12,16 +12,14 @@ run-detached -q "
     done
 "
 
-first="1"  # for starting processes
+for cmd in "$@"; do
+    run-detached "$cmd"
+done
 
 while true; do
     for cmd in "$@"; do
         if [ ! "$(procx "$cmd")" ]; then
-            if [ "$first" ]; then
-                first=""
-            else
-                alert "process down; restarting: $cmd"
-            fi
+            alert "process down; restarting: $cmd"
             run-detached "$cmd"
         fi
     done

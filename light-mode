@@ -34,6 +34,11 @@ case "$1" in
     update)
         prev=""
         while true; do
+            if [ $($(dirname $0)/utils/external-display-connected) ]; then
+                sleep 10
+                continue
+            fi
+
             daytime=$($0 which)
 
             if [ "$daytime" != "$prev" ]; then
@@ -86,7 +91,7 @@ case "$1" in
         echo $($0 which) > "$daytime_file"
         parallel -n "
             $0 update
-            $0 server
+            # $0 server
             $0 main
         "
         ;;

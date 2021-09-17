@@ -1,0 +1,2 @@
+#!/bin/sh
+IDE $HOME/_/Programs/vendor/WebStorm/bin/webstorm.sh

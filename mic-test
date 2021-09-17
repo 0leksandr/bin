@@ -1,5 +1,8 @@
 #!/bin/sh
 set -e
-sudo arecord -f S16_LE -d 10 -r 16000 /tmp/test-mic.wav
+duration="$1"
+if [ ! "$duration" ]; then duration=5; fi
+mic-on
+sudo arecord -f S16_LE -d "$duration" -r 16000 /tmp/test-mic.wav
 echo "playing"
 aplay /tmp/test-mic.wav

@@ -21,10 +21,13 @@ case "$1" in
                 if [ -f "$file" ]; then
                     content="$(cat "$file")"
                     if [ "$content" ]; then
-                        if [ "$(echo "$pipe" |grep -E '^[0-9]+$')" ]; then
-                            proc="$(procx $pipe)"
-                            if [ "$proc" ]; then pipe="$proc"; fi
-                        fi
+                        # if [ "$(echo "$pipe" |grep -E '^[0-9]+$')" ]; then
+                        #     cmd="procx '$pipe'"  # for some reason, must be extracted?
+                        #     # cmd="ps aux |grep test"
+# WTF
+                        #     proc="$($cmd)"
+                        #     if [ "$proc" ]; then pipe="$proc"; fi
+                        # fi
                         alert "$pipe: $content"
                     fi
                     rm -f "$file"
