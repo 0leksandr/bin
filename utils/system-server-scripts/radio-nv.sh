@@ -12,6 +12,7 @@ while [ $i -lt 10 ]; do
         while [ $j -lt 60 ]; do
             if [ ! -f "$dir/$new_file" ]; then
                 title="$(echo "$new_file" |sed -r 's ^(.*)\.[^.]+$ \1 ')"
+alert "$0: $new_title"
                 mv "$dir/$title" "$dir/$new_title.mp3"
                 break
             fi
