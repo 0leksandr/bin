@@ -4,7 +4,12 @@ set -e
 # self-control
 control=$(run-detached -q "sleep 50 && alert '$0 was not finished correctly'")
 
-alert "$0: this is a test"
+echo '' >> "$HOME/_/test.txt"
+log (){
+    alert "$0: $@"
+    echo "$0 $(date-ft): $@" >> "$HOME/_/test.txt"
+}
+log "this is a test 1"
 
 utils="$HOME/_/Programs/bin/utils"
 $utils/bluetooth-off
@@ -24,6 +29,8 @@ daemons                                 \
     "conky-my"                          \
     "system-server"                     \
                                         &
+
+log "this is a test 2"
 
 sleep 5
 run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"

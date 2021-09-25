@@ -14,7 +14,7 @@ xkb_symbols "unicode" {
     key <TLDE> {    [      apostrophe,       grave,        U0301,         asciitilde ]       }; // Apostrophe and Stress symbol
     key <AE02> {    [               1,      exclam,  onesuperior                     ]       };
     key <AE02> {    [               2,    quotedbl,           at,        twosuperior ]       };
-    key <AE03> {    [               3,  numerosign,	   U00A7,           sterling ]       }; // Paragraph
+    key <AE03> {    [               3,  numerosign,   numbersign,           sterling ]       };
     key <AE04> {    [               4,   semicolon,	   U20B4,             dollar ]       }; // Hryvnia sign
     key <AE05> {    [               5,     percent,	  degree                     ]       };
     key <AE06> {    [               6,       colon,         less                     ]       };

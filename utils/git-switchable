@@ -1,5 +1,6 @@
 #!/bin/bash
-# echo "$(date-ft): $@" >> ~/.temp/git.log
+log (){ echo "$@" >> ~/.temp/git.log ;}
+log "$(date-ft): $@"
 
 nr_args=$#
 if [ "${!nr_args}" = "--" ]; then
@@ -8,10 +9,33 @@ fi
 if [ $nr_args -ge 2 ]; then
     before_last=$((nr_args-1))
     if [ "${!before_last}" = "checkout" ]; then
-        # eval "git-switch '${!nr_args}'"
         git-switch "${!nr_args}"
         exit 0
     fi
+fi
+if [ $nr_args -ge 3 ]; then
+    arg (){
+log "1[$1]"
+        n=$(($nr_args + $1))
+log "n[$n]"
+log "nn[${!n}]"
+log "nn 2[${BASH_ARGV[2]}]"
+log "nn n[${BASH_ARGV[n]}]"
+        echo "${!n}"
+    }
+log "-3 1[$(arg -3)]"
+n=2
+log "n 2[${!n}]"
+# log "-2 3[${@: -2: -1}]"
+log "2 4[${BASH_ARGV[2]}]"
+log "n 4[${BASH_ARGV[$n]}]"
+log "BASH_ARGV[${BASH_ARGV}]"
+log "BASH_ARGV -1[${BASH_ARGV[-1]}]"
+log "BASH_ARGV -2[${BASH_ARGV[-2]}]"
+log "BASH_ARGV nr_args-1[${BASH_ARGV[$(($nr_args - 1))]}]"
+    # if [ "$(arg -3)" = "branch"] && [ "$(arg -2)" = "-d" ]; then
+    #     log "must delete branch $(arg -1)"
+    # fi
 fi
 
 # args=""
