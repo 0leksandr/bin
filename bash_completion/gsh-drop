@@ -1,0 +1,6 @@
+#!/bin/sh
+_complete_gsh_drop() {
+    echo "test"  # broken on 2021-09-27
+    gsh-list |sed -r 's/^(stash@\{[0-9]+\}):.+$/\1/g'
+}
+complete -F _complete_gsh_drop gsh-drop
