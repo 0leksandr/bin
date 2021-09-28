@@ -1,3 +1,13 @@
 #!/bin/sh
-xdotool key --clearmodifiers XF86AudioPlay
-# sleep 1 && xdotool key XF86AudioPlay
+xdotool key XF86AudioPlay
+
+# xdotool key --clearmodifiers XF86AudioPlay
+
+# xdotool keyup KP_Space
+# xdotool keyup Super_L
+# xdotool key XF86AudioPlay
+
+# xdotool key --clearmodifiers XF86AudioPlay
+# sleep 0.1
+# xdotool keyup KP_Space
+# xdotool keyup Super_L

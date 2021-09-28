@@ -1,2 +1,2 @@
 #!/bin/sh
-rclone mount Mega:/ "$HOME/_/mega-fs"
+rclone mount --vfs-cache-mode writes Mega:/ "$HOME/_/mega-fs"
