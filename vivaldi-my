@@ -1,6 +1,5 @@
 #!/bin/sh
 parallel "
-    # vivaldi-snapshot
     vivaldi
     vivaldi-windows listen
     sleep 5 && vivaldi-control
