@@ -6,7 +6,7 @@ files () { ls -1 --sort=none "$dir" |sort ;}
 old_files="$(files)"
 i=0
 while [ $i -lt 10 ]; do
-    new_file="$(comm -1 -3 <(echo "$old_files") <(files))"  # bash, needed for process substitution
+    new_file="$(comm -1 -3 <(echo "$old_files") <(files))"  # bash, needed for process substitution. Note: `comm`, not `diff`
     if [ "$new_file" ]; then
         j=0
         while [ $j -lt 60 ]; do

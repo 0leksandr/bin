@@ -1,2 +1,17 @@
-#!/bin/sh
-openwine ~/_/Programs/vendor/windows/AkelPad/AkelPad.exe "$1" ~/_/Programs/.wine2
+#!/bin/bash
+windows () { wmctrl -p -l ;}
+prev_windows="$(windows)"
+openwine ~/_/Programs/vendor/windows/AkelPad/AkelPad.exe "$1" ~/_/Programs/.wine2 &
+while :; do
+    window="$(comm -1 -3 <(echo "$prev_windows") <(windows) |grep 'AkelPad')"  # see `radio-nv.sh`
+    if [ "$window" ]; then
+        if [ "$(echo "$window" |wc -l)" -eq 1 ]; then
+            id="$(echo "$window" |sed -r 's/^([^ ]+) .*$/\1/')"
+            wmctrl -i -r "$id" -b remove,above
+        else
+            alert "$0: error"
+        fi
+        break
+    fi
+    sleep 1
+done

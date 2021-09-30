@@ -1,4 +1,9 @@
 #!/bin/sh
+if [ $(battery) -lt 90 ]; then
+    alert "stupid kb combination"
+    exit 1
+fi
+
 xdotool key XF86AudioPlay
 
 # xdotool key --clearmodifiers XF86AudioPlay
