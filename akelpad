@@ -2,7 +2,7 @@
 windows () { wmctrl -p -l |grep -E ' AkelPad$' |sort ;}
 prev_windows="$(windows)"
 openwine ~/_/Programs/vendor/windows/AkelPad/AkelPad.exe "$1" ~/_/Programs/.wine2 &
-for i in {1..5}; do
+for i in {1..10}; do
     new_windows="$(comm -1 -3 <(echo "$prev_windows") <(windows))"  # see `radio-nv.sh`
     if [ "$new_windows" ]; then
         # echo "$new_windows" |while read line; do
