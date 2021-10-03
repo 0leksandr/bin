@@ -13,6 +13,8 @@ if [ "$title" != "" ] && [ $# -ge 2 ]; then
         fi
     done
     xdotool search --name "^$title - Vivaldi$" windowactivate --sync %1 $keys windowactivate $(xdotool getactivewindow)
+else
+    alert "$0: error"
 fi
 
 # sleep 3

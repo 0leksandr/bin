@@ -19,9 +19,10 @@ http-server -a $url -p $port -d false -i false 2>/dev/null |while read line; do
         get_url_param (){ echo "$uri" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$1'];" ;}
         action=$(get_url_param "action")
         run_script (){
+            # pass uri keys, which must be read
             cmd="$(dirname $0)/utils/system-server-scripts/$action.sh"
             for key in "$@"; do
-                if [ "${key:0:1}" = "-" ]; then  # bash
+                if [ "${key:0:1}" = "-" ]; then  # do not quote; bash
                     cmd="$cmd $(get_url_param "${key:1}")"
                 else
                     cmd="$cmd '$(get_url_param "$key")'"
@@ -31,9 +32,10 @@ http-server -a $url -p $port -d false -i false 2>/dev/null |while read line; do
         }
 
         case "$action" in
-            browser-key) run_script "title" "-key" ;;
-            radio-nv)    run_script "title" ;;
-            *)           echo>&2 "$0: unknown action: [$action]" ;;
+            any-window-key ) run_script "key"                        ;;
+            browser-key    ) run_script "title" "-key"               ;;
+            radio-nv       ) run_script "title"                      ;;
+            *              ) echo>&2 "$0: unknown action: [$action]" ;;
         esac
     fi
 done
