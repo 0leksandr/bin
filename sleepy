@@ -28,6 +28,10 @@ function timediff {
     minutes=$(expr $minutes - $hours \* 60)
     echo "$(printf '%02d:%02d:%02d' $hours $minutes $seconds)"
 }
+function _say {
+    say "$1" festival &
+    # say "$1" pico2wave &
+}
 
 echo > $file
 
@@ -51,12 +55,12 @@ while true; do
             message="Shutdown in $minute minute"
             if [ $minute -ne 1 ]; then message="$message"s; fi
             alert "$message"
-            say "$message" festival &
+            _say "$message"
             alerted[$minute]=1
         fi
     done
     if [[ $seconds_left -le 10 ]]; then
-        say $seconds_left festival &
+        _say $seconds_left
     fi
 
     # shutdown

@@ -18,11 +18,10 @@ if [ "$reconnect" ]; then
     nmcli radio wifi off
     nmcli radio wifi on
     sleep 3s
-    while [ ! "$(nmcli dev wifi list |grep "$name")"]; do
+    while [ ! "$(nmcli dev wifi list |grep "$name")" ]; do
 nmcli dev wifi list
-echo "$(nmcli dev wifi list |grep "$name")"
-echo "$(nmcli dev wifi list |grep '$name')"
         sleep 3
     done
+echo "connecting"
     nmcli dev wifi connect "$name" password e15926535O
 fi

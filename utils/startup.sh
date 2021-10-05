@@ -16,12 +16,13 @@ $utils/bluetooth-off
 mic-off
 [ $(volume) -gt 40 ] && volume 40
 
+log "this is a test 2"
+
 # alert "$(ls /tmp/errors)"
 errors init
 # alert "$(ls /tmp/errors)"
 echo "$0: [$(ls /tmp/errors)]" > "$HOME/_/test.txt"
 
-# httpserver="http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
 daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
@@ -30,10 +31,10 @@ daemons                                 \
     "system-server"                     \
                                         &
 
-log "this is a test 2"
+log "this is a test 3"
 
 sleep 5
-run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
+# run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
 run-detached "$utils/battery-control.sh"
 sleepy 00:00
 

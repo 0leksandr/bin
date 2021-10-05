@@ -3,16 +3,18 @@ daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
 calc_ranges() {
     astro="$(hdate -s -l N50 -L E30 -z3 2>/dev/null)"
     when () { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
+
     day="$(date -d $(when sunrise) +%s)"
-    evening="$(( $(date -d $(when sunset) +%s) - 30*60 ))"
+    twilight="$(( $(date -d $(when sunset) +%s) - 30*60 ))"
+    evening="$(( $(date -d $(when sunset) +%s) + 30*60 ))"
     night="$(date -d 22:30 +%s)"
 }
 
 case "$1" in
-    day|evening|night) echo "$1" > "$daytime_file" ;;
+    day|twilight|evening|night) echo "$1" > "$daytime_file" ;;
     when)
         calc_ranges
-        for daytime in day evening night; do
+        for daytime in day twilight evening night; do
             echo "$daytime: $(date -d @${!daytime} +%H:%M)"
         done
         echo "sunset: $(when sunset)"
@@ -21,14 +23,21 @@ case "$1" in
         calc_ranges
 
         now=$(date +%s)
-        if [ $day -le $now ] && [ $now -lt $evening ]; then
-            echo "day"
-        else
-            if [ $evening -le $now ] && [ $now -lt $night ]; then
-                echo "evening"
+        function between {
+            if [ $1 -le $now ] && [ $now -lt $2 ]; then
+                return 0
             else
-                echo "night"
+                return 1
             fi
+        }
+        if between $day $twilight ; then
+            echo "day"
+        elif between $twilight $evening ; then
+            echo "twilight"
+        elif between $evening $night ; then
+            echo "evening"
+        else
+            echo "night"
         fi
         ;;
     update)
@@ -55,7 +64,7 @@ case "$1" in
 
         # http-server ~/MEGAsync/browser\ extensions/darkreader/ -a 127.0.0.1 -p 9473
         # http-server "$(dirname "$daytime_file")/" -a 127.0.0.1 -p 9473
-        eval "http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473"
+        eval "http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
         # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473
         ;;
     main)
@@ -64,10 +73,13 @@ case "$1" in
             daytime=$(cat "$daytime_file")
             if [ "$daytime" != "$prev" ]; then
                 case "$daytime" in
-                    day)     brightness 1.0  ;;
-                    evening) brightness 0.5  ;;
-                    night)   brightness 0.25 ;;
+                    day)      brightness 1.0  ;;
+                    twilight) brightness 0.75 ;;
+                    evening)  brightness 0.5  ;;
+                    night)    brightness 0.25 ;;
                 esac
+
+                bulb "$daytime"
 
                 bgs_file="$HOME/.temp/backgrounds.txt"
                 touch "$bgs_file"
@@ -91,12 +103,12 @@ case "$1" in
         echo $($0 which) > "$daytime_file"
         parallel -n "
             $0 update
-            # $0 server
+            $0 server
             $0 main
         "
         ;;
     *)
-        # echo "Options: day evening night when which update server main all"
-        echo "Options: day evening night when"
+        # echo "Options: day twilight evening night when which update server main all"
+        echo "Options: day twilight evening night when"
         ;;
 esac
