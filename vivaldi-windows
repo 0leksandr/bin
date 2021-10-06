@@ -55,15 +55,14 @@ case "$1" in
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
-# alert "$0 nr_windows[$nr_windows]"
-                    sleep $(($nr_windows / 2 + 10))  # not enough for 28 windows (2021-09-01)
-                    # sleep $(($nr_windows * 2))
+                    # sleep $(($nr_windows / 2 + 10))
+                    # # sleep $(($nr_windows * 2))  # 28 windows
+                    sleep $(($nr_windows / 2))
                     break
                 fi
                 sleep 1
                 i=$(calc -p -- "$i + 1")
             done
-# alert "$0 i[$i] nr_windows[$nr_windows]"
             $0 backup
             $0 move
             $0 full
@@ -81,7 +80,6 @@ case "$1" in
                 break
             fi
             cur_nr="$(echo "$cur" |wc -l)"
-# echo "cur_nr[$cur_nr]"
             if [ $prev_nr -ne 0 ]; then
                 sleep=$(echo "$(($prev_nr - $cur_nr))^2" |bc)
                 if [ $sleep -eq 0 ]; then
@@ -90,22 +88,10 @@ case "$1" in
                 if [ $sleep -lt 0 ]; then
                     sleep=$((-$sleep))
                 fi
-# echo "sleep [$sleep]"
-# if [ $sleep -gt 1 ]; then alert "$0 sleep [$sleep]"; fi
 
                 sleep $(($sleep * 5))
-                # sleep=$(($sleep * 5))
-                # while [ $sleep -ne 0 ]; do
-                #     sleep=$(($sleep - 1))
-                #     if [ ! "$($0 list)" ]; then
-                #         alert "vivaldi exited"
-                #         break
-                #     fi
-                #     sleep 1
-                # done
             fi
             if [ "$cur" != "$prev" ]; then
-# echo "saving"
                 $0 save
             fi
             prev="$cur"

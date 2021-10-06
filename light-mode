@@ -109,6 +109,6 @@ case "$1" in
         ;;
     *)
         # echo "Options: day twilight evening night when which update server main all"
-        echo "Options: day twilight evening night when"
+        echo "Options: day twilight evening night when which"
         ;;
 esac
