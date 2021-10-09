@@ -23,4 +23,4 @@ _complete_by_options() {
         COMPREPLY=( $(ls -CF --group-directories-first) )
     fi
 }
-complete -F _complete_by_options bulb errors light-mode vivaldi-windows
+complete -F _complete_by_options bulb errors scene vivaldi-windows

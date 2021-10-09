@@ -26,7 +26,7 @@ echo "$0: [$(ls /tmp/errors)]" > "$HOME/_/test.txt"
 daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
-    "light-mode all"                    \
+    "scene all"                    \
     "conky-my"                          \
     "system-server"                     \
                                         &

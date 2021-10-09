@@ -17,7 +17,7 @@ case "$1" in
         for daytime in day twilight evening night; do
             echo "$daytime: $(date -d @${!daytime} +%H:%M)"
         done
-        echo "sunset: $(when sunset)"
+        printf "\nsunset: $(when sunset)\n"
         ;;
     which)
         calc_ranges
@@ -79,7 +79,9 @@ case "$1" in
                     night)    brightness 0.25 ;;
                 esac
 
-                bulb "$daytime"
+                if [ "$daytime" != "day" ]; then
+                    bulb "$daytime"
+                fi
 
                 bgs_file="$HOME/.temp/backgrounds.txt"
                 touch "$bgs_file"
