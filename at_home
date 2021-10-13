@@ -1,7 +1,0 @@
-#!/bin/sh
-set -e
-if [ "$(iwgetid -r)" = "TP-LINK_7DA0" ]; then
-    exit 0
-else
-    exit 1
-fi
