@@ -43,7 +43,7 @@ case "$1" in
     update)
         prev=""
         while true; do
-            if [ $($(dirname $0)/utils/external-display-connected) ]; then
+            if _external-display-connected; then
                 sleep 10
                 continue
             fi
@@ -79,7 +79,7 @@ case "$1" in
                     night)    brightness 0.25 ;;
                 esac
 
-                if [ "$daytime" != "day" ]; then
+                if [ "$daytime" != "day" ] && at_home; then
                     bulb "$daytime"
                 fi
 

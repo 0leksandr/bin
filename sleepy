@@ -30,7 +30,7 @@ function timediff {
 }
 function _say {
     vol=100
-    if [ $($(dirname $0)/utils/external-display-connected) ]; then vol=50; fi
+    if _external-display-connected; then vol=50; fi
     say "$1" text2wave "$vol" &
 }
 

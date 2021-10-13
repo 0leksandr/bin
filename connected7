@@ -1,9 +1,8 @@
 #!/bin/bash
-#timeout 3s ping -c1n 4.2.2.2 > /dev/null && (echo "Connected"; exit 0) || (echo "Disconnected"; exit 1)
 if timeout 3s ping -c 1 -n google.com > /dev/null; then
     echo "Connected"
     exit 0
 else
-    ( >&2 echo "Disconnected")
+    echo "Disconnected" >&2
     exit 1
 fi

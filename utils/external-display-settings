@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+sleep 10  # TODO: fix in `daemons`
+connected (){ _external-display-connected && echo '1' || echo '' ;}
+current="$(connected)"
+while :; do
+    sleep 5
+    new="$(connected)"
+    if [ "$new" != "$current" ]; then
+        if [ "$new" ]; then
+            gsettings set org.cinnamon alttab-switcher-style 'icons+preview'
+        else
+            gsettings set org.cinnamon alttab-switcher-style 'coverflow'
+        fi
+        current="$new"
+    fi
+done

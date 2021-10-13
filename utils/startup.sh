@@ -26,9 +26,10 @@ echo "$0: [$(ls /tmp/errors)]" > "$HOME/_/test.txt"
 daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
-    "scene all"                    \
+    "scene all"                         \
     "conky-my"                          \
     "system-server"                     \
+    "$utils/external-display-settings"  \
                                         &
 
 log "this is a test 3"
