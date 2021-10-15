@@ -79,7 +79,7 @@ case "$1" in
                     night)    brightness 0.25 ;;
                 esac
 
-                if [ "$daytime" != "day" ] && at_home; then
+                if [ "$daytime" != "day" ] && at-home; then
                     bulb "$daytime"
                 fi
 
