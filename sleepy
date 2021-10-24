@@ -44,7 +44,7 @@ while true; do
     # boot late after shutdowntime
     if [[ $cur -ge $(expr $shutdowntime + 10) ]]; then
         echo "--------" > $file
-        notify-send --urgency=critical --icon=terminal "Too late for shutdown"
+        alert "Too late for shutdown"
         break
     fi
 

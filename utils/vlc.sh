@@ -1,4 +1,4 @@
 #!/bin/sh
-notify-send "$@"
+notify "$@"
 vlc "$@"
 exit 0

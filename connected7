@@ -1,5 +1,8 @@
 #!/bin/bash
-if timeout 3s ping -c 1 -n google.com > /dev/null; then
+timeout="$1"
+if [ ! "$timeout" ]; then timeout=3; fi
+
+if timeout "$timeout"s ping -c 1 -n google.com > /dev/null; then
     echo "Connected"
     exit 0
 else

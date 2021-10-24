@@ -12,6 +12,18 @@ calc_ranges() {
 
 case "$1" in
     day|twilight|evening|night) echo "$1" > "$daytime_file" ;;
+    movie)
+        prev="$($0 actual)"
+        bulb movie
+        brightness
+        while ! _external-display-connected; do sleep 1; done
+        brightness 0.5
+        while _external-display-connected; do sleep 1; done
+        if [ "$($0 which)" = "$prev" ]; then
+            $0 light "$prev"
+        fi
+        ;;
+    actual) cat "$daytime_file" ;;
     when)
         calc_ranges
         for daytime in day twilight evening night; do
@@ -61,27 +73,30 @@ case "$1" in
     server)
         # pkill http-server
         pkill "$daytime_file"
+        # _fkill "$daytime_file"
 
-        # http-server ~/MEGAsync/browser\ extensions/darkreader/ -a 127.0.0.1 -p 9473
-        # http-server "$(dirname "$daytime_file")/" -a 127.0.0.1 -p 9473
         eval "http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
-        # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473
+        # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
+        # http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
+        ;;
+    light)
+        daytime="$2"
+        case "$daytime" in
+            day)      brightness 1.0  ;;
+            twilight) brightness 0.75 ;;
+            evening)  brightness 0.5  ;;
+            night)    brightness 0.25 ;;
+        esac
+        if [ "$daytime" != "day" ] && at-home; then
+            bulb "$daytime"
+        fi
         ;;
     main)
         prev=""
         while true; do
-            daytime=$(cat "$daytime_file")
+            daytime="$($0 actual)"
             if [ "$daytime" != "$prev" ]; then
-                case "$daytime" in
-                    day)      brightness 1.0  ;;
-                    twilight) brightness 0.75 ;;
-                    evening)  brightness 0.5  ;;
-                    night)    brightness 0.25 ;;
-                esac
-
-                if [ "$daytime" != "day" ] && at-home; then
-                    bulb "$daytime"
-                fi
+                $0 light "$daytime"
 
                 bgs_file="$HOME/.temp/backgrounds.txt"
                 touch "$bgs_file"
@@ -110,7 +125,7 @@ case "$1" in
         "
         ;;
     *)
-        # echo "Options: day twilight evening night when which update server main all"
-        echo "Options: day twilight evening night when which"
+        # echo "Options: day twilight evening night movie actual when which update server light main all"
+        echo "Options: day twilight evening night movie actual when which"
         ;;
 esac

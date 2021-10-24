@@ -6,8 +6,8 @@ control=$(run-detached -q "sleep 50 && alert '$0 was not finished correctly'")
 
 echo '' >> "$HOME/_/test.txt"
 log (){
-    alert "$0: $@"
     echo "$0 $(date-ft): $@" >> "$HOME/_/test.txt"
+    notify "$0: $@"
 }
 log "this is a test 1"
 
@@ -18,10 +18,12 @@ mic-off
 
 log "this is a test 2"
 
-# alert "$(ls /tmp/errors)"
+# notify "$(ls /tmp/errors)"
 errors init
-# alert "$(ls /tmp/errors)"
+# notify "$(ls /tmp/errors)"
 echo "$0: [$(ls /tmp/errors)]" > "$HOME/_/test.txt"
+
+log "this is a test 3"
 
 daemons                                 \
     "errors listen"                     \
@@ -32,7 +34,7 @@ daemons                                 \
     "$utils/external-display-settings"  \
                                         &
 
-log "this is a test 3"
+log "this is a test 4"
 
 sleep 5
 # run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"

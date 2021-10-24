@@ -2,7 +2,7 @@
 _highlander
 while :; do
     if [ ! "$(procx vivaldi-bin)" ]; then
-        alert "vivaldi exited"
+        notify "vivaldi exited"
         break
     fi
     sleep 1

@@ -57,7 +57,7 @@ case "$1" in
                 if [ "$t1" = "$t2" ]; then
                     # sleep $(($nr_windows / 2 + 10))
                     # # sleep $(($nr_windows * 2))  # 28 windows
-alert "$(basename $0): sleep[$(($nr_windows / 2))]"
+notify "$(basename $0): sleep[$(($nr_windows / 2))]"
                     sleep $(($nr_windows / 2))
                     break
                 fi
