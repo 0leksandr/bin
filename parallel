@@ -46,13 +46,13 @@ for cmd in "$@"; do
         # on_exit="$on_exit kill -SIGINT $pid;"
     fi
 done
-on_exit="$on_exit $on_exit_cmd;"
+on_exit="$on_exit $on_exit_cmd"
 
 trap "$on_exit" INT TERM
 
 if [ "$all_or_nothing" ]; then
     # bash -c "wait -n"
-    while true; do
+    while :; do
         for pid in $list2wait; do
             # if ! ps --pid="$pid" > /dev/null; then
             # if ! procx "$pid" > /dev/null; then  # too heavy

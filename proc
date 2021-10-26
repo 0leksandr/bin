@@ -2,18 +2,20 @@
 flags="-i"
 flagX=""
 flagP=""
+flagQ=""
 for input; do
     case $input in
         -x) flags="$flags -E"; flagX="1" ;; # exact command name
         -E) flags="$flags -E" ;;            # extended regexp
         -P) flagP="1" ;;                    # include caller and its parents
+        -q) flagQ="1" ;;                    # do not warn about unsafe call
     esac
     search="$input"  # last one..
 done
 
-if [ ! "$flagX" ]; then
+if [ ! "$flagX" ] && [ ! "$flagQ" ]; then
     parent=$(_parent)
-    if [ "$(proc -x -P $parent |sed -r 's/^.* ([^ ]+)$/\1/')" != "zsh" ]; then
+    if [ "$($0 -x -P $parent |sed -r 's/^.* ([^ ]+)$/\1/')" != "zsh" ]; then
         error="$(basename $0) called from script without -x option"
         echo>&2 "$error"
         alert "$error"

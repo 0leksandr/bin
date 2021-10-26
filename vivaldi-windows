@@ -99,5 +99,6 @@ notify "$(basename $0): sleep[$(($nr_windows / 2))]"
             prev_nr="$cur_nr"
         done
         ;;
-    *) echo "Options: move fix" ;;
+    help) echo "Options: move fix" ;;
+    *) echo "Options: list full save backup move fix listen" >&2 ;;
 esac

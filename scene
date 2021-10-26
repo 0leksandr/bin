@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
 calc_ranges() {
     astro="$(hdate -s -l N50 -L E30 -z3 2>/dev/null)"
@@ -17,6 +19,7 @@ case "$1" in
         bulb movie
         brightness
         while ! _external-display-connected; do sleep 1; done
+        sleep 2
         brightness 0.5
         while _external-display-connected; do sleep 1; done
         if [ "$($0 which)" = "$prev" ]; then
@@ -54,7 +57,7 @@ case "$1" in
         ;;
     update)
         prev=""
-        while true; do
+        while :; do
             if _external-display-connected; then
                 sleep 10
                 continue
@@ -71,13 +74,15 @@ case "$1" in
         done
         ;;
     server)
-        # pkill http-server
-        pkill "$daytime_file"
-        # _fkill "$daytime_file"
+        dir="$(dirname "$daytime_file")"
 
-        eval "http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
-        # http-server "$(dirname "$daytime_file" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
-        # http-server $(dirname "$daytime_file" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
+        # pkill http-server  # kills innocents
+        # pkill "$dir"  # kills itself
+        _fkill -q "$dir"
+
+        eval "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
+        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
+        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         ;;
     light)
         daytime="$2"
@@ -93,7 +98,7 @@ case "$1" in
         ;;
     main)
         prev=""
-        while true; do
+        while :; do
             daytime="$($0 actual)"
             if [ "$daytime" != "$prev" ]; then
                 $0 light "$daytime"
@@ -124,8 +129,6 @@ case "$1" in
             $0 main
         "
         ;;
-    *)
-        # echo "Options: day twilight evening night movie actual when which update server light main all"
-        echo "Options: day twilight evening night movie actual when which"
-        ;;
+    help) echo "Options: day twilight evening night movie actual when which" ;;
+    *) echo "Options: day twilight evening night movie actual when which update server light main all" >&2 ;;
 esac
