@@ -9,7 +9,7 @@ calc_ranges() {
     day="$(date -d $(when sunrise) +%s)"
     twilight="$(( $(date -d $(when sunset) +%s) - 30*60 ))"
     evening="$(( $(date -d $(when sunset) +%s) + 30*60 ))"
-    night="$(date -d 22:30 +%s)"
+    night="$(date -d 22:00 +%s)"
 }
 
 case "$1" in

@@ -1,5 +1,5 @@
 #!/bin/sh
-while actiona -ex ~/Programs/contact_list.ascr & ! snap run telegram-cli ; do
+while actiona -ex ~/_/Programs/contact_list.ascr && ! snap run telegram-cli ; do
     rm ~/snap/telegram-cli/current/.telegram-cli/state
+    sleep 1
 done
-exit 0
