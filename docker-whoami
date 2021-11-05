@@ -1,0 +1,2 @@
+#!/bin/sh
+docker system info | grep -E 'Username|Registry'

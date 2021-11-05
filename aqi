@@ -1,2 +1,2 @@
 #!/bin/sh
-python ~/PycharmProjects/air-quality/main.py
+python ~/PycharmProjects/air-quality/main.py $@
