@@ -14,13 +14,13 @@ dpkg -l > $dird/dpkg-l.txt
 
 cp /var/log/dpkg.log $dird
 
-r-sync /etc/apt/sources.list.d/ $dir/etc_apt_sources.list.d  |tee -a $log
-sudo r-sync-no-del /var/cache/apt/ $dir/var_cache_apt        |tee -a $log
-sudo r-sync-no-del /var/lib/apt/lists $dir/var_lib_apt_lists |tee -a $log
-printf "\n\n\n\n"                                            |tee -a $log
-sudo apt-get update                                          |tee -a $log
-printf "\n\n\n\n"                                            |tee -a $log
-beep                                                         |tee -a $log
-sudo apt-get upgrade -V --show-progress                      |tee -a $log
-printf "\n\n\n\n"                                            |tee -a $log
-sudo apt-get autoremove                                      |tee -a $log
+r-sync /etc/apt/sources.list.d/ $dir/etc_apt_sources.list.d   |tee -a $log
+sudo r-sync-no-del /var/cache/apt/ $dir/var_cache_apt         |tee -a $log
+sudo r-sync-no-del /var/lib/apt/lists/ $dir/var_lib_apt_lists |tee -a $log
+printf "\n\n\n\n"                                             |tee -a $log
+sudo apt-get update                                           |tee -a $log
+printf "\n\n\n\n"                                             |tee -a $log
+beep                                                          |tee -a $log
+sudo apt-get upgrade -V --show-progress                       |tee -a $log
+printf "\n\n\n\n"                                             |tee -a $log
+sudo apt-get autoremove                                       |tee -a $log

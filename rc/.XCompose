@@ -101,3 +101,4 @@ include "%L"
 <Multi_key> <c> <h>                            : "✅️"  # ✅️ ☑️ ✔️
 <Multi_key> <colon> <O>                        : "😮"
 <Multi_key> <colon> <o>                        : "😯"
+<Multi_key> <d> <o> <g>                        : "🐶"
