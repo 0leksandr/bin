@@ -24,14 +24,16 @@ case "$1" in
     day|twilight|evening|night) echo "$1" > "$daytime_file" ;;
     movie)
         prev="$($0 actual)"
-        bulb movie
+        if [ "$2" ]; then
+            bulb movie
+        fi
         brightness
         while ! _external-display-connected; do sleep 1; done
         sleep 2
         brightness 0.5
         while _external-display-connected; do sleep 1; done
         if [ "$($0 which)" = "$prev" ]; then
-            $0 light "$prev"
+            $0 force "$prev"
         fi
         ;;
     actual) cat "$daytime_file" ;;
@@ -92,7 +94,7 @@ case "$1" in
         # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         ;;
-    light)
+    force)
         daytime="$2"
         case "$daytime" in
             day)      brightness 1.0  ;;
@@ -109,7 +111,7 @@ case "$1" in
         while :; do
             daytime="$($0 actual)"
             if [ "$daytime" != "$prev" ]; then
-                $0 light "$daytime"
+                $0 force "$daytime"
 
                 # save cur bg
                 if [ "$prev" != "" ]; then
@@ -136,5 +138,5 @@ case "$1" in
         "
         ;;
     help) echo "Options: day twilight evening night movie actual when which" ;;
-    *) echo "Options: day twilight evening night movie actual when which update server light main all" >&2 ;;
+    *) echo "Options: day twilight evening night movie actual when which update server force main all" >&2 ;;
 esac

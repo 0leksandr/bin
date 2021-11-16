@@ -1,6 +1,8 @@
 #!/bin/bash
-# log (){ echo "$@" >> ~/.temp/git.log ;}
-# log "$(date-ft): $@"
+set -e
+
+# log (){ echo "$(date-ft): $@" >> ~/.temp/git.log ;}
+# log "$@"
 
 nr_args=$#
 if [ "${!nr_args}" = "--" ]; then
@@ -17,7 +19,7 @@ if [ $nr_args -ge 2 ]; then
 fi
 if [ $nr_args -ge 3 ]; then
     if [ "${!n2}" = "branch" ] && [ "${!n1}" = "-d" ]; then
-        stash="$(gsh-list |grep -E "^stash@{[0-9]+}: On ${!n}: git-switch$")"
+        stash="$(gsh-list |grep -E "^stash@{[0-9]+}: On ${!n}: git-switch$" ||true)"
         if [ "$stash" ]; then
             stash="$(echo "$stash" |sed -r 's/^([^:]+):.+$/\1/')"
             git stash drop "$stash"
