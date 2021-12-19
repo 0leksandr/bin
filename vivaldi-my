@@ -1,6 +1,7 @@
 #!/bin/sh
-parallel -n "
+# not `-n`, because then it's impossible to open new window
+parallel "
     vivaldi
     vivaldi-windows listen
+    sleep 5 && vivaldi-control
 "
-notify "vivaldi exited"
