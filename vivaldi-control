@@ -1,9 +1,0 @@
-#!/bin/sh
-_highlander
-while :; do
-    if [ ! "$(procx vivaldi-bin)" ]; then
-        notify "vivaldi exited"
-        break
-    fi
-    sleep 1
-done

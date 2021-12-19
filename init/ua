@@ -12,7 +12,7 @@ xkb_symbols "unicode" {
     name[Group1]= "Ukrainian";
 
     key <TLDE> {    [      apostrophe,       grave,        U0301,         asciitilde ]       }; // Apostrophe and Stress symbol
-    key <AE02> {    [               1,      exclam,  onesuperior                     ]       };
+    key <AE01> {    [               1,      exclam,  onesuperior                     ]       };
     key <AE02> {    [               2,    quotedbl,           at,        twosuperior ]       };
     key <AE03> {    [               3,  numerosign,   numbersign,           sterling ]       };
     key <AE04> {    [               4,   semicolon,	   U20B4,             dollar ]       }; // Hryvnia sign
@@ -26,7 +26,6 @@ xkb_symbols "unicode" {
     key	<AE12> {    [	    	equal,	      plus,     approxeq,           notequal ]       };
 
     key	<AD03> {    [      Cyrillic_u,	Cyrillic_U,  Byelorussian_shortu,  Byelorussian_SHORTU	]};
-    key	<AD04> {    [     Cyrillic_ka, Cyrillic_KA,	registered	       ]       };						// Registered tm
     key	<AD05> {    [     Cyrillic_ie, Cyrillic_IE,     Cyrillic_io,     Cyrillic_IO	]	};
     key <AD07> {    [    Cyrillic_ghe, Cyrillic_GHE, Ukrainian_ghe_with_upturn, Ukrainian_GHE_WITH_UPTURN ] };
     key	<AD12> {    [    Ukrainian_yi,Ukrainian_YI,	Cyrillic_hardsign,	Cyrillic_HARDSIGN	]	};
@@ -35,10 +34,8 @@ xkb_symbols "unicode" {
 
     key	<BKSL> {    [           slash,       backslash, bar	]	};
 
-    key	<AB03> {    [     Cyrillic_es,     Cyrillic_ES,	copyright              ]	};
-    key	<AB06> {    [     Cyrillic_te,     Cyrillic_TE,	trademark              ]	};
-    key	<AB08> {    [     Cyrillic_be,     Cyrillic_BE,	guillemotleft,	doublelowquotemark 	]	};
-    key	<AB09> {    [     Cyrillic_yu,     Cyrillic_YU,	guillemotright, leftdoublequotemark ]	};
+    key	<AB08> {    [     Cyrillic_be,     Cyrillic_BE,	guillemotleft,	less	]	};
+    key	<AB09> {    [     Cyrillic_yu,     Cyrillic_YU,	guillemotright, greater	]	};
     key <AB10> {    [          period,           comma,	slash,          ellipsis        ]       };
 
     include "level3(ralt_switch)"

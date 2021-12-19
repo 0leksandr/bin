@@ -1,9 +1,14 @@
 #!/bin/sh
+set -e
 if [ $# -eq 1 ]; then
     pid="$1"
 else
     pid=$PPID
 fi
-parent=$(ps -o ppid= -p "$pid")
+parent="$(ps -o ppid= -p "$pid" ||:)"
+if [ "$parent" = "" ]; then
+    echo>&2 "$(basename $0): parent not found. Probably, process is dead"
+    exit 1
+fi
 parent=$(echo "$parent" |sed -r 's/(^ +)|( +$)//g') # trim whitespaces
 echo "$parent"

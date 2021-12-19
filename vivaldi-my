@@ -1,6 +1,6 @@
 #!/bin/sh
-parallel "
+parallel -n "
     vivaldi
     vivaldi-windows listen
-    sleep 5 && vivaldi-control
 "
+notify "vivaldi exited"

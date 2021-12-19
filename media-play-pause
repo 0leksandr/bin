@@ -1,6 +1,6 @@
 #!/bin/sh
 if [ $(battery) -lt 90 ]; then
-    # alert "stupid kb combination"
+    notify "stupid kb combination"
     exit 1
 fi
 

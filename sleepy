@@ -8,6 +8,12 @@ if [ "$1" != "background" ]; then
 fi
 set -- "${@:2}"
 
+alert='1'
+if [ "$1" = "--noalert" ]; then
+    alert=''
+    set -- "${@:2}"
+fi
+
 file="$HOME/_/Programs/text@nezhraba/text.txt"
 
 #define shutdown time
@@ -36,7 +42,7 @@ function _say {
 
 echo > $file
 
-alerted=()
+alerted=''
 
 while true; do
     cur=$(date +%s)
@@ -50,16 +56,18 @@ while true; do
 
     # alert
     seconds_left=$(($shutdowntime - $cur))
-    for minute in 1 2 3; do
-        if [[ ( $seconds_left -le $(($minute * 60)) ) && ${alerted[$minute]} != 1 ]]; then
-            beep
-            message="Shutdown in $minute minute"
-            if [ $minute -ne 1 ]; then message="$message"s; fi
-            alert "$message"
-            _say "$message"
-            alerted[$minute]=1
-        fi
-    done
+    if [ "$alert" ]; then
+        for minute in 1 2 3; do
+            if [[ ( $seconds_left -le $(($minute * 60)) ) && ( "$alerted" = '' || $minute -lt $alerted ) ]]; then
+                beep
+                message="Shutdown in $minute minute"
+                if [ $minute -ne 1 ]; then message="$message"s; fi
+                alert "$message"
+                _say "$message"
+                alerted=$minute
+            fi
+        done
+    fi
     if [[ $seconds_left -le 10 ]]; then
         _say $seconds_left
     fi

@@ -55,10 +55,14 @@ case "$1" in
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
-                    # sleep $(($nr_windows / 2 + 10))
-                    # # sleep $(($nr_windows * 2))  # 28 windows
-notify "$(basename $0): sleep[$(($nr_windows / 2))]"
-                    sleep $(($nr_windows / 2))
+                    # sleep=$(($nr_windows / 2 + 10))
+                    # sleep=$(($nr_windows * 2))  # 28 windows
+                    # sleep=$(($nr_windows / 2))
+                    # sleep=$(($nr_windows / 2 + 10))  # 2021-12-09
+                    sleep=3
+
+notify "$(basename $0): sleep[$sleep]"
+                    sleep $sleep
                     break
                 fi
                 sleep 1

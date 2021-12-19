@@ -24,8 +24,17 @@ if [ $nr_args -eq 1 ]; then
     commands="$(echo "$last_arg" |sed -r 's/^ *#.*$//' |awk 'NF > 0' |sed -r "s ^.*\$ '\0' ")"
     if [ "$(echo "$commands" |wc -l)" -gt 1 ]; then
         cmd="$0 $all_or_nothing $(echo "$commands" |tr '\n' ' ')"
+
+        # broken when $on_exit_cmd has spaces
         if [ "$on_exit_cmd" ]; then cmd="$cmd -e $on_exit_cmd"; fi
         eval "$cmd"
+
+        # if [ "$on_exit_cmd" ]; then
+        #     $("$cmd" -e "$on_exit_cmd")
+        # else
+        #     $("$cmd")
+        # fi
+
         exit 1
     fi
 fi

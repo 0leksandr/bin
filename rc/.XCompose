@@ -3,9 +3,8 @@ include "%L"
 
 # get key name: `xev` + type this key
 # get emoji: in text editor (Xed or Gedit), right-click, select ("Insert Emoji")
-<Multi_key> <s> <h> <r> <u> <g> : "¯\\_(ツ)_/¯"  # shrug
+<Multi_key> <s> <h> <r> <u> <g>       : "¯\\_(ツ)_/¯"  # shrug
 <Multi_key> <backslash> <underscore>  : "¯\\_(ツ)_/¯"
-<Multi_key> <parenleft> <colon>  : "🙃" U1F643  # upside-down face
 
 # https://gist.github.com/natema/136d4c7a4f3c0ea448b3b2f768831a43
 <Multi_key> <colon> <D>                        : "😀"
@@ -36,9 +35,7 @@ include "%L"
 <Multi_key> <s> <m> <i>                        : "😏"
 <Multi_key> <x> <parenleft>                    : "😣"
 <Multi_key> <apostrophe> <colon> <parenleft>   : "😥"
-#<Multi_key> <colon> <o>                        : "😮"
 <Multi_key> <colon> <numbersing>               : "🤐"
-#<Multi_key> <colon> <O>                        : "😯"
 # missing 😪, 😫
 <Multi_key> <z> <z> <z>                        : "😴"
 # missing 😌
@@ -83,7 +80,6 @@ include "%L"
 <Multi_key> <parenleft> <y> <parenright>       : "👍"
 <Multi_key> <parenleft> <n> <parenright>       : "👎"
 <Multi_key> <less> <3>                         : "❤"
-<Multi_key> <less> <greater>                   : "♢"
 <Multi_key> <w> <o> <o>                        : "🎉"
 
 <Multi_key> <minus> <underscore> <minus>       : "😞"
@@ -104,7 +100,16 @@ include "%L"
 <Multi_key> <backslash> <slash>                : "✅"
 <Multi_key> <colon> <O>                        : "😮"
 <Multi_key> <colon> <o>                        : "😯"
+<Multi_key> <colon> <О>                        : "😮"  # cyrillic
+<Multi_key> <colon> <о>                        : "😯"  # cyrillic
 <Multi_key> <d> <o> <g>                        : "🐶"
 <Multi_key> <f> <p> <1>                        : "🤦"
 <Multi_key> <f> <p> <2>                        : "🤦‍♂️"
 <Multi_key> <u> <p>                            : "⬆️"
+<Multi_key> <colon> <c>                        : "☹️"
+<Multi_key> <colon> <с>                        : "☹️"
+<Multi_key> <colon> <exclam>                   : "❗"
+<Multi_key> <g> <r> <i> <m>                    : "😬"
+<Multi_key> <d> <o> <w> <n>                    : "⬇️"
+<Multi_key> <less> <greater>                   : "⇔"
+<Multi_key> <less> <minus> <greater>           : "↔️"

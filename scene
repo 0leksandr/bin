@@ -7,8 +7,8 @@ calc_ranges() {
     when () { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
 
     day="$(date -d $(when sunrise) +%s)"
-    twilight="$(( $(date -d $(when sunset) +%s) - 30*60 ))"
-    evening="$(( $(date -d $(when sunset) +%s) + 30*60 ))"
+    twilight="$(( $(date -d $(when sunset) +%s) - 45*60 ))"
+    evening="$(( $(date -d $(when sunset) +%s) + 15*60 ))"
     night="$(date -d 22:00 +%s)"
 }
 
