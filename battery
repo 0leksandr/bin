@@ -1,2 +1,2 @@
 #!/bin/sh
-upower -i $(upower -e |head -n2 |tail -n1) |grep percentage |grep -E [0-9]+ -o --color=never
+_battery-data 2 percentage |grep -E [0-9]+ --only-matching --color=never

@@ -1,0 +1,5 @@
+#!/bin/sh
+_complete_sleepy() {
+    COMPREPLY=( "--noalert" )
+}
+complete -F _complete_sleepy sleepy

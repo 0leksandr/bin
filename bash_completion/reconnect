@@ -1,6 +1,5 @@
 #!/bin/sh
 _complete_reconnect() {
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    COMPREPLY=( $(compgen -W "--force" -- ${cur}) )
+    COMPREPLY=( "--force" )
 }
 complete -F _complete_reconnect reconnect

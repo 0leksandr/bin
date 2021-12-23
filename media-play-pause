@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ $(battery) -lt 90 ]; then
+if [ $(battery) -lt 100 ] && [ $(_battery-data 1 online) = "yes" ]; then
     notify "stupid kb combination"
     exit 1
 fi
