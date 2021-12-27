@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+action="$1"
 
 daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
 calc_ranges() {
@@ -20,12 +21,12 @@ function save_bg {
     echo "$daytime: $(get-background)" >> "$bgs_file"
 }
 
-case "$1" in
-    day|twilight|evening|night) echo "$1" > "$daytime_file" ;;
-    movie)
+case "$action" in
+    day|twilight|evening|night) echo "$action" > "$daytime_file" ;;
+    movie|movie2)
         prev="$($0 actual)"
         if [ "$2" ]; then
-            bulb movie
+            bulb "$action"
         fi
         brightness
         while ! _external-display-connected; do sleep 1; done
