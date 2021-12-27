@@ -23,10 +23,10 @@ function save_bg {
 
 case "$action" in
     day|twilight|evening|night) echo "$action" > "$daytime_file" ;;
-    movie1|movie2)
+    movie)
         prev="$($0 actual)"
         if [ "$2" ]; then
-            bulb "$action"
+            bulb movie "$2"
         fi
         brightness
         while ! _external-display-connected; do sleep 1; done
@@ -138,6 +138,6 @@ case "$action" in
             $0 main
         "
         ;;
-    help) echo "Options: day twilight evening night movie1 movie2 actual when which" ;;
-    *) echo "Options: day twilight evening night movie1 movie2 actual when which update server force main all" >&2 ;;
+    help) echo "Options: day twilight evening night movie actual when which" ;;
+    *) echo "Options: day twilight evening night movie actual when which update server force main all" >&2 ;;
 esac
