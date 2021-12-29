@@ -10,6 +10,7 @@ fi
 
 git checkout "$branch"
 
+branch="$(echo $branch |sed -r 's / \\/ g')"
 echo "$(git --no-pager stash list)" |while read stash; do
     match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: On $branch: $key$/\1/")"
     if [ "$(echo $match |grep -E '^[0-9]+$')" ]; then

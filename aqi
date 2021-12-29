@@ -2,7 +2,7 @@
 set -e
 action="$1"
 
-good_level=25
+good_level=30
 script=~/PycharmProjects/air-quality/main.py
 options="Options: show full check"
 #file=~/_/aqi.txt
