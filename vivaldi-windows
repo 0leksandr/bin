@@ -50,8 +50,9 @@ case "$1" in
             while [ ! "$($0 list)" ]; do sleep 1; done
             sleep 2
             nr_windows=$($0 list |wc -l)
+            await=$(($nr_windows * 3))
             i=0
-            while [ $i -lt $(($nr_windows * 3)) ]; do
+            while [ $i -lt $await ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)
                 t2=$(cat "$file" |sed -r "s/$pattern/\\3/" |sort)
                 if [ "$t1" = "$t2" ]; then
@@ -66,14 +67,12 @@ case "$1" in
                     break
                 fi
                 sleep 1
-                i=$(calc -p -- "$i + 1")
+                i=$(($i + 1))
             done
+            if [ $i -eq $await ]; then notify "$(basename $0): await[$await]"; fi
             $0 backup
             $0 move
             $0 full
-        else
-            sleep 3
-            $0 full 'Start Page - Vivaldi'
         fi
 
         prev=""

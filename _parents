@@ -15,8 +15,10 @@ else
 fi
 
 parent="$pid"
+parents=""
 first="1"
 while true; do
+    parents="$parents $parent"
     parent="$(_parent $parent ||:)"
 
     if [ "$parent" = "0" ]; then
@@ -24,7 +26,7 @@ while true; do
         exit 1
     fi
     if [ "$parent" = "" ]; then
-        alert "$(basename $0): parent not found. Probably, process is dead. @[$@]"
+        alert "$(basename $0): parent not found. Probably, process is dead. @[$@] parents[$parents]"
         exit 1
     fi
     if ! echo "$parent" | egrep -q '^[0-9]+$'; then
