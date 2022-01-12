@@ -1,12 +1,12 @@
 #!/bin/sh
-status=$( { git status --short ;} 2>&1 )
-if [ "$status" != "" ]; then
-    git status --short
+cmd="git status --short $@"
+if [ "$($cmd 2>&1)" ]; then
+    $cmd
     exit 1
 else
-    status_push=$(git status --short --branch |grep ahead)
-    if [ "$status_push" != "" ]; then
-        git status --short --branch
+    cmd="git status --short --branch $@"
+    if $cmd |grep -q ahead; then
+        $cmd
         exit 1
     else
         env printf '\xF0\x9F\x91\x8D\n'

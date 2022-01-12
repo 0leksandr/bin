@@ -3,8 +3,8 @@ set -e
 branch="$1"
 key="$(basename $0)"
 
-if ! gst > /dev/null; then
-    git add .
+if ! gst --untracked-files=no > /dev/null; then
+    #git add .
     git stash save "$key"
 fi
 
