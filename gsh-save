@@ -1,2 +1,6 @@
 #!/bin/sh
-git stash save "$(_git-current-branch)"
+name="$1"
+if [ ! "$name" ]; then
+    name="$(_git-current-branch)"
+fi
+git stash save "$name"

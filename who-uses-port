@@ -1,2 +1,4 @@
 #!/bin/sh
 sudo netstat -ltnp | grep -w ":$1"
+#fuser "$1"/tcp
+#lsof -i:"$1"

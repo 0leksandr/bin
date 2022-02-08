@@ -20,7 +20,7 @@ file="$HOME/_/Programs/text@nezhraba/text.txt"
 shutdowntime=$(date -d $1 +%s)
 now=$(date +%s)
 if ! [ $shutdowntime ]; then
-    shutdowntime=$(expr $now + 5 \* 60)
+    shutdowntime=$(($now + 10))
 fi
 if [ $shutdowntime -le $now ]; then
     shutdowntime=$(date -d "tomorrow $1" +%s)

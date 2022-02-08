@@ -2,7 +2,6 @@
 _highlander
 while :; do
     if [ ! "$(procx vivaldi-bin)" ]; then
-        notify "vivaldi exited"
         run-detached "fkill vivaldi-my"
         break
     fi
