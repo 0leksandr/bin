@@ -50,7 +50,8 @@ case "$1" in
             while [ ! "$($0 list)" ]; do sleep 1; done
             sleep 2
             nr_windows=$($0 list |wc -l)
-            await=$(($nr_windows * 3))
+            #await=$(($nr_windows * 3))  # slightly low for 26 windows
+            await=$(($nr_windows * 3 + 5))
             i=0
             while [ $i -lt $await ]; do
                 t1=$($0 list |sed -r "s/$pattern/\\3/" |sort)

@@ -60,7 +60,7 @@ if [ "`pwd`" = "$HOME" ]; then
 fi
 
 alias cd_='cd ~/_'
-mkcdir () { mkdir -- "$1" && cd -- "$1" ;}
+mkcdir () { mkdir -p -- "$1" && cd -- "$1" ;}
 # alias please='sudo $(fc -ln -1)'
 alias reload='source ~/.zshrc'
 
