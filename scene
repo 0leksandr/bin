@@ -107,7 +107,7 @@ case "$action" in
             bulb "$daytime"
         fi
         ;;
-    main)
+    listen_file)
         prev=""
         while :; do
             daytime="$($0 actual)"
@@ -135,9 +135,9 @@ case "$action" in
         parallel -n "
             $0 update
             $0 server
-            $0 main
+            $0 listen_file
         "
         ;;
     help) echo "Options: day twilight evening night movie actual when which" ;;
-    *) echo "Options: day twilight evening night movie actual when which update server force main all" >&2 ;;
+    *) echo "Options: day twilight evening night movie actual when which update server force listen_file all" >&2 ;;
 esac
