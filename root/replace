@@ -1,0 +1,19 @@
+#!/bin/sh
+from="$1"
+to="$2"
+nr_args=2
+
+# words mode
+if [ "$1" = "-w" ]; then
+    from="$2"
+    to="$3"
+    nr_args=3
+
+    from="(^|[^0-9a-zA-Z])$from($|[^0-9a-zA-Z])"
+    to="\\\\1$to\\\\2"  # extra backslashes - to pass replacement of slashes below
+fi
+
+from=$(echo "$from" |sed -r 's / \\/ ')
+to=$(echo "$to" |sed -r 's / \\/ ')
+
+eval "find $(_path $(($nr_args + 1)) "$@") \\( -type d -name .git -prune \\) -o -type f -print0" | xargs -0r -- sed -i -r "s/$from/$to/g"
