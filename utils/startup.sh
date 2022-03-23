@@ -12,7 +12,7 @@ log (){
 log "this is a test 1"
 
 utils="$HOME/_/Programs/bin/utils"
-$utils/bluetooth-off
+bluetooth-off
 mic-off
 [ $(volume) -gt 40 ] && volume 40
 
@@ -29,22 +29,22 @@ daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
     "scene all"                         \
-    "conky-my"                          \
     "system-server"                     \
-    "$utils/external-display-settings"  \
                                         &
+#"conky-my"  # TODO: return
+#"$utils/external-display-settings"
 
 log "this is a test 4"
 
 sleep 5
 # run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
 run-detached "$utils/battery-control.sh"
-sleepy 00:00
+#sleepy 00:00  # TODO: uncomment
 
 sleep 5
 start-closed slack 'Slack( \|.*)?'
 start-closed telegram 'Telegram( \([0-9]+\))?'
-start-closed skypeforlinux 'Skype'
+#start-closed skypeforlinux 'Skype'
 # steam &
 
 # sleep 10

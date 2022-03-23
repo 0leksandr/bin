@@ -1,4 +1,5 @@
 #!/bin/bash
+exit 1  #TODO: remove
 set -e
 extra_checks="$1"
 

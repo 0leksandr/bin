@@ -1,3 +1,4 @@
 #!/bin/sh
+exit 0  #TODO: remove
 dir="$HOME/PycharmProjects/yeelight"
 "$dir"/venv/bin/python "$dir"/main.py "$@"
