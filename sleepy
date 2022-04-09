@@ -14,7 +14,7 @@ if [ "$1" = "--noalert" ]; then
     set -- "${@:2}"
 fi
 
-file="$HOME/_/Programs/text@nezhraba/text.txt"
+file="$HOME/_/Programs/text@nezhraba/pipe"
 
 #define shutdown time
 shutdowntime=$(date -d $1 +%s)

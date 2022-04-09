@@ -103,6 +103,6 @@ case "$1" in
             prev_nr="$cur_nr"
         done
         ;;
-    help) echo "Options: move fix" ;;
+    help) echo "Options: full save move fix" ;;
     *) echo "Options: list full save backup move fix listen" >&2 ;;
 esac

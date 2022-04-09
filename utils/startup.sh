@@ -29,9 +29,10 @@ daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
     "scene all"                         \
+    "conky-my"                          \
     "system-server"                     \
                                         &
-#"conky-my"  # TODO: return
+# TODO: return
 #"$utils/external-display-settings"
 
 log "this is a test 4"
