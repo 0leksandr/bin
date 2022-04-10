@@ -1,0 +1,7 @@
+run `sudo visudo`, add this dir to `Defaults secure_path` (in the end)
+to fix: pkexec visudo
+see:
+- https://superuser.com/questions/927512/how-to-set-path-for-sudo-commands
+- https://askubuntu.com/questions/159007/how-do-i-run-specific-sudo-commands-without-a-password
+- https://askubuntu.com/questions/924037/which-could-be-the-risks-to-add-defaults-secure-path-home-username-in-etc
+MAYBE: https://serverfault.com/questions/817441/how-to-programatically-add-secure-path-in-sudoers-file

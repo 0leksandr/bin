@@ -1,6 +1,6 @@
 dir="$HOME/_/Programs/bin"
 if [ -d $dir ] ; then
-    PATH="$dir:$PATH"
+    PATH="$dir:$dir/root:$PATH"
     # export PATH
 fi
 
