@@ -1,1 +1,1 @@
-/home/nezhraba/go/sdk/go1.16.3/bin/go
+/home/nezhraba/go/sdk/go1.18/bin/go
