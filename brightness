@@ -1,19 +1,12 @@
 #!/bin/sh
-_highlander
+set -e
+value_percents="$1"
 
-if [ $# -le 1 ]; then
-    $0 "$1" background >/dev/null 2>/dev/null &
-    exit
-fi
-
-force () {
-    xrandr --output "$(xrandr -q |grep " connected" |sed -r 's_^([^ ]+) .*$_\1_g')" --brightness "$1"
-}
-
-if [ $(echo "$1 > 1." |bc) -eq 1 ]; then
-    force "$1"
+if [ "$value_percents" ]; then
+    if [ "$(echo "$value_percents <= 1" |bc)" = "1" ]; then
+        value_percents="$(echo "$value_percents * 100" |bc |sed -r 's ^([0-9]+)\.[0-9]+$ \1 ')"
+    fi
+    sudo brightnessctl set "$value_percents"%
 else
-    force 1
-    # redshift -o -l 50:30 -t 6500K:3100K -b "$1"
-    redshift -l 50:30 -t 6500K:2100K -r -b "$1"
+    echo $(($(brightnessctl get) * 100 / $(brightnessctl max)))%
 fi

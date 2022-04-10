@@ -35,6 +35,9 @@ daemons                                 \
 # TODO: return
 #"$utils/external-display-settings"
 
+# MAYBE: put into daemons
+redshift -l $(location latitude):$(location longitude) -t 6500K:2100K &
+
 log "this is a test 4"
 
 sleep 5

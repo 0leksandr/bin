@@ -23,7 +23,7 @@ _complete_by_options() {
         COMPREPLY=( $(ls -CF --group-directories-first) )
     fi
 }
-complete -F _complete_by_options aqi bulb errors scene vivaldi-windows
+complete -F _complete_by_options aqi bulb errors location scene vivaldi-windows
 
 _complete_files() {
     COMPREPLY=( $(ls -CF --group-directories-first) )
