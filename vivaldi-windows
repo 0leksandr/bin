@@ -44,7 +44,7 @@ case "$1" in
         cp "$(last)" "$file"
         $0 move
         ;;
-    listen)
+    init)
         _highlander
         if [ ! "$($0 list)" ]; then
             while [ ! "$($0 list)" ]; do sleep 1; done
@@ -75,6 +75,10 @@ case "$1" in
             $0 move
             $0 full
         fi
+        $0 listen
+        ;;
+    listen)
+        _highlander
 
         prev=""
         prev_nr=0
@@ -103,6 +107,6 @@ case "$1" in
             prev_nr="$cur_nr"
         done
         ;;
-    help) echo "Options: full save move fix" ;;
-    *) echo "Options: list full save backup move fix listen" >&2 ;;
+    help) echo "Options: full save backup move fix" ;;
+    *) echo "Options: list full save backup move fix init listen" >&2 ;;
 esac

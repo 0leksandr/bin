@@ -1,8 +1,4 @@
 #!/bin/sh
-# connected7 > /dev/null || (nmcli nm wifi off && nmcli nm wifi on && sleep 3s && nmcli dev wifi connect 001 password e15926535O)
-# connected7 > /dev/null || (nmcli radio wifi off && nmcli radio wifi on && sleep 3s && nmcli dev wifi connect susid password e15926535O)
-# connected7 > /dev/null || (nmcli radio wifi off && nmcli radio wifi on && sleep 3s && nmcli dev wifi connect TP-LINK_7DA0 password r15193429r)
-
 set -e
 
 reconnect=''
@@ -16,12 +12,11 @@ fi
 if [ "$reconnect" ]; then
     name="TP-LINK_7DA0"
     nmcli radio wifi off
+    sleep 1s
     nmcli radio wifi on
     sleep 3s
-    while [ ! "$(nmcli dev wifi list |grep "$name")" ]; do
-nmcli dev wifi list
+    while ! nmcli --fields TYPE,STATE device status |grep -Eq '^wifi +connected *$'; do
+        nmcli dev wifi list
         sleep 3
     done
-echo "connecting"
-    nmcli dev wifi connect "$name" password e15926535O
 fi

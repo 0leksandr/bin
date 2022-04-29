@@ -14,7 +14,7 @@ log "this is a test 1"
 utils="$HOME/_/Programs/bin/utils"
 bluetooth-off
 mic-off
-[ $(volume) -gt 40 ] && volume 40
+[ $(volume) -gt 25 ] && volume 25
 
 log "this is a test 2"
 
@@ -36,7 +36,7 @@ daemons                                 \
 #"$utils/external-display-settings"
 
 # MAYBE: put into daemons
-redshift -l $(location latitude):$(location longitude) -t 6500K:2100K &
+redshift -l "$(location latitude):$(location longitude)" -t "6500K:2100K" &
 
 log "this is a test 4"
 

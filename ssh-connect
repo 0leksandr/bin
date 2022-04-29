@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+i="$1"
+user="$2"
+host="$3"
+
+ssh-trust "$host"
+ssh -i "$i" "$user"@"$host"

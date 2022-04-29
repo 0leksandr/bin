@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+host="$1"
+
+ssh-keygen -R "$host"
+ssh-keyscan -H "$host" >> ~/.ssh/known_hosts
