@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE $HOME/_/Programs/vendor/GoLand/bin/goland.sh
+IDE $HOME/_/Programs/vendor/JetBrains/GoLand/bin/goland.sh

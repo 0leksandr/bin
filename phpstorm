@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE $HOME/_/Programs/vendor/PhpStorm/bin/phpstorm.sh
+IDE $HOME/_/Programs/vendor/JetBrains/PhpStorm/bin/phpstorm.sh

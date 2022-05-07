@@ -4,17 +4,17 @@ branch="$1"
 key="$(basename $0)"
 
 if ! gst --untracked-files=no > /dev/null; then
-    #git add .
-    git stash save "$key"
+    #_git-real add .
+    _git-real stash save "$key"
 fi
 
-git checkout "$branch"
+_git-real checkout "$branch"
 
 branch="$(echo $branch |sed -r 's / \\/ g')"
-echo "$(git --no-pager stash list)" |while read stash; do
+echo "$(_git-real --no-pager stash list)" |while read stash; do
     match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: On $branch: $key$/\1/")"
     if [ "$(echo $match |grep -E '^[0-9]+$')" ]; then
-        git stash pop "stash@{$match}"
+        _git-real stash pop "stash@{$match}"
         break
     fi
 done

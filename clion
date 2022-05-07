@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE $HOME/_/Programs/vendor/clion/bin/clion.sh
+IDE $HOME/_/Programs/vendor/JetBrains/Clion/bin/clion.sh

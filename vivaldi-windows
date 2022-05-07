@@ -4,7 +4,7 @@ file="$file_prefix.txt"
 file_bac="$file_prefix.bac"
 pattern="^([^ ]+) ([0-9]+) (.*)\$"
 case "$1" in
-    list) wmctrl -l |grep Vivaldi |sed -r 's/^(0x\w+) +-?([0-9]+) +machine (.*)$/\1 \2 \3/' |sort ;;
+    list) wmctrl -l |grep ' - Vivaldi$' |sed -r 's/^(0x\w+) +-?([0-9]+) +machine (.*)$/\1 \2 \3/' |sort ;;
     full)
         $0 list |while read line; do
             # if [ ! "$2" ] || [ "$line" |grep "$2" ]; then
