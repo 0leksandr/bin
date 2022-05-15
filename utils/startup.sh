@@ -31,9 +31,8 @@ daemons                                 \
     "scene all"                         \
     "conky-my"                          \
     "system-server"                     \
+    "$utils/external-display-settings"  \
                                         &
-# TODO: return
-#"$utils/external-display-settings"
 
 # MAYBE: put into daemons
 redshift -l "$(location latitude):$(location longitude)" -t "6500K:2100K" &
@@ -43,7 +42,7 @@ log "this is a test 4"
 sleep 5
 # run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
 run-detached "$utils/battery-control.sh"
-#sleepy 00:00  # TODO: uncomment
+sleepy 00:00
 
 sleep 5
 start-closed slack 'Slack( \|.*)?'

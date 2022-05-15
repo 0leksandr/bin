@@ -37,6 +37,14 @@ case "$action" in
             $0 force "$prev"
         fi
         ;;
+    next)
+        case "$($0 actual)" in
+            day)      $0 twilight ;;
+            twilight) $0 evening  ;;
+            evening)  $0 night    ;;
+            night)    $0 day      ;;
+        esac
+        ;;
     actual) cat "$daytime_file" ;;
     when)
         calc_ranges
@@ -99,15 +107,15 @@ case "$action" in
         daytime="$2"
         case "$daytime" in
             # TODO: uncomment when in Kyiv
-            #day)      brightness 1.0  ;;
-            #twilight) brightness 0.75 ;;
-            #evening)  brightness 0.5  ;;
-            #night)    brightness 0.25 ;;
+            day)      brightness 100 ;;
+            twilight) brightness  75 ;;
+            evening)  brightness  50 ;;
+            night)    brightness  25 ;;
 
-            day)      brightness 25 ;;
-            twilight) brightness 20 ;;
-            evening)  brightness 15 ;;
-            night)    brightness 10 ;;
+            #day)      brightness 25 ;;
+            #twilight) brightness 20 ;;
+            #evening)  brightness 15 ;;
+            #night)    brightness 10 ;;
         esac
         if [ "$daytime" != "day" ] && at-home; then
             bulb "$daytime"
@@ -144,6 +152,6 @@ case "$action" in
             $0 listen_file
         "
         ;;
-    help) echo "Options: day twilight evening night movie actual when which" ;;
-    *) echo "Options: day twilight evening night movie actual when which update server force listen_file all" >&2 ;;
+    help) echo "Options: day twilight evening night movie next actual when which" ;;
+    *) echo "Options: day twilight evening night movie next actual when which update server force listen_file all" >&2 ;;
 esac

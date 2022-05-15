@@ -14,7 +14,7 @@ case $# in
 
             word="$(echo "${line}" |sed -r 's ^([^|]+)\|.*$ \1 ')"
 
-            echo "$(date-ft)"
+            date-ft
             echo "$word"
             read input
             if [ ! "$input" ]; then break; fi

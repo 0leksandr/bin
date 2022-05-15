@@ -1,2 +1,3 @@
 #!/bin/sh
-IDE $HOME/_/Programs/vendor/JetBrains/GoLand/bin/goland.sh
+dir="$(find $HOME/_/Programs/vendor/JetBrains/Toolbox/apps/Goland/ch-1 -mindepth 1 -maxdepth 1 -type d -not -name '*plugins' |sort -rV |head -n1)"
+IDE "$dir"/bin/goland.sh
