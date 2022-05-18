@@ -1,4 +1,6 @@
 #!/bin/sh
+
+echo "["
 if [ 0 -eq 1 ]; then
     echo "0 -eq 1"
 fi
@@ -18,13 +20,22 @@ if [ "$arg" ]; then
     echo '""'
 fi
 
-if [ ! "$(echo '')" ]; then
-    echo "not"
-else
-    echo "fuck"
+if [ : ]; then
+    echo ":"
 fi
 
-while [ ! "$(echo '')" ]; do
-    echo "while"
-    break
-done
+if [ true ]; then
+    echo "true"
+fi
+
+if [ false ]; then
+    echo "false"
+fi
+echo "]"
+
+if true; then
+    echo "true"
+fi
+if false; then
+    echo "false"
+fi

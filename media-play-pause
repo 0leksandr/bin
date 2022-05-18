@@ -1,7 +1,27 @@
 #!/bin/sh
-if [ $(battery) -lt 100 ] && [ $(_battery-data 1 online) = "yes" ]; then
-    notify "stupid kb combination"
-    exit 1
+set -e
+
+line="$(tail -1 "$HOME/.temp/ac-power.log")"
+logged(){
+    local reg="(^.+): ([^:]+)$"
+    echo "$line" |sed -r "s/$reg/\\$1/"
+}
+logged_time="$(logged 1)"
+if [ "$(logged 2)" = "on" ]; then
+    logged_state=1
+else
+    logged_state=0
+fi
+if [ "$(_battery-data 1 online)" = "yes" ]; then
+    online=1
+else
+    online=0
+fi
+
+if [ $online -eq $logged_state ]; then
+    if [ $(( $(date -d "$logged_time" +%s) + 5 )) -ge $(date +%s) ]; then
+        exit 1
+    fi
 fi
 
 xdotool key XF86AudioPlay

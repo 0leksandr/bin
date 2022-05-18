@@ -3,9 +3,9 @@ set -e
 branch="$1"
 key="$(basename $0)"
 
-if ! gst --untracked-files=no > /dev/null; then
+if ! gst > /dev/null; then
     #_git-real add .
-    _git-real stash save "$key"
+    _git-real stash push --include-untracked --message "$key"
 fi
 
 _git-real checkout "$branch"
