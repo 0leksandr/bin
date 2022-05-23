@@ -1,4 +1,11 @@
 #!/bin/sh
-sh $1 && \
-sleep 5m && \
-exit 0
+set -e
+
+if [ "$1" = "dir" ]; then
+    dir0="$HOME/_/Programs/vendor/JetBrains/Toolbox/apps/$2"
+    dir1="$(ls -1 $dir0 |tail -1)"
+    find "$dir0/$dir1" -mindepth 1 -maxdepth 1 -type d -not -name '*plugins' |sort -rV |head -n1
+else
+    sh $1
+    #sleep 5m
+fi

@@ -1,3 +1,2 @@
 #!/bin/sh
-#IDE $HOME/_/Programs/vendor/JetBrains/WebStorm/bin/webstorm.sh
-IDE $HOME/_/Programs/vendor/JetBrains/Toolbox/apps/WebStorm/ch-0/213.7172.31/bin/webstorm.sh
+IDE "$(IDE dir WebStorm)"/bin/webstorm.sh
