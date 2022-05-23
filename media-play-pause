@@ -19,7 +19,7 @@ else
 fi
 
 if [ $online -eq $logged_state ]; then
-    if [ $(( $(date -d "$logged_time" +%s) + 5 )) -ge $(date +%s) ]; then
+    if [ $(( $(date -d "$logged_time" +%s) + 1 )) -ge $(date +%s) ]; then
         exit 1
     fi
 fi

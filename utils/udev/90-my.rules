@@ -1,0 +1,4 @@
+# /etc/udev/rules.d/
+# https://unix.stackexchange.com/questions/227918/system-event-on-ac-adapter-insert-or-battery-unplugged
+SUBSYSTEM=="power_supply", ENV{POWER_SUPPLY_ONLINE}=="1", RUN+="/home/nezhraba/_/Programs/bin/utils/udev/ac-power.sh 1"
+SUBSYSTEM=="power_supply", ENV{POWER_SUPPLY_ONLINE}=="0", RUN+="/home/nezhraba/_/Programs/bin/utils/udev/ac-power.sh 0"

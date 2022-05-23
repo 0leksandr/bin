@@ -3,6 +3,7 @@ set -e
 action="$1"
 
 daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
+daytime_pipe="$(realpath ~/.temp/daytime)"
 calc_ranges() {
     astro="$(hdate -s -l N$(location latitude) -L E$(location longitude) -z3 2>/dev/null)"
     when () { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
@@ -22,7 +23,7 @@ function save_bg {
 }
 
 case "$action" in
-    day|twilight|evening|night) echo "$action" > "$daytime_file" ;;
+    day|twilight|evening|night) echo "$action" > "$daytime_pipe" ;;
     movie)
         prev="$($0 actual)"
         if [ "$2" ]; then
@@ -33,7 +34,7 @@ case "$action" in
         sleep 2
         brightness 0.5
         while _external-display-connected; do sleep 1; done
-        if [ "$($0 which)" = "$prev" ]; then
+        if [ "$($0 nominal)" = "$prev" ]; then
             $0 force "$prev"
         fi
         ;;
@@ -53,7 +54,7 @@ case "$action" in
         done
         printf "\nsunset: $(when sunset)\n"
         ;;
-    which)
+    nominal)
         calc_ranges
 
         now=$(date +%s)
@@ -74,7 +75,7 @@ case "$action" in
             echo "night"
         fi
         ;;
-    update)
+    schedule)
         prev=""
         while :; do
             if _external-display-connected; then
@@ -82,11 +83,11 @@ case "$action" in
                 continue
             fi
 
-            daytime=$($0 which)
+            daytime=$($0 nominal)
 
             if [ "$daytime" != "$prev" ]; then
                 prev="$daytime"
-                echo "$daytime" > "$daytime_file"
+                echo "$daytime" > "$daytime_pipe"
             fi
 
             sleep 1
@@ -105,6 +106,7 @@ case "$action" in
         ;;
     force)
         daytime="$2"
+        echo "$daytime" > "$daytime_file"
         case "$daytime" in
             # TODO: uncomment when in Kyiv
             day)      brightness 100 ;;
@@ -117,41 +119,34 @@ case "$action" in
             #evening)  brightness 15 ;;
             #night)    brightness 10 ;;
         esac
-        if [ "$daytime" != "day" ] && at-home; then
+        if at-home; then
             bulb "$daytime"
         fi
         ;;
-    listen_file)
-        prev=""
-        while :; do
-            daytime="$($0 actual)"
-            if [ "$daytime" != "$prev" ]; then
-                $0 force "$daytime"
+    listen_pipe)
+        prev="$($0 actual)"
+        tail -f "$daytime_pipe" |while read daytime; do
+            $0 force "$daytime"
 
-                # save cur bg
-                if [ "$prev" != "" ]; then
-                    save_bg "$prev"
-                fi
-                # set bg for current time-of-day
-                bg="$(cat "$bgs_file" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
-                if [ "$bg" ]; then
-                    set-background "$bg"
-                fi
-
-                prev="$daytime"
+            # backgrounds
+            save_bg "$prev"
+            bg="$(cat "$bgs_file" |grep -E "^$daytime:" |sed -r "s/^$daytime: (.*)$/\1/")"
+            if [ "$bg" ]; then
+                set-background "$bg"
             fi
-            sleep 1
+
+            prev="$daytime"
         done
         ;;
     all)
         save_bg "$($0 actual)"
-        echo $($0 which) > "$daytime_file"
+        $0 force "$($0 nominal)"
         parallel -n "
-            $0 update
+            $0 schedule
             $0 server
-            $0 listen_file
+            $0 listen_pipe
         "
         ;;
-    help) echo "Options: day twilight evening night movie next actual when which" ;;
-    *) echo "Options: day twilight evening night movie next actual when which update server force listen_file all" >&2 ;;
+    help) echo "Options: day twilight evening night movie next actual when nominal" ;;
+    *) echo "Options: day twilight evening night movie next actual when nominal schedule server force listen_pipe all" >&2 ;;
 esac
