@@ -1,5 +1,7 @@
-#!/bin/sh
-_gcm "$@"
+#!/bin/bash
+set -e
+
+_gcm "--message='$1'" "${@:2}"
 printf "\n"
 
 if [ "$(git remote -v)" ]; then

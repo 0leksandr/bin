@@ -35,7 +35,7 @@ case "$action" in
         brightness 0.5
         while _external-display-connected; do sleep 1; done
         if [ "$($0 nominal)" = "$prev" ]; then
-            $0 force "$prev"
+            $0 light "$prev"
         fi
         ;;
     next)
@@ -104,9 +104,8 @@ case "$action" in
         # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         ;;
-    force)
+    light)
         daytime="$2"
-        echo "$daytime" > "$daytime_file"
         case "$daytime" in
             # TODO: uncomment when in Kyiv
             day)      brightness 100 ;;
@@ -126,7 +125,8 @@ case "$action" in
     listen_pipe)
         prev="$($0 actual)"
         tail -f "$daytime_pipe" |while read daytime; do
-            $0 force "$daytime"
+            $0 light "$daytime"
+            echo "$daytime" > "$daytime_file"
 
             # backgrounds
             save_bg "$prev"
@@ -140,7 +140,6 @@ case "$action" in
         ;;
     all)
         save_bg "$($0 actual)"
-        $0 force "$($0 nominal)"
         parallel -n "
             $0 schedule
             $0 server
@@ -148,5 +147,5 @@ case "$action" in
         "
         ;;
     help) echo "Options: day twilight evening night movie next actual when nominal" ;;
-    *) echo "Options: day twilight evening night movie next actual when nominal schedule server force listen_pipe all" >&2 ;;
+    *) echo "Options: day twilight evening night movie next actual when nominal schedule server light listen_pipe all" >&2 ;;
 esac

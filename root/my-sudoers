@@ -1,0 +1,4 @@
+# /etc/sudoers.d/
+# Allow to run without sudo
+nezhraba machine = (root) NOPASSWD: /usr/bin/brightnessctl
+nezhraba machine = (root) NOPASSWD: /usr/bin/cpupower

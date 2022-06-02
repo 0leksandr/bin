@@ -1,3 +1,4 @@
 #!/bin/sh
 set -e
-notify-send "$@"
+
+notify "$1"

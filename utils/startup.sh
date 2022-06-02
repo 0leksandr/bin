@@ -32,6 +32,7 @@ daemons                                 \
     "conky-my"                          \
     "system-server"                     \
     "$utils/external-display-settings"  \
+    "$utils/monitor-ac-power.sh"        \
                                         &
 
 # MAYBE: put into daemons

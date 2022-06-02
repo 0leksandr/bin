@@ -1,2 +1,4 @@
 #!/bin/sh
+set -e
+
 sudo cpupower frequency-set --governor "$1"

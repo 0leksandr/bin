@@ -1,8 +1,11 @@
 #!/bin/sh
+set -e
+
 # git add .
 # # git add -u
 # # git add -u -- .
 # git commit -a -m "$@"
 
+flags="$1"
 eval "git add $(_path 2 "$@")"
-eval "git commit -m '$1'"  # `git commit -m "$1"` does not work
+eval "git commit $flags"  # `git commit -m "$1"` does not work
