@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 windows () { wmctrl -p -l |grep -E ' AkelPad$' |sort ;}
 prev_windows="$(windows)"
 openwine ~/_/Programs/vendor/windows/AkelPad/AkelPad.exe "$1" ~/_/Programs/.wine2 &
