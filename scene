@@ -107,16 +107,10 @@ case "$action" in
     light)
         daytime="$2"
         case "$daytime" in
-            # TODO: uncomment when in Kyiv
             day)      brightness 100 ;;
             twilight) brightness  75 ;;
             evening)  brightness  50 ;;
             night)    brightness  25 ;;
-
-            #day)      brightness 25 ;;
-            #twilight) brightness 20 ;;
-            #evening)  brightness 15 ;;
-            #night)    brightness 10 ;;
         esac
         if at-home; then
             bulb "$daytime"

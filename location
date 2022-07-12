@@ -3,8 +3,8 @@ set -e
 
 opts="Options: latitude longitude help"
 case "$1" in
-    latitude)  printf 49.087    ;;
-    longitude) printf 26.259    ;;
+    latitude)  printf 50.425    ;;
+    longitude) printf 30.518    ;;
     help)      echo "$opts"     ;;
     *)         echo "$opts" >&2 ;;
 esac

@@ -22,11 +22,12 @@ test=~/.temp/test.txt
 echo "$0" >> $test
 whoami >> $test
 date-ft >> $test
-echo "online[$online] logged_state[$logged_state] logged_time[$logged_time]" >> $test
+echo "online[$online] logged_state[$logged_state] logged_time[$logged_time] acpi[$(acpi -a)]" >> $test
 
 if [ $online -eq $logged_state ]; then
     if [ $(date -d "$logged_time" +%s) -lt $(( $(date +%s) - 1 )) ]; then
-        receiver="$(dbus-send --print-reply --dest=org.freedesktop.DBus  /org/freedesktop/DBus org.freedesktop.DBus.ListNames |grep org.mpris.MediaPlayer2 |tail -1)"
+        receiver="$(dbus-send --print-reply --dest=org.freedesktop.DBus  /org/freedesktop/DBus org.freedesktop.DBus.ListNames |grep org.mpris.MediaPlayer2 |head -1)"
+echo "receiver [$receiver]" >> $test
         if [ "$receiver" ]; then
             receiver="$(echo "$receiver" |sed -r 's/^ *string "(.+)"$/\1/')"
             dbus-send --print-reply --dest="$receiver" /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause

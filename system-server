@@ -19,7 +19,8 @@ http-server -a $url -p $port -d false -i false 2>/dev/null |while read line; do
         get_url_param (){
             param="$1"
             default="$2"
-            echo "$uri" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$param'] ?? '$default';"
+            # echo "$uri" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$param'] ?? '$default';"
+            python -c "from urllib import parse; print(dict(parse.parse_qsl(parse.urlsplit('$uri').query)).get('$param', '$default'))"
         }
         action=$(get_url_param "action")
         run_script (){
