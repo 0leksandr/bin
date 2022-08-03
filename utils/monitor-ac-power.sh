@@ -10,7 +10,7 @@ acpi_listen |while read -r what junk; do
     case "$(acpi -a |sed -r 's/^Adapter 0: //')" in
         off-line)
             log "off"
-            brightness 10
+            brightness 25
             cpu-set powersave
             ;;
         on-line)

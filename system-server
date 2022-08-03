@@ -41,6 +41,7 @@ http-server -a $url -p $port -d false -i false 2>/dev/null |while read line; do
             browser-key ) run_script "title" "delay 0" "-key"     ;;
             radio-nv    ) run_script "title"                      ;;
             notify      ) run_script "message"                    ;;
+            mouse-click ) run_script "x" "y"                      ;;
             *           ) echo>&2 "$0: unknown action: [$action]" ;;
         esac
     fi

@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE $HOME/_/Programs/vendor/JetBrains/pycharm-community/bin/pycharm.sh
+IDE "$(IDE dir PyCharm-C)"/bin/pycharm.sh
