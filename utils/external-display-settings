@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-sleep 10  # TODO: fix in `daemons`
+
+sleep 10  # TODO: fix in `daemons`? Or remove. Is it actual?
+
 connected (){ _external-display-connected && echo '1' || echo '' ;}
 current="$(connected)"
-while :; do
-    sleep 5
+while read line; do
+    if echo "$line" |egrep --invert-match --quiet ' member=MonitorsChanged$'; then continue; fi
     new="$(connected)"
     if [ "$new" != "$current" ]; then
         if [ "$new" ]; then
@@ -14,4 +16,4 @@ while :; do
         fi
         current="$new"
     fi
-done
+done < <(dbus-monitor "type='signal',path='/org/Cinnamon',interface='org.Cinnamon',member='MonitorsChanged'")
