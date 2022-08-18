@@ -1,2 +1,9 @@
 #!/bin/sh
-mic-set-status off
+set -e
+
+#mic-set-status off
+
+amixer set Capture nocap > /dev/null
+mic-status
+
+gsettings set org.cinnamon.sounds map-enabled true
