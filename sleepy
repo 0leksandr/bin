@@ -14,7 +14,8 @@ if [ "$1" = "--noalert" ]; then
     set -- "${@:2}"
 fi
 
-file="$HOME/_/Programs/text@nezhraba/pipe"
+#file="$HOME/_/Programs/text@nezhraba/pipe"
+file="$HOME/_/Programs/text@nezhraba/texts/_"
 
 #define shutdown time
 shutdowntime=$(date -d $1 +%s)
@@ -40,7 +41,8 @@ function _say {
     say "$1" text2wave "$vol" &
 }
 
-echo > $file
+#echo > $file
+rm -f "$file"
 
 alerted=''
 

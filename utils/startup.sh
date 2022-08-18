@@ -35,8 +35,12 @@ daemons                                 \
     "$utils/monitor-ac-power.sh"        \
                                         &
 
+#supervisord --configuration=./supervisord.conf
+
+imwheel --buttons "4 5"
+
 # MAYBE: put into daemons
-redshift -l "$(location latitude):$(location longitude)" -t "6500K:2100K" &
+redshift -P -r -l "$(location latitude):$(location longitude)" -t "6500K:2100K" &
 
 log "this is a test 4"
 
@@ -49,7 +53,7 @@ sleep 5
 start-closed slack 'Slack( \|.*)?'
 start-closed telegram 'Telegram( \([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'
-# steam &
+steam &
 
 # sleep 10
 # daemons        \
