@@ -7,3 +7,4 @@ amixer set Capture nocap > /dev/null
 mic-status
 
 gsettings set org.cinnamon.sounds map-enabled true
+gsettings set org.cinnamon.sounds close-enabled true

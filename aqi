@@ -6,8 +6,8 @@ filename="$HOME/_/Programs/text@nezhraba/texts/aqi"
 #notify (){ notify-send --urgency=low "aqi=$1" ;}
 notify (){ echo "$1" > "$filename" ;}
 
-good_level=30
-bad_level=60
+good_level=20
+bad_level=50
 script=~/PycharmProjects/air-quality/main.py
 options="Options: show full check"
 #file=~/_/aqi.txt
@@ -18,11 +18,10 @@ case "$action" in
     check)
         aqi=$($0 show |sed -r 's ^([0-9]+)(\..+)?$ \1 ')
         if [ $aqi -le $good_level ]; then
-            notify "$aqi 🙂"
+            notify "$aqi 👍"
         elif [ $aqi -ge $bad_level ]; then
-            notify "$aqi 🙁"
+            notify "$aqi ❌"
         else
-            #rm "$filename"
             notify "$aqi"
         fi
         ;;
