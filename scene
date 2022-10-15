@@ -32,7 +32,6 @@ case "$action" in
         if [ "$2" ]; then
             bulb "$2"
         fi
-        brightness
         while ! _external-display-connected; do sleep 1; done
         sleep 2
         brightness 0.5
@@ -110,10 +109,10 @@ case "$action" in
     light)
         daytime="$2"
         case "$daytime" in
-            day)      brightness 100 ;;
-            twilight) brightness  75 ;;
-            evening)  brightness  50 ;;
-            night)    brightness  25 ;;
+            day)      brightness      100 ;;
+            twilight) brightness --max 75 ;;
+            evening)  brightness --max 50 ;;
+            night)    brightness --max 25 ;;
         esac
         if at-home; then
             bulb "$daytime"

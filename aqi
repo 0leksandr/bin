@@ -13,9 +13,10 @@ options="Options: show full check"
 #file=~/_/aqi.txt
 #options="$options save saved"
 case "$action" in
-    show)  python "$script"        ;;
+    show)  timeout 30s python "$script"        ;;
     full)  python "$script" --full ;;
     check)
+        notify "?"
         aqi=$($0 show |sed -r 's ^([0-9]+)(\..+)?$ \1 ')
         if [ $aqi -le $good_level ]; then
             notify "$aqi 👍"

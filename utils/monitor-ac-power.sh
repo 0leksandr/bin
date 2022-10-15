@@ -7,7 +7,7 @@ update() {
     case "$(acpi -a |sed -r 's/^Adapter 0: //')" in
         off-line)
             log "off"
-            brightness 25
+            brightness --max 50
             cpu-set powersave
             ;;
         on-line)

@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+# full list: `usb-devices`
+# monitor: `udevadm monitor --udev`
+if [ "$(lsusb |egrep 'A4Tech Co\., Ltd\. $')" ]; then  # keyboard connected
+    media-play-pause
+else
+    xdotool key Scroll_Lock
+fi

@@ -1,0 +1,5 @@
+#!/bin/sh
+_complete_brightness() {
+    COMPREPLY=( "--max" )
+}
+complete -F _complete_brightness brightness

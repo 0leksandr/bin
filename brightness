@@ -2,11 +2,27 @@
 set -e
 value_percents="$1"
 
+current(){ echo $(($(brightnessctl get) * 100 / $(brightnessctl max))) ;}
+
 if [ "$value_percents" ]; then
+    is_max=""
+    if [ "$1" = "--max" ]; then is_max="1"; fi
+
+    if [ "$is_max" ]; then
+        value_percents="$2"
+    fi
+
     if [ "$(echo "$value_percents <= 1" |bc)" = "1" ]; then
         value_percents="$(echo "$value_percents * 100" |bc |sed -r 's ^([0-9]+)\.[0-9]+$ \1 ')"
     fi
+
+    if [ "$is_max" ]; then
+        if [ "$value_percents" -ge $(current) ]; then
+            exit 0
+        fi
+    fi
+
     sudo brightnessctl set "$value_percents"%
 else
-    echo $(($(brightnessctl get) * 100 / $(brightnessctl max)))%
+    echo $(current)
 fi
