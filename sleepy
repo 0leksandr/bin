@@ -50,7 +50,7 @@ while true; do
     cur=$(date +%s)
 
     # boot late after shutdowntime
-    if [[ $cur -ge $(expr $shutdowntime + 10) ]]; then
+    if [[ $cur -ge $(expr $shutdowntime + 30) ]]; then
         echo "--------" > $file
         alert "Too late for shutdown"
         break

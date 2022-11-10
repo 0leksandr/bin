@@ -3,7 +3,8 @@ set -e
 
 # full list: `usb-devices`
 # monitor: `udevadm monitor --udev`
-if [ "$(lsusb |egrep 'A4Tech Co\., Ltd\. $')" ]; then  # keyboard connected
+#if [ "$(lsusb |egrep 'A4Tech Co\., Ltd\. $')" ]; then
+if [ "$(lsusb -v 2>/dev/null |grep -i keyboard)" ]; then
     media-play-pause
 else
     xdotool key Scroll_Lock
