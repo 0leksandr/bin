@@ -14,7 +14,7 @@ log "this is a test 1"
 utils="$HOME/_/Programs/bin/utils"
 bluetooth-off
 mic-off
-[ $(volume) -gt 25 ] && volume 25
+[ $(volume) -gt 37 ] && volume 37
 
 log "this is a test 2"
 
@@ -50,7 +50,7 @@ run-detached "$utils/battery-control.sh"
 sleepy 00:00
 
 sleep 5
-start-closed slack 'Slack( \|.*)?'
+#start-closed slack '.* - Slack'
 start-closed telegram 'Telegram( \([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'
 #steam &

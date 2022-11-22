@@ -1,11 +1,13 @@
 #!/bin/sh
+set -e
+
 cmd="git status --short $@"
 if [ "$($cmd 2>&1)" ]; then
     $cmd
     exit 1
 else
     cmd="git status --short --branch $@"
-    if $cmd |grep -q ahead; then
+    if $cmd |egrep -q 'ahead|behing'; then
         $cmd
         exit 1
     else
