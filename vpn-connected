@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+#for interface in $(ifconfig -l); do
+#    if ifconfig $interface |grep -q '\-->'; then
+#        echo "Connected"
+#        exit 0
+#    fi
+#done
+
+#nmcli c show --active | grep vpn
+
+if ifconfig -a |egrep -q '\-->|(00-){15}00'; then
+    echo "VPN connected"
+    exit 0
+else
+    echo "VPN disconnected" >&2
+    exit 1
+fi

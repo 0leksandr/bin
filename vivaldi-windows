@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 file_prefix="$HOME/.temp/vivaldi/$(basename $0)"
 file="$file_prefix.txt"
 file_bac="$file_prefix.bac"
@@ -30,14 +32,13 @@ case "$1" in
     move)
         target="$2"
         if [ ! "$target" ]; then target="$file"; fi
-        # cat "$target" |sed -r 's/'\''/'\''\\'\'''\''/g' |sed -r 's/^([0-9]+) (.*)$/wmctrl -F -r '\''\2'\'' -t \1/' |awk '{system($0)}'
         cat "$target" |while read line; do
             workspace=$(echo "$line" |sed -r "s/$pattern/\\2/")
-            window=$(echo "$line" |sed -r "s/$pattern/\\3/")
-            wmctrl -F -r "$window" -t $workspace
+            window_title=$(echo "$line" |sed -r "s/$pattern/\\3/")
+            wmctrl -F -r "$window_title" -t $workspace
         done
         ;;
-    fix)
+    restore)
         dir="$(dirname $file)"
         last () { printf "$dir/"; ls "$dir" -1v |tail -n1 ;}
         rm "$(last)"
@@ -107,6 +108,13 @@ case "$1" in
             prev_nr="$cur_nr"
         done
         ;;
-    help) echo "Options: full save backup move fix" ;;
-    *) echo "Options: list full save backup move fix init listen" >&2 ;;
+    fix-full)
+        $0 list |while read line; do
+            id=$(echo "$line" |sed -r "s/$pattern/\\1/")
+            wmctrl -i -r "$id" -b remove,maximized_vert,maximized_horz
+            wmctrl -i -r "$id" -b    add,maximized_vert,maximized_horz
+        done
+        ;;
+    help) echo "Options: full save backup move restore fix-full" ;;
+    *) echo "Options: list full save backup move restore init listen fix-full" >&2 ;;
 esac

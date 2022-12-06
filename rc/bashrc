@@ -88,3 +88,5 @@ GLOBIGNORE=".:.."
 # set show-all-if-ambiguous on  # autocomplete with 1 tab. Not wonking..
 
 # export SHELL=$(which zsh) && exec zsh -l
+
+complete -C $HOME/go/bin/gocomplete go
