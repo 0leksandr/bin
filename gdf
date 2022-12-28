@@ -1,3 +1,5 @@
 #!/bin/sh
+set -e
+
 # git diff --cached
-git diff HEAD
+eval "git diff HEAD $(_path 1 "$@")"

@@ -1,7 +1,13 @@
 #!/bin/sh
-git clean -n
-git clean -f
-git checkout -- .
-git add .
-# git rm --cached -r -f .
-git reset --hard
+set -e
+
+if [ "$1" = "" ]; then
+    git clean -n
+    git clean -f
+    git checkout -- .
+    git add .
+    #git rm --cached -r -f .
+    git reset --hard
+else
+    eval "git checkout HEAD -- $(_path 1 "$@")"
+fi
