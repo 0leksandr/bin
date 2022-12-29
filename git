@@ -4,6 +4,14 @@ set -e
 # log (){ echo "$(date-ft): $@" >> ~/.temp/git.log ;}
 # log "$@"
 
+function git_real() {
+    basename="$(basename $0)"
+    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |egrep -v "^$(realpath "$0")$" |head -n1)"
+    _transfer "$real" "$@"
+}
+
+key="git-switch"  # TODO: update
+
 nr_args=$#
 if [ "${!nr_args}" = "--" ]; then
     nr_args=$(($nr_args-1))
@@ -13,21 +21,39 @@ n1=$(($n - 1))
 n2=$(($n - 2))
 if [ $nr_args -ge 2 ]; then
     if [ "${!n1}" = "checkout" ]; then
-        git-switch "${!n}"
+        branch="${!n}"
+
+        if ! gst > /dev/null; then
+            #git_real add .
+            git_real stash push --include-untracked --message "$key"
+        fi
+
+        git_real "$@"
+
+        branch="$(echo $branch |sed -r 's / \\/ g')"
+        echo "$(git_real --no-pager stash list)" |while read stash; do
+            match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: On $branch: $key$/\1/")"
+            if [ "$(echo $match |grep -E '^[0-9]+$')" ]; then
+                git_real stash pop "stash@{$match}"
+                break
+            fi
+        done
+
         exit 0
     fi
 fi
 if [ $nr_args -ge 3 ]; then
     if [ "${!n2}" = "branch" ] && [ "${!n1}" = "-d" ]; then
-        stash="$(gsh-list |grep -E "^stash@{[0-9]+}: On ${!n}: git-switch$" ||true)"
+        stash="$(gsh-list |grep -E "^stash@{[0-9]+}: On ${!n}: $key$" ||true)"
         if [ "$stash" ]; then
             stash="$(echo "$stash" |sed -r 's/^([^:]+):.+$/\1/')"
-            _git-real stash drop "$stash"
+            git_real stash drop "$stash"
         fi
     fi
 fi
 
-# args=""
-# for arg in "$@"; do args="$args $(printf "%q" "$arg")"; done
-# eval "_git-real $args"
-_transfer _git-real "$@"
+#args=""
+#for arg in "$@"; do args="$args $(printf "%q" "$arg")"; done
+#eval "git_real $args"
+
+git_real "$@"
