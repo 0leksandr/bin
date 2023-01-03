@@ -27,11 +27,11 @@ if [ $shutdowntime -le $now ]; then
 fi
 
 function timediff {
-    seconds=$(expr $2 - $1)
-    minutes=$(expr $seconds / 60)
-    seconds=$(expr $seconds -  $minutes \* 60)
-    hours=$(expr $minutes / 60)
-    minutes=$(expr $minutes - $hours \* 60)
+    seconds=$(($2 - $1))
+    minutes=$(($seconds / 60))
+    seconds=$(($seconds -  $minutes * 60))
+    hours=$(($minutes / 60))
+    minutes=$(($minutes - $hours * 60))
     echo "$(printf '%02d:%02d:%02d' $hours $minutes $seconds)"
 }
 function _say {
@@ -40,7 +40,6 @@ function _say {
     say "$1" text2wave "$vol" &
 }
 
-#echo > $file
 rm -f "$file"
 
 alerted=''
@@ -49,10 +48,8 @@ while true; do
     cur=$(date +%s)
 
     # boot late after shutdowntime
-    if [[ $cur -ge $(expr $shutdowntime + 30) ]]; then
-        echo "--------" > $file
-        alert "Too late for shutdown"
-        break
+    if [[ $cur -ge $(($shutdowntime + 30)) ]]; then
+        shutdowntime=$(($cur + 60))
     fi
 
     # alert
@@ -75,13 +72,13 @@ while true; do
 
     # shutdown
     if [ $cur -ge $shutdowntime ]; then
-        echo > $file
+        rm -f "$file"
         shutdown -P now
         break
     fi
 
     # write to widget
-    if [[ $# == 2  || $(expr $shutdowntime - $cur) -le $(expr 60 \* 60 \* 2) ]]; then
+    if [[ $# == 2  || $(($shutdowntime - $cur)) -le $((60 * 60 * 2)) ]]; then
         if [ $# == 2 ] && [ $2 != '+' ]; then
             starttime=$(date -d$2 +%s)
             timevalue=$(bc <<< "scale=1;($shutdowntime - $cur) * 2 / ($shutdowntime - $starttime)")
@@ -90,7 +87,7 @@ while true; do
         else
             countdown=$(timediff $cur $shutdowntime)
         fi
-        echo $countdown > $file
+        echo "$countdown" > "$file"
     fi
 
     sleep 1

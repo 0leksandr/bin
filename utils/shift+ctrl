@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+for device_id in $(xinput --list --id-only); do
+    pressed_keys="$(xinput --query-state $device_id |grep down |sed -r 's/^\W*key\[([0-9]+)\]=down$/\1/g')"
+    if [ "$pressed_keys" ]; then
+        if [ $(echo "$pressed_keys" |wc -l) -lt 2]; then
+            break
+        fi
+        if ! xinput --test $device_id |head -n1 |egrep -q "^key release "; then
+            exit
+        fi
+    fi
+done
+
+xkb-switch --next

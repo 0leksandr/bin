@@ -35,7 +35,7 @@ case "$1" in
         cat "$target" |while read line; do
             workspace=$(echo "$line" |sed -r "s/$pattern/\\2/")
             window_title=$(echo "$line" |sed -r "s/$pattern/\\3/")
-            wmctrl -F -r "$window_title" -t $workspace
+            wmctrl -F -r "$window_title" -t $workspace ||:
         done
         ;;
     restore)
@@ -115,6 +115,6 @@ case "$1" in
             wmctrl -i -r "$id" -b    add,maximized_vert,maximized_horz
         done
         ;;
-    help) echo "Options: full save backup move restore fix-full" ;;
+    help) echo "Options: list full save backup move restore fix-full" ;;
     *) echo "Options: list full save backup move restore init listen fix-full" >&2 ;;
 esac
