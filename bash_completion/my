@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 _complete_full()
 {
     if [ $SHELL = $(which bash) ]; then
@@ -25,7 +26,8 @@ _complete_by_options() {
 }
 complete -F _complete_by_options aqi bulb errors location scene vivaldi-windows
 
+
 _complete_files() {
     COMPREPLY=( $(ls -CF --group-directories-first) )
 }
-complete -F _complete_files nr-files
+complete -F _complete_files gdf git-reset nr-files

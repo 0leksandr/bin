@@ -27,7 +27,7 @@ if [ "$extra_checks" ]; then
 fi
 
 for i in {1..10}; do  # bash
-    connected_router="$(iwgetid -r)"
+    connected_router="$(iwgetid -r ||:)"
     #if [[ "${IFS}${home_routers[*]}${IFS}" =~ "${IFS}${connected_router}${IFS}" ]]; then
     #    exit 0
     #else
@@ -36,7 +36,7 @@ for i in {1..10}; do  # bash
     for home_router in ${home_routers[@]}; do
         if [ "$connected_router" = "$home_router" ]; then exit 0; fi
     done
-    exit 1
+    sleep 1
 done
 
 exit 1

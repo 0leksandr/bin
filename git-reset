@@ -9,5 +9,5 @@ if [ "$1" = "" ]; then
     #git rm --cached -r -f .
     git reset --hard
 else
-    eval "git checkout HEAD -- $(_path 1 "$@")"
+    git checkout HEAD -- "$@"
 fi

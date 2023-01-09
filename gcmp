@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+_ignore-completion "$1"
+
 _gcm "--message='$1'" "${@:2}"
 printf "\n"
 
