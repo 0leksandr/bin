@@ -8,7 +8,7 @@ fi
 log=$0.log
 touch $log
 
-# sed -r 's/^([^/]+)\/.*$/\1/' $1 |awk '{print $0; system("sudo apt-get install -y " $0 "; printf \"\\n\"")}' |tee -a $log
+# sed -r 's/^([^/]+)\/.*$/\1/' $1 |awk '{print $0; system("sudo apt-get install -y " $0 "; printf \"\\n\"")}' |& tee -a $log
 
 nr_lines=`cat $1 |wc -l`
 echo $nr_lines
@@ -26,7 +26,7 @@ $package/"
         continue
     fi
 
-    echo $package                    |tee -a $log
-    sudo apt-get install -y $package |tee -a $log
-    printf "\n\n"                    |tee -a $log
+    echo $package                    |& tee -a $log
+    sudo apt-get install -y $package |& tee -a $log
+    printf "\n\n"                    |& tee -a $log
 done <$1

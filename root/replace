@@ -9,7 +9,7 @@ if [ "$1" = "-w" ]; then
     to="$3"
     nr_args=3
 
-    from="(^|[^0-9a-zA-Z])$from($|[^0-9a-zA-Z])"
+    from="(^|\\W)$from($|\\W)"
     to="\\\\1$to\\\\2"  # extra backslashes - to pass replacement of slashes below
 fi
 
