@@ -1,3 +1,3 @@
 #!/bin/sh
 log="$(_backup-programs install |sed '2q;d')"
-sudo aptitude install $@ |& tee -a "$log"
+sudo aptitude install $@ 2>&1 |tee -a "$log"

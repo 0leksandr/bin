@@ -2,4 +2,4 @@
 file="$1-$(date-filename)"
 # touch "$file"
 date-ft > "$file"
-"$@" |& tee -a "$file"
+"$@" 2>&1 |tee -a "$file"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 filename="$@ $(date +"%F_%H%M%S").txt"
 touch "$filename"
 echo '' > "$filename"
@@ -7,5 +7,5 @@ echo "$@"
 
 # rdtb "$@" > >(tee -a "$filename") 2> >(tee -a "$filename" >&2)
 # rdtb "$@" 2>&1 | tee -a "$filename"
-dtb "$@" |& tee -a "$filename"
-date-ft  |& tee -a "$filename"
+dtb "$@" 2>&1 |tee -a "$filename"
+date-ft  2>&1 |tee -a "$filename"
