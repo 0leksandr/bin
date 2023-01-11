@@ -8,7 +8,7 @@ if [ "$($cmd 2>&1)" ]; then
 fi
 
 cmd="git status --short --branch $@"
-if $cmd |grep -q 'behing'; then
+if $cmd |egrep -q ' \[behind \d+\]$'; then
     $cmd
     exit 1
 fi
@@ -32,7 +32,7 @@ if [ "$pr_id" ]; then
 fi
 
 cmd="git status --short --branch $@"
-if $cmd |grep -q 'ahead'; then
+if $cmd |egrep -q ' \[ahead \d+\]$'; then
     $cmd
     exit 1
 fi
