@@ -20,7 +20,7 @@ if [ "$(gh pr list)" ]; then
 fi
 
 cmd="git status --short --branch $@"
-if $cmd |egrep -q ' \[behind \d+\]$'; then
+if $cmd |egrep -q ' \[(ahead \d+, )?behind \d+\]$'; then
     err $cmd
 fi
 
