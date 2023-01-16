@@ -2,12 +2,13 @@
 set -e
 
 if [ "$1" = "" ]; then
-    git clean -n
-    git clean -f
+    git clean --dry-run
+    git clean --force
     git checkout -- .
     git add .
     #git rm --cached -r -f .
     git reset --hard
 else
+    git clean --force -d -x "$@"
     git checkout HEAD -- "$@"
 fi

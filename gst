@@ -25,10 +25,12 @@ if $cmd |egrep -q ' \[(ahead \d+, )?behind \d+\]$'; then
 fi
 
 current_branch="$(_git-current-branch)"
-#closest_branch="$(git log --pretty="format:%D" |grep -v "^HEAD ->" |grep -v "^$" |tr , \\n |sed -r 's/^ //' |grep -v "^tag:" |head -n1)"
-pr_id="$(gh pr list --head "$current_branch" |grep '.*' |sed -r 's/^([0-9]+)[^0-9].*$/\1/g')"
-if [ "$pr_id" ]; then
-    base_branch="$(gh pr view $pr_id --json baseRefName --jq '.baseRefName')"
+##closest_branch="$(git log --pretty="format:%D" |grep -v "^HEAD ->" |grep -v "^$" |tr , \\n |sed -r 's/^ //' |grep -v "^tag:" |head -n1)"
+#pr_id="$(gh pr list --head "$current_branch" |grep '.*' |sed -r 's/^([0-9]+)[^0-9].*$/\1/g')"
+#if [ "$pr_id" ]; then
+#    base_branch="$(gh pr view $pr_id --json baseRefName --jq '.baseRefName')"
+base_branch="$(gh pr list --head "$current_branch" --json baseRefName --jq '.[].baseRefName' |head --lines=1)"
+if [ "$base_branch" ]; then
     if git branch --verbose |egrep -q "^ +$base_branch +[0-9a-f]+ +\[behind [0-9]+\]"; then
         err echo "base branch '$base_branch' needs to be updated"
     fi
