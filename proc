@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 flags="-i"
 flagX=""
 flagP=""
@@ -35,4 +37,4 @@ procs="$(ps aux)"
 if [ ! "$flagP" ]; then
     procs="$(echo "$procs" |grep -v -E "^[^ ]+ +($(_parents)) ")"  # except this `proc` and its parents
 fi
-echo "$procs" |grep $flags "$reg" |grep $flags --color=auto "$search"
+echo "$procs" |grep $flags "$reg" |grep $flags --color=auto "$search" ||:
