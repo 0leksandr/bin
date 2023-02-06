@@ -1,10 +1,8 @@
 #!/bin/sh
-
-# git remote add -m origin "https://github.com/0leksandr/$1.git"
-
+set -e
 remote="$1"
 if [ "$remote" = "" ]; then
-    remote=$(pwd |sed -r 's ^.*/([^/]+)$ \1 ')
+    remote="$(basename "$(pwd)")"
 fi
 
 git remote add origin "git@github.com:0leksandr/$remote.git"
