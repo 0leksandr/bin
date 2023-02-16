@@ -6,7 +6,7 @@ set -e
 
 function git_real() {
     basename="$(basename $0)"
-    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |egrep -v "^$(realpath "$0")$" |head -n1)"
+    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |egrep --invert-match "^$(realpath "$0")$" |head --lines=1)"
     _transfer "$real" "$@"
 }
 
@@ -23,7 +23,7 @@ if [ $nr_args -ge 2 ]; then
     if [ "${!n1}" = "checkout" ]; then
         branch="${!n}"
 
-        if ! gst > /dev/null; then
+        if [ "$(git_real status --short)" != "" ]; then
             #git_real add .
             git_real stash push --include-untracked --message "$key"
         fi
