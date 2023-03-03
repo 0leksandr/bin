@@ -15,7 +15,7 @@ if [ "$(gh pr list)" ]; then
     fetched_ago=$(($(date +%s) - $(stat -f %m .git/FETCH_HEAD)))
     if [ $fetched_ago -gt 60 ]; then
         #err echo "last fetch was $fetched_ago seconds ago"
-        git fetch
+        git fetch --quiet
     fi
 fi
 
