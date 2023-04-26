@@ -6,5 +6,7 @@ lines="  line1\n  line2"
 #done
 
 echo "$lines" |while read line; do
+    sleep 1
     echo "line[$line]"
 done
+echo "done script"

@@ -44,7 +44,7 @@ if [ $nr_args -ge 2 ]; then
 fi
 if [ $nr_args -ge 3 ]; then
     if [ "${!n2}" = "branch" ] && [ "${!n1}" = "-d" ]; then
-        stash="$(gsh-list |grep -E "^stash@{[0-9]+}: On ${!n}: $key$" ||true)"
+        stash="$(git_real --no-pager stash list |grep -E "^stash@{[0-9]+}: On ${!n}: $key$" ||true)"
         if [ "$stash" ]; then
             stash="$(echo "$stash" |sed -r 's/^([^:]+):.+$/\1/')"
             git_real stash drop "$stash"

@@ -12,15 +12,15 @@ log (){
 log "this is a test 1"
 
 utils="$HOME/_/Programs/bin/utils"
-bluetooth-off
+#bluetooth-off
 mic-off
-[ $(volume) -gt 37 ] && volume 37
+[ $(volume) -gt 40 ] && volume 40
 
 log "this is a test 2"
 
-# notify "$(ls /tmp/errors)"
+#notify "$(ls /tmp/errors)"
 errors init
-# notify "$(ls /tmp/errors)"
+#notify "$(ls /tmp/errors)"
 echo "$0: [$(ls /tmp/errors)]" > "$HOME/_/test.txt"
 
 log "this is a test 3"
@@ -45,7 +45,7 @@ redshift -P -r -l "$(location latitude):$(location longitude)" -t "6500K:2100K" 
 log "this is a test 4"
 
 sleep 5
-# run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
+#run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
 run-detached "$utils/battery-control.sh"
 sleepy 00:00
 
