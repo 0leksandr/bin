@@ -25,19 +25,32 @@ if $cmd |egrep -q ' \[(ahead \d+, )?behind \d+\]$'; then
 fi
 
 current_branch="$(_git-current-branch)"
-#closest_branch="$(git log --pretty="format:%D" |grep -v "^HEAD ->" |grep -v "^$" |tr , \\n |sed -r 's/^ //' |grep -v "^tag:" |head -n1)"
 base_branches="$(gh pr list --head "$current_branch" --json baseRefName --jq '.[].baseRefName')"
-for base_branch in $base_branches; do
-    if git branch --verbose |egrep -q "^ +$base_branch +[0-9a-f]+ +\[behind [0-9]+\]"; then
-        err echo "base branch '$base_branch' needs to be updated"
-    fi
+if [ ! "$base_branches" ]; then
+    closest_branch="$(git log --pretty="format:%D" |grep -v "^HEAD ->" |grep -v "^$" |tr , \\n |sed -r "s/^ //" |grep -v "^tag:" |grep -v "^origin/" |head --lines=1)"
+    base_branches="$closest_branch"
 
-    last_commit="$(git show-ref --heads -s $base_branch)"
-    common_commit="$(git merge-base $base_branch $current_branch)"
-    if [ "$last_commit" != "$common_commit" ]; then
-        err echo "rebase/merge on base_branch '$base_branch' is required"
-    fi
-done
+    ##reg="^HEAD -> $current_branch, ((?:\\w|[-/])+)$"
+    #reg="^HEAD -> $current_branch, ([^ ]+)$"
+    #line="$(git log --pretty="format:%D" |egrep "$reg" |head --lines=1 ||:)"
+    #if [ "$line" ]; then
+    #    reg="$(echo "$reg" |sed -r "s / \\\\/ g")"
+    #    base_branch="$(echo "$line" |sed -r "s/$reg/\1/")"
+    #fi
+fi
+if [ "$base_branches" ]; then
+    for base_branch in $base_branches; do
+        if git branch --verbose |egrep -q "^ +$base_branch +[0-9a-f]+ +\[behind [0-9]+\]"; then
+            err echo "base branch '$base_branch' needs to be updated"
+        fi
+
+        last_commit="$(git show-ref --heads -s $base_branch)"
+        common_commit="$(git merge-base $base_branch $current_branch)"
+        if [ "$last_commit" != "$common_commit" ]; then
+            err echo "rebase/merge on base_branch '$base_branch' is required"
+        fi
+    done
+fi
 
 cmd="git status --short --branch $@"
 if $cmd |egrep -q ' \[ahead \d+\]$'; then

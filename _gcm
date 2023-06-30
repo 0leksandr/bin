@@ -8,4 +8,4 @@ set -e
 
 flags="$1"
 eval "git add $(_path 2 "$@")"
-eval "git commit $flags"  # `git commit -m "$1"` does not work
+eval "git commit --gpg-sign $flags"  # `git commit -m "$1"` does not work
