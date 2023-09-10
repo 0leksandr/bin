@@ -20,7 +20,7 @@ if [ "$(gh pr list)" ]; then
 fi
 
 cmd="git status --short --branch $@"
-if $cmd |egrep -q ' \[(ahead \d+, )?behind \d+\]$'; then
+if $cmd |egrep -q ' \[(ahead [0-9]+, )?behind [0-9]+\]$'; then
     err $cmd
 fi
 
@@ -53,7 +53,7 @@ if [ "$base_branches" ]; then
 fi
 
 cmd="git status --short --branch $@"
-if $cmd |egrep -q ' \[ahead \d+\]$'; then
+if $cmd |egrep -q ' \[ahead [0-9]+\]$'; then
     err $cmd
 fi
 
