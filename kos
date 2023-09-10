@@ -1,5 +1,13 @@
 #!/bin/sh
 set -e
+
+workspace=$(wmctrl -l |egrep ' Косынка$' |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
+if [ "$workspace" ]; then
+    if [ "$workspace" != "$(workspace)" ]; then
+        _highlander
+    fi
+fi
+
 if [ "$(procx $(basename $0))" ]; then exit; fi
 
 sleep 35

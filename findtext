@@ -1,15 +1,27 @@
 #!/bin/sh
+set -e
 search="$1"
+max_line_len=100
 
-# grep -aHrinE --color=auto --exclude-dir=.git "$search" $(_path 2 "$@")
-eval "grep                  \
-    --binary-files=text     \
-    --with-filename         \
-    --recursive             \
-    --ignore-case           \
-    --line-number           \
-    --extended-regexp       \
-    --color=auto            \
-    --exclude-dir=.git      \
-    -- '$search' $(_path 2 "$@") \
-"
+search1=".{0,$max_line_len}$search.{0,$max_line_len}"
+esc=$(printf '\033')
+
+# -aHrinEo
+eval "                                                                              \
+    stdbuf -o0 --                                                                   \
+        grep                                                                        \
+            --binary-files=text                                                     \
+            --with-filename                                                         \
+            --recursive                                                             \
+            --ignore-case                                                           \
+            --line-number                                                           \
+            --extended-regexp                                                       \
+            --only-matching                                                         \
+            --exclude-dir=.git                                                      \
+        -- '$search1' $(_path 2 "$@")                                               \
+"                                                                                   \
+    |sed -r --unbuffered "s/^([^:]+)(:[0-9]+:)(.+)$/$esc[35m\1$esc[32m\2$esc[0m\3/" \
+    |sed -r --unbuffered --regexp-extended "s/$search/$esc[1m$esc[91m\0$esc[0m/ig"  \
+&&:
+
+#|grep -aiE --color=auto -- "$search"

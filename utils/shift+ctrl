@@ -1,13 +1,26 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
+reg="^(37|50|62|105)$"
+
 for device_id in $(xinput --list --id-only); do
+    #if [ $device_id -eq 5 ]; then continue; fi  # TODO: fix
     pressed_keys="$(xinput --query-state $device_id |grep down |sed -r 's/^\W*key\[([0-9]+)\]=down$/\1/g')"
-    if [ "$pressed_keys" ]; then
-        if [ $(echo "$pressed_keys" |wc -l) -lt 2]; then
+    if echo "$pressed_keys" |egrep --quiet "$reg"; then
+        if echo "$pressed_keys" |egrep --quiet --invert-match "$reg"; then  # anything except `ctrl` and `shift`
+notify "$(basename $0): pressed_keys[$pressed_keys]"
+            exit
+        fi
+        if [ $(echo "$pressed_keys" |wc -l) -lt 2 ]; then
             break
         fi
-        if ! xinput --test $device_id |head -n1 |egrep -q "^key release "; then
+first_event="$(head --lines=1 <(xinput --test $device_id))"  # bash
+        if echo "$first_event" |egrep --quiet "^key release "; then
+            break
+        else
+notify "$(basename $0): first_event[$first_event]"
+#xdotool keydown ctrl
+#xdotool keydown shift
             exit
         fi
     fi
