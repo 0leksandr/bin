@@ -2,7 +2,8 @@
 set -e
 action="$1"
 
-log (){ echo "$0 $(date-ft) $@" >> ~/.temp/scene.txt ;}
+entry="$(date-ft)_$(_rand 1000)"
+log (){ echo "$0 $(date-ft) entry[$entry]: $@" >> ~/.temp/scene.txt ;}
 
 daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
 daytime_pipe="$(realpath ~/.temp/daytime)"
@@ -13,16 +14,22 @@ calc_ranges() {
         ranges_calculated_on="$(date-ft)"
     fi
 
-    astro="$(hdate -s -l N$(location latitude) -L E$(location longitude) -z2 2>/dev/null)"
+    astro="$(hdate                                             \
+        --sun                                                  \
+        --latitude  N$(location latitude)                      \
+        --longitude E$(location longitude)                     \
+        --timezone  $(date +%z |sed -r 's/^\+0([0-9])00$/\1/') \
+        2>/dev/null)"
     when () { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
+    _date() { date -d "$1" +%s ;}
 
-    sunrise=$(date -d $(when sunrise) +%s)
-    sunset=$(date -d $(when sunset) +%s)
+    sunrise=$(_date $(when sunrise))
+    sunset=$(_date $(when sunset))
 
     day=$sunrise
     twilight=$(( $sunset - 45*60 ))
     evening=$(( $sunset + 15*60 ))
-    night=$(( $evening + 60*60 ))
+    night=$(_date "21:00")
 }
 
 function nominal {
@@ -58,7 +65,6 @@ log "@: $@"
 
 case "$action" in
     day|twilight|evening|night)
-log "manual: $action"
         echo "$action" > "$daytime_pipe"
         ;;
     movie)
@@ -85,9 +91,15 @@ log "manual: $action"
     actual) cat "$daytime_file" ;;
     when)
         calc_ranges
-        for daytime in day twilight evening night sunset; do
-            echo "$daytime: $(date -d @${!daytime} +%H:%M)"
+        current="$($0 actual)"
+        format="+%H:%M"
+        for daytime in day twilight evening night; do
+            if [ "$daytime" = "$current" ]; then cur=" <"; else cur=""; fi
+            echo "$daytime: $(date -d @${!daytime} $format)$cur"
         done
+        echo ""
+        echo "sunset: $(date -d @$sunset $format)"
+        echo "now: $(date $format)"
         ;;
     nominal) echo "$(nominal)" ;;
     schedule)
@@ -101,7 +113,6 @@ log "manual: $action"
             daytime="$(nominal)"
 
             if [ "$daytime" != "$prev" ]; then
-log "prev $prev, nominal $daytime"
                 prev="$daytime"
                 echo "$daytime" > "$daytime_pipe"
             fi
@@ -120,15 +131,24 @@ log "prev $prev, nominal $daytime"
         # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
         ;;
+    brightness)
+        daytime="$2"
+        case "$daytime" in
+            day)      printf 100 ;;
+            twilight) printf  75 ;;
+            evening)  printf  50 ;;
+            night)    printf  25 ;;
+        esac
+        ;;
     light)
         daytime="$2"
         calc_ranges
-        case "$daytime" in
-            day)      brightness      100 ;;
-            twilight) brightness --max 75 ;;
-            evening)  brightness --max 50 ;;
-            night)    brightness --max 25 ;;
-        esac
+        brightness=$($0 brightness "$daytime")
+        if [ "$daytime" = "day" ]; then
+            brightness       "$brightness"
+        else
+            brightness --max "$brightness"
+        fi
         if at-home; then
             case "$daytime" in
                 day)   bulb off   ;;
@@ -153,7 +173,6 @@ log "prev $prev, nominal $daytime"
     listen_pipe)
         prev="$($0 actual)"
         tail -f "$daytime_pipe" |while read daytime; do
-log "read from pipe: $daytime"
             $0 light "$daytime"
             echo "$daytime" > "$daytime_file"
 
@@ -176,5 +195,5 @@ log "read from pipe: $daytime"
         "
         ;;
     help) echo "Options: day twilight evening night movie next actual when nominal" ;;
-    *) echo "Options: day twilight evening night movie next actual when nominal schedule server light listen_pipe all" >&2 ;;
+    *) echo "Options: day twilight evening night movie next actual when nominal schedule server brightness light listen_pipe all" >&2 ;;
 esac

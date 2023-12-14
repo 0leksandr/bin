@@ -1,2 +1,3 @@
 #!/bin/sh
-IDE "$(IDE dir CLion)"/bin/clion.sh
+set -e
+IDE $HOME/_/Programs/vendor/JetBrains/Toolbox/clion/bin/clion.sh

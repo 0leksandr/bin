@@ -14,7 +14,9 @@ log "this is a test 1"
 utils="$HOME/_/Programs/bin/utils"
 #bluetooth-off
 mic-off
-[ $(volume) -gt 40 ] && volume 40
+
+#[ $(volume) -gt 40 ] && volume 40
+volume 40
 
 log "this is a test 2"
 
@@ -29,11 +31,13 @@ daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
     "scene all"                         \
-    "conky-my"                          \
-    "system-server"                     \
-    "$utils/external-display-settings"  \
-    "$utils/monitor-ac-power.sh"        \
                                         &
+
+run-detached "conky-my"
+run-detached "system-server"
+#run-detached "$utils/external-display-settings"
+run-detached "$utils/monitor-ac-power.sh"
+start-closed 1password "Lock Screen — 1Password"
 
 #supervisord --configuration=./supervisord.conf
 
@@ -50,7 +54,7 @@ run-detached "$utils/battery-control.sh"
 sleepy 00:00
 
 sleep 5
-start-closed slack '(.+ - )?Slack'
+#start-closed slack '(.+ - )?Slack'
 start-closed telegram 'Telegram( \([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'
 #steam &

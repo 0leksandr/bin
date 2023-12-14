@@ -1,9 +1,10 @@
 #!/bin/sh
 set -e
-action="$1"
-if [ "$action" != "help" ] && [ "$action" != "info" ]; then
-    _highlander
-fi
+
+case "$1" in
+    help|info|brightness) ;;
+    *) _highlander ;;
+esac
 
 dir="$HOME/PycharmProjects/yeelight"
-"$dir"/venv/bin/python "$dir"/main.py "$@"
+"$dir"/venv/3.11/bin/python "$dir"/main.py "$@"
