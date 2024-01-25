@@ -29,7 +29,7 @@ calc_ranges() {
     day=$sunrise
     twilight=$(( $sunset - 45*60 ))
     evening=$(( $sunset + 15*60 ))
-    night=$(_date "21:00")
+    night=$(_date "22:00")
 }
 
 function nominal {
@@ -70,7 +70,7 @@ case "$action" in
     movie)
         prev="$($0 actual)"
         if [ "$2" ]; then
-            bulb "$2"
+            light table "$2"
         fi
         while ! _external-display-connected; do sleep 1; done
         sleep 2
@@ -151,19 +151,19 @@ case "$action" in
         fi
         if at-home; then
             case "$daytime" in
-                day)   bulb off   ;;
-                night) bulb night ;;
+                #day)   light off   ;;
+                night) light night ;;
                 *)
                     if [ "$daytime" = "$(nominal)" ]; then
                         case "$daytime" in
-                            twilight) run-detached "bulb transition twilight $twilight evening $evening" ;;
-                            evening)  run-detached "bulb transition evening  $evening  night   $night  " ;;
+                            twilight) run-detached "light transition twilight $twilight evening $evening" ;;
+                            evening)  run-detached "light transition evening  $evening  night   $night  " ;;
                         esac
                     else
                         now=$(date +%s)
                         case "$daytime" in
-                            twilight) run-detached "bulb transition twilight $now evening $evening" ;;
-                            evening)  run-detached "bulb transition evening  $now night   $night  " ;;
+                            twilight) run-detached "light transition twilight $now evening $evening" ;;
+                            evening)  run-detached "light transition evening  $now night   $night  " ;;
                         esac
                     fi
                     ;;

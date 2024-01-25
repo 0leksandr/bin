@@ -6,5 +6,5 @@ case "$1" in
     *) _highlander ;;
 esac
 
-dir="$HOME/PycharmProjects/yeelight"
-"$dir"/venv/3.11/bin/python "$dir"/main.py "$@"
+dir="$HOME/PycharmProjects/light"
+"$dir/venv/3.11/bin/python" "$dir/main.py" "$@"

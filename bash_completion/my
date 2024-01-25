@@ -15,16 +15,17 @@ complete -F _complete_full copy fkill fuck parallel proc procx restart save-outp
 
 
 _complete_by_options() {
-    if [ $COMP_CWORD -eq 1 ]; then
-        cur="${COMP_WORDS[COMP_CWORD]}"
-        list=$(${COMP_WORDS[0]} help |sed -r 's/Options: (.*)/\1/')
-        COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
-    else
-        # default - list files
-        COMPREPLY=( $(ls -CF --group-directories-first) )
-    fi
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    command=""
+    i=0
+    while [ $i -lt $COMP_CWORD ]; do
+        command="$command ${COMP_WORDS[$i]}"
+        i=$(($i + 1))
+    done
+    list=$($command help |sed -r 's/Options: (.*)/\1/')
+    COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
 }
-complete -F _complete_by_options aqi bulb errors location scene vivaldi-windows
+complete -F _complete_by_options aqi errors light location scene vivaldi-windows
 
 
 _complete_files() {
