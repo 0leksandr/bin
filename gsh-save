@@ -3,4 +3,4 @@ name="$1"
 if [ ! "$name" ]; then
     name="$(_git-current-branch)"
 fi
-git stash save "$name"
+git stash push --include-untracked --message "$name"

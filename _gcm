@@ -9,7 +9,7 @@ set -e
 flags="$1"
 eval "git add $(_path 2 "$@")"
 
-remote_repo="$(git remote -v |head --lines 1 |sed -r 's~^origin[ \t]+git@github.com:([^/]+)/[^/]+\.git \(fetch\)$~\1~')"
+remote_repo="$(git remote -v |head --lines 1 |sed -r 's~^origin( |\t)+git@github\.com:([^/]+)/[^/ ]+ \(fetch\)$~\2~')"
 if [ "$remote_repo" = "MacPaw" ]; then
     flags="--gpg-sign $flags"
 fi
