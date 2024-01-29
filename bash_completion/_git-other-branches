@@ -1,6 +1,5 @@
 #!/bin/sh
 _complete_git_other_branches() {
-    #COMPREPLY=( "$(git branch --list |sed -r 's/^\*? +//')" )
     COMPREPLY=( "$(git branch --list |egrep --invert-match '^\* ' |sed -r 's/^\*? +//')" )
 }
 complete -F _complete_git_other_branches gmrg

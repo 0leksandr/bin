@@ -1,9 +1,0 @@
-#!/bin/sh
-set -e
-action="$1"
-if [ "$action" != "help" ] && [ "$action" != "info" ]; then
-    _highlander
-fi
-
-dir="$HOME/PycharmProjects/yeelight"
-"$dir"/venv/bin/python "$dir"/main.py "$@"

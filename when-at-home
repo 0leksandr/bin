@@ -1,7 +1,13 @@
 #!/bin/sh
+set -e
+
 timeout="$1"
 if [ ! "$timeout" ]; then timeout=10; fi
 
+start=$(date +%s)
 while ! at-home 1 ; do
     sleep "$timeout"
+    if [ $(date +%s) -gt $(($start + 3600)) ]; then
+        exit 1
+    fi
 done
