@@ -55,7 +55,7 @@ sleepy 00:00
 
 sleep 5
 #start-closed slack '(.+ - )?Slack'
-start-closed telegram 'Telegram( \([0-9]+\))?'
+start-closed telegram '(Telegram|Oleksandr Boiko)( \([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'
 #steam &
 

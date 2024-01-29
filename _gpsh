@@ -4,7 +4,7 @@ set -e
 options="$1"
 current_branch="$(_git-current-branch)"
 command="git push --progress $options origin $current_branch"
-linked=$(git remote show -n origin |egrep "^ +$current_branch +merges with remote $current_branch$" && exit 0 || exit 1)
+linked=$(git remote show -n origin |egrep "^ +$current_branch +merges with remote $current_branch$" && echo "1" || echo "")
 if [ ! "$linked" ]; then
     command="$command --set-upstream"
 fi
