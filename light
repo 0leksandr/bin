@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 
-case "$1" in
+last_arg=""
+for input; do last_arg="$input"; done
+
+case "$last_arg" in
     help|info|brightness) ;;
     *) _highlander ;;
 esac

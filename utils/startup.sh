@@ -30,14 +30,13 @@ log "this is a test 3"
 daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
+    "$utils/monitor-ac-power.sh"        \
+    "system-server"                     \
     "scene all"                         \
                                         &
 
 run-detached "conky-my"
-run-detached "system-server"
 #run-detached "$utils/external-display-settings"
-run-detached "$utils/monitor-ac-power.sh"
-start-closed 1password "Lock Screen — 1Password"
 
 #supervisord --configuration=./supervisord.conf
 
@@ -49,11 +48,11 @@ redshift -P -r -l "$(location latitude):$(location longitude)" -t "6500K:2100K" 
 log "this is a test 4"
 
 sleep 5
-#run-detached "http-server $HOME/_/localhost/http-server -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
 run-detached "$utils/battery-control.sh"
 sleepy 00:00
 
 sleep 5
+start-closed 1password "Lock Screen — 1Password"
 #start-closed slack '(.+ - )?Slack'
 start-closed telegram '(Telegram|Oleksandr Boiko)( \([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'

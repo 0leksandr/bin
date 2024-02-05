@@ -30,6 +30,7 @@ calc_ranges() {
     twilight=$(( $sunset - 45*60 ))
     evening=$(( $sunset + 15*60 ))
     night=$(_date "22:00")
+    midnight=$(_date "23:00")
 }
 
 function nominal {
@@ -48,8 +49,10 @@ function nominal {
         printf "twilight"
     elif between $evening $night ; then
         printf "evening"
-    else
+    elif between $night $midnight ; then
         printf "night"
+    else
+        printf "midnight"
     fi
 }
 
@@ -64,7 +67,7 @@ function save_bg {
 log "@: $@"
 
 case "$action" in
-    day|twilight|evening|night)
+    day|twilight|evening|night|midnight)
         echo "$action" > "$daytime_pipe"
         ;;
     movie)
@@ -85,7 +88,8 @@ case "$action" in
             day)      $0 twilight ;;
             twilight) $0 evening  ;;
             evening)  $0 night    ;;
-            night)    $0 day      ;;
+            night)    $0 midnight ;;
+            midnight) $0 day      ;;
         esac
         ;;
     actual) cat "$daytime_file" ;;
@@ -93,7 +97,7 @@ case "$action" in
         calc_ranges
         current="$($0 actual)"
         format="+%H:%M"
-        for daytime in day twilight evening night; do
+        for daytime in day twilight evening night midnight; do
             if [ "$daytime" = "$current" ]; then cur=" <"; else cur=""; fi
             echo "$daytime: $(date -d @${!daytime} $format)$cur"
         done
@@ -138,6 +142,7 @@ case "$action" in
             twilight) printf  75 ;;
             evening)  printf  50 ;;
             night)    printf  25 ;;
+            midnight) printf   5 ;;
         esac
         ;;
     light)
@@ -151,8 +156,9 @@ case "$action" in
         fi
         if at-home; then
             case "$daytime" in
-                #day)   light off   ;;
-                night) light night ;;
+                #day)      light off   ;;
+                night)    light night ;;
+                midnight) light off   ;;
                 *)
                     if [ "$daytime" = "$(nominal)" ]; then
                         case "$daytime" in
@@ -194,6 +200,6 @@ case "$action" in
             $0 listen_pipe
         "
         ;;
-    help) echo "Options: day twilight evening night movie next actual when nominal" ;;
-    *) echo "Options: day twilight evening night movie next actual when nominal schedule server brightness light listen_pipe all" >&2 ;;
+    help) echo "Options: day twilight evening night midnight movie next actual when nominal" ;;
+    *) echo "Options: day twilight evening night midnight movie next actual when nominal schedule server brightness light listen_pipe all" >&2 ;;
 esac
