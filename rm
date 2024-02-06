@@ -1,0 +1,7 @@
+#!/bin/bash
+if echo "$1" |grep "^-.*f" > /dev/null ; then
+    /bin/rm -rf "${@:2}"
+else
+    echo "$(date-ft) $@" >> ~/.temp/rm.log
+    trash "$@"
+fi
