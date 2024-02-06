@@ -35,7 +35,7 @@ if [ "$has_remote" ]; then
     current_branch="$(_git-current-branch)"
     base_branches="$(gh pr list --head "$current_branch" --json baseRefName --jq '.[].baseRefName')"
     if [ ! "$base_branches" ]; then
-        closest_branch="$(git log --pretty="format:%D" |grep -v "^HEAD ->" |grep -v "^$" |tr , \\n |sed -r "s/^ //" |grep -v "^tag:" |grep -v "^origin/" |head --lines=1)"
+        closest_branch="$(git log --pretty="format:%D" |grep -v "^$" |tr , \\n |sed -r "s/^ //" |grep -v "^HEAD ->" |grep -v "^tag:" |grep -v "^origin/" |head --lines=1)"
         base_branches="$closest_branch"
 
         ##reg="^HEAD -> $current_branch, ((?:\\w|[-/])+)$"
