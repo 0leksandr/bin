@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 
+has_changes=$(gst > /dev/null && echo "1" || echo "")
+if [ "$has_changes" ]; then gsh-save; fi
 git pull
+if [ "$has_changes" ]; then gsh-pop; fi
 
 # # git config --global pull.ff only
 # git fetch --all
