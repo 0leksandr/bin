@@ -1,2 +1,2 @@
 #!/bin/sh
-python3 ~/PycharmProjects/test/time-control.py
+python3.12 ~/PycharmProjects/test/time-control.py

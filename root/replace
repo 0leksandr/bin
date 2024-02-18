@@ -13,7 +13,7 @@ if [ "$1" = "-w" ]; then
     to="\\\\1$to\\\\2"  # extra backslashes - to pass replacement of slashes below
 fi
 
-from=$(echo "$from" |sed -r 's / \\/ ')
-to=$(echo "$to" |sed -r 's / \\/ ')
+from=$(echo "$from" |sed -r 's / \\/ g')
+to=$(echo "$to" |sed -r 's / \\/ g')
 
 eval "find $(_path $(($nr_args + 1)) "$@") \\( -type d -name .git -prune \\) -o -type f -print0" | xargs -0r -- sed -i -r "s/$from/$to/g"

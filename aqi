@@ -13,8 +13,8 @@ options="Options: show full check"
 #file=~/_/aqi.txt
 #options="$options save saved"
 case "$action" in
-    show)  timeout 60s python "$script"        ;;
-    full)  python "$script" --full ;;
+    show)  timeout 60s python3.11 "$script" ;;
+    full)  python3.11 "$script" --full ;;
     check)
         notify "?"
         aqi=$($0 show |sed -r 's ^([0-9]+)(\..+)?$ \1 ')

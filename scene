@@ -71,17 +71,18 @@ case "$action" in
         echo "$action" > "$daytime_pipe"
         ;;
     movie)
+        while ! _external-display-connected; do sleep 1; done
         prev="$($0 actual)"
         if [ "$2" ]; then
-            light table "$2"
+            light desk "$2"
+        else
+            light desk off
         fi
-        while ! _external-display-connected; do sleep 1; done
+        light corridor off
         sleep 2
         brightness 0.5
         while _external-display-connected; do sleep 1; done
-        if [ "$(nominal)" = "$prev" ]; then
-            $0 light "$prev"
-        fi
+        $0 "$(nominal)"
         ;;
     next)
         case "$($0 actual)" in
@@ -156,9 +157,9 @@ case "$action" in
         fi
         if at-home; then
             case "$daytime" in
-                #day)      light off   ;;
-                night)    light night ;;
-                midnight) light off   ;;
+                day)      light corridor day ;;
+                night)    light night        ;;
+                midnight) light off          ;;
                 *)
                     if [ "$daytime" = "$(nominal)" ]; then
                         case "$daytime" in

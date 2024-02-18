@@ -1,5 +1,0 @@
-# /etc/udev/rules.d/
-# https://unix.stackexchange.com/questions/227918/system-event-on-ac-adapter-insert-or-battery-unplugged
-# https://askubuntu.com/questions/542986/how-can-i-get-a-notification-using-notify-osd-when-the-charger-is-inserted-remov
-SUBSYSTEM=="power_supply", ACTION=="change", ENV{POWER_SUPPLY_ONLINE}=="1", OPTIONS+="last_rule", RUN+="/home/nezhraba/_/Programs/bin/utils/udev/ac-power.sh 1" ENV{POWER}="on"
-SUBSYSTEM=="power_supply", ACTION=="change", ENV{POWER_SUPPLY_ONLINE}=="0", OPTIONS+="last_rule", RUN+="/home/nezhraba/_/Programs/bin/utils/udev/ac-power.sh 0" ENV{POWER}="off"

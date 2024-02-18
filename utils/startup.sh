@@ -33,17 +33,16 @@ daemons                                 \
     "$utils/monitor-ac-power.sh"        \
     "system-server"                     \
     "scene all"                         \
+    "conky-my"                          \
+    "$utils/external-display-settings"  \
                                         &
-
-run-detached "conky-my"
-#run-detached "$utils/external-display-settings"
 
 #supervisord --configuration=./supervisord.conf
 
 imwheel --buttons "4 5"
 
 # MAYBE: put into daemons
-redshift -P -r -l "$(location latitude):$(location longitude)" -t "6500K:2100K" &
+redshift -P -r -l "$(location latitude):$(location longitude)" -t "6500K:2100K" -m randr:crtc=0 &
 
 log "this is a test 4"
 
