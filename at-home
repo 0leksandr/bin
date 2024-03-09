@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+# if [ $(date +%s) -lt $(date +%s --date="2024-02-29 12:00") ]; then exit 1; fi
 extra_checks="$1"
 #home_routers=( "TP-LINK_7DA0" "Tenda_431D50" "Tenda_431D50_5G" "croft" )
 home_routers=( "TP-LINK_7DA0" )

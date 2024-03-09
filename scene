@@ -132,9 +132,11 @@ case "$action" in
         # pkill "$dir"  # kills itself
         _fkill -q "$dir"
 
-        eval "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'"
-        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
-        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p 9473 --cors='Access-Control-Allow-Origin: *'
+        port=9473
+        fuser -k $port/tcp ||:
+        eval "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'"
+        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
+        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
         ;;
     brightness)
         daytime="$2"
@@ -143,7 +145,7 @@ case "$action" in
             twilight) printf  75 ;;
             evening)  printf  50 ;;
             night)    printf  25 ;;
-            midnight) printf   5 ;;
+            midnight) printf  10 ;;
         esac
         ;;
     light)

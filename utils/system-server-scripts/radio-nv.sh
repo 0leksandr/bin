@@ -12,7 +12,7 @@ while [ $i -lt 10 ]; do
         while [ $j -lt 120 ]; do
             if [ ! -f "$dir/$new_file" ]; then
                 title="$(echo "$new_file" |sed -r 's ^(.*)\.[^.]+$ \1 ')"
-notify "$(basename $0): $new_title"
+notify-send --urgency=low "$(basename $0): $new_title"
                 mv "$dir/$title" "$dir/$new_title.mp3"
                 break
             fi
