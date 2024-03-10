@@ -2,4 +2,4 @@
 # kill other instances of the script
 procname=$(ps -o comm= $PPID)
 # procname=$(realpath "$procname")
-pgrep -x "$procname" |grep -v -x -E "($(_parents))" |xargs -r fkill
+pgrep --exact "$procname" |egrep --invert-match --line-regexp "($(_parents))" |xargs --no-run-if-empty fkill
