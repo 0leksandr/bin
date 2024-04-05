@@ -1,9 +1,21 @@
 #!/bin/sh
+set -e
 
 docker system prune --all --force --volumes
+docker image  prune --all --force
 
-docker rm --force $(docker container ls -a -q)
-docker rmi --force $(docker images -a -q)
+#docker container ls -a -q |xargs -r -- docker rm  --force
+#docker images -a -q       |xargs -r -- docker rmi --force
 
-# docker container ls -a -q |xargs -r -- docker rm  --force
-# docker images -a -q       |xargs -r -- docker rmi --force
+#docker rm --force $(docker container ls -a -q)
+#docker rmi --force $(docker images -a -q)
+
+containers="$(docker container ls --all --quiet |tr '\n' ' ')"
+if [ "$containers" ]; then
+    docker rm --force "$containers"
+fi
+
+images="$(docker images --all --quiet |tr '\n' ' ')"
+if [ "$images" ]; then
+    docker rmi --force "$images"
+fi
