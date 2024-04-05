@@ -64,7 +64,7 @@ if [ "$has_remote" ]; then
             git log --pretty="format:%D" "$branch" \
                 |grep --invert-match "^$"          \
                 |tr , \\n                          \
-                |sed -r "s/^ //"                   \
+                |sed -r "s/^ //g"                  \
                 |grep --invert-match "^HEAD ->"    \
                 |grep --invert-match "^tag:"       \
                 |grep --invert-match "^origin/"    \

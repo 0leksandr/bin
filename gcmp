@@ -6,7 +6,7 @@ _ignore-completion "$1"
 _gcm "--message='$1'" "${@:2}"
 printf "\n"
 
-if [ "$(git remote -v)" ]; then
+if [ "$(git remote --verbose)" ]; then
     gpsh
 fi
 printf "\n"

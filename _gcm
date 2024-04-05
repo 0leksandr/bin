@@ -9,12 +9,8 @@ set -e
 flags="$1"
 eval "git add $(_path 2 "$@")"
 
-reg="^origin( |\t)+git@github\.com:([^/]+)/[^/ ]+ \(push\)$"
-for remote_repo in $(git remote -v |grep -E "$reg" |sed -r "s~$reg~\2~"); do
-    if [ "$remote_repo" = "MacPaw" ]; then
-        flags="--gpg-sign $flags"
-        break
-    fi
-done
+if git remote --verbose |grep -Eq "^origin( |\t)+git@github\.com:MacPaw/[^/ ]+ \(push\)$"; then
+    flags="--gpg-sign $flags"
+fi
 
 eval "git commit $flags"  # `git commit -m "$1"` does not work
