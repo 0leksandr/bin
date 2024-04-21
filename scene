@@ -30,30 +30,25 @@ calc_ranges() {
     twilight=$(( $sunset - 45*60 ))
     evening=$(( $sunset + 15*60 ))
     night=$(_date "22:00")
-    midnight=$(_date "23:00")
+    darkness=$(_date "23:00")
+    midnight=$(_date "tomorrow 00:00")
 }
+
+daytimes="day twilight evening night darkness midnight"
 
 function nominal {
     calc_ranges
     local now=$(date +%s)
-    function between {
-        if [ $1 -le $now ] && [ $now -lt $2 ]; then
-            return 0
+    local last=""; for daytime in $daytimes; do last="$daytime"; done
+    local prev="$last"
+    for daytime in $daytimes; do
+        if [ $now -lt "${!daytime}" ]; then  # bash
+            printf "$prev"
+            return
         else
-            return 1
+            prev="$daytime"
         fi
-    }
-    if between $day $twilight ; then
-        printf "day"
-    elif between $twilight $evening ; then
-        printf "twilight"
-    elif between $evening $night ; then
-        printf "evening"
-    elif between $night $midnight ; then
-        printf "night"
-    else
-        printf "midnight"
-    fi
+    done
 }
 
 bgs_file="$HOME/.temp/backgrounds.txt"
@@ -66,10 +61,12 @@ function save_bg {
 
 log "@: $@"
 
+if [[ " $daytimes " =~ " $action " ]]; then
+    echo "$action" > "$daytime_pipe"
+    exit 0
+fi
+
 case "$action" in
-    day|twilight|evening|night|midnight)
-        echo "$action" > "$daytime_pipe"
-        ;;
     movie)
         while ! _external-display-connected; do sleep 1; done
         prev="$($0 actual)"
@@ -85,26 +82,28 @@ case "$action" in
         $0 "$(nominal)"
         ;;
     next)
-        case "$($0 actual)" in
-            day)      $0 twilight ;;
-            twilight) $0 evening  ;;
-            evening)  $0 night    ;;
-            night)    $0 midnight ;;
-            midnight) $0 day      ;;
-        esac
+        calc_ranges
+        now=$(date +%s)
+        for daytime in $daytimes; do
+            if [ $now -lt "${!daytime}" ]; then
+                $0 "$daytime"
+                break
+            fi
+        done
         ;;
     actual) cat "$daytime_file" ;;
     when)
         calc_ranges
         current="$($0 actual)"
         format="+%H:%M"
-        for daytime in day twilight evening night midnight; do
-            if [ "$daytime" = "$current" ]; then cur=" <"; else cur=""; fi
-            echo "$daytime: $(date -d @${!daytime} $format)$cur"
+        for daytime in $daytimes; do
+            echo "$daytime: $(date -d @${!daytime} $format)"  # bash
+            if [ "$daytime" = "$current" ]; then
+                echo "  now: $(date $format)"
+            fi
         done
         echo ""
         echo "sunset: $(date -d @$sunset $format)"
-        echo "now: $(date $format)"
         ;;
     nominal) echo "$(nominal)" ;;
     schedule)
@@ -145,7 +144,8 @@ case "$action" in
             twilight) printf  75 ;;
             evening)  printf  50 ;;
             night)    printf  25 ;;
-            midnight) printf  10 ;;
+            darkness) printf  10 ;;
+            midnight) printf   5 ;;
         esac
         ;;
     light)
@@ -158,25 +158,19 @@ case "$action" in
             brightness --max "$brightness"
         fi
         if at-home; then
-            case "$daytime" in
-                day)      light corridor day ;;
-                night)    light night        ;;
-                midnight) light off          ;;
-                *)
-                    if [ "$daytime" = "$(nominal)" ]; then
-                        case "$daytime" in
-                            twilight) run-detached "light transition twilight $twilight evening $evening" ;;
-                            evening)  run-detached "light transition evening  $evening  night   $night  " ;;
-                        esac
-                    else
-                        now=$(date +%s)
-                        case "$daytime" in
-                            twilight) run-detached "light transition twilight $now evening $evening" ;;
-                            evening)  run-detached "light transition evening  $now night   $night  " ;;
-                        esac
-                    fi
-                    ;;
-            esac
+            to=""
+            if [ "$daytime" = "$(nominal)" ]; then
+                case "$daytime" in
+                    twilight) to="evening"  ;;
+                    evening)  to="night"    ;;
+                    darkness) to="midnight" ;;
+                esac
+            fi
+            if [ "$to" ]; then
+                run-detached "light transition $daytime ${!daytime} $to ${!to}"  # bash
+            else
+                light "$daytime"
+            fi
         fi
         ;;
     listen_pipe)
@@ -203,6 +197,6 @@ case "$action" in
             $0 listen_pipe
         "
         ;;
-    help) echo "Options: day twilight evening night midnight movie next actual when nominal" ;;
-    *) echo "Options: day twilight evening night midnight movie next actual when nominal schedule server brightness light listen_pipe all" >&2 ;;
+    help) echo "Options: $daytimes movie next actual when nominal" ;;
+    *) echo "Options: $daytimes movie next actual when nominal schedule server brightness light listen_pipe all" >&2 ;;
 esac
