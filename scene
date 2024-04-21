@@ -176,7 +176,8 @@ case "$action" in
     listen_pipe)
         prev="$($0 actual)"
         tail -f "$daytime_pipe" |while read daytime; do
-            $0 light "$daytime"
+            # MAYBE: parallel
+
             echo "$daytime" > "$daytime_file"
 
             # backgrounds
@@ -185,6 +186,20 @@ case "$action" in
             if [ "$bg" ]; then
                 set-background "$bg"
             fi
+
+            # themes
+            if [ "$daytime" = "day" ]; then
+                new_theme="'Adapta'"
+            else
+                new_theme="'Adapta-Nokto'"
+            fi
+            conf_key="/org/cinnamon/desktop/interface/gtk-theme"
+            cur_theme="$(dconf read "$conf_key")"
+            if [ "$cur_theme" != "$new_theme" ]; then
+                dconf write "$conf_key" "$new_theme"
+            fi
+
+            $0 light "$daytime"
 
             prev="$daytime"
         done
