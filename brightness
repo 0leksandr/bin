@@ -1,25 +1,94 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-value_percents="$1"
+action="$1"
 
-current(){ echo $(($(brightnessctl get) * 100 / $(brightnessctl max))) ;}
+#channels="user scene power"
+#pipe="$HOME/.temp/brightness"
+dir="$HOME/.temp/brightness"
 
-if [ "$value_percents" ]; then
-    is_max=""
-    if [ "$1" = "--max" ]; then is_max="1"; fi
-    if [ "$is_max" ]; then value_percents="$2"; fi
+#if [[ " $channels " =~ " $action " ]]; then  # bash
+#    echo "$action $2" > "$pipe"
+#    exit 0
+#fi
+case "$action" in
+    set)
+        channel="$2"
+        value="$3"
 
-    if [ "$(echo "$value_percents <= 1" |bc)" = "1" ]; then
-        value_percents="$(echo "$value_percents * 100" |bc |sed -r 's ^([0-9]+)\.[0-9]+$ \1 ')"
-    fi
 
-    if [ "$is_max" ]; then
-        if [ "$value_percents" -ge $(current) ]; then
-            exit 0
+        case "${value:0:1}" in  # bash
+            +) value=$(($(cat "$dir/$channel") + ${value:1})) ;;  # bash
+            -) value=$(($(cat "$dir/$channel") - ${value:1})) ;;  # bash
+        esac
+        printf "$value" > "$dir/$channel"
+        ;;
+    get)
+        for channel in $(ls -1 "$dir"); do
+            echo "$channel: $(cat "$dir/$channel")"
+        done
+        echo ""
+        echo "final: $(($(brightnessctl get) * 100 / $(brightnessctl max)))"
+        ;;
+    update)
+        final=100
+        for channel in $(ls -1 "$dir"); do
+            value="$(cat "$dir/$channel")"
+            if echo "$value" |grep -Eq "^[1-9][0-9]{0,2}$"; then
+                final=$((final * value / 100))
+            else
+                echo "channel[$channel] value[$value]" >&2
+                rm "$dir/$channel"
+            fi
+        done
+        [ "$final" -ge 1 ] || final=1
+        sudo brightnessctl set "$final"%
+        ;;
+    daemon)
+        _highlander 1
+        #for channel in $channels; do
+        #    eval "$channel=100"
+        #done
+        #[ -p "$pipe" ] || mkfifo "$pipe"
+        #function apply {
+        #    local final=100
+        #    for channel in $channels; do
+        #        local value="${!channel}"  # bash
+        #        final=$((final * value / 100))
+        #    done
+        #    [ "$final" -ge 1 ] || final=1
+        #    sudo brightnessctl set "$final"%
+        #}
+        #apply
+        #tail -f "$pipe" |while read channel value; do
+        #    if [ "$channel" = "get" ]; then
+        #        for channel in $channels; do
+        #            echo "$channel: ${!channel}"
+        #        done
+        #        echo "final: $(($(brightnessctl get) * 100 / $(brightnessctl max)))"
+        #        continue
+        #    fi
+        #    if echo "$value" |grep -Eq "^[1-9][0-9]{0,2}$"; then
+        #        eval "$channel=$value"
+        #        apply
+        #    else
+        #        echo "channel[$channel] value[$value]" >&2
+        #    fi
+        #done
+        $0 update
+        inotifywait --monitor --quiet --event CLOSE_WRITE -- "$dir" |while read; do
+            $0 update
+        done
+        ;;
+    transition)
+        _highlander 1
+        if [ "$2" ]; then
+            dir="$HOME/PycharmProjects/light"
+            "$dir/venv/3.11/bin/python" "$dir/screen-brightness.py" "$2" "$3" "$4" "$5"
         fi
-    fi
-
-    sudo brightnessctl set "$value_percents"%
-else
-    echo $(current)
-fi
+        ;;
+    #"") echo "get" > "$pipe" ;;
+    #help) echo "Options: $channels" ;;
+    #*) echo "$channels daemon" >&2 ;;
+    help) echo "Options: set get update" ;;
+    *) echo "set get update daemon transition" >&2 ;;
+esac

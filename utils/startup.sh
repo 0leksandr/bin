@@ -30,6 +30,7 @@ log "this is a test 3"
 daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
+    "brightness daemon"                 \
     "$utils/monitor-ac-power.sh"        \
     "system-server"                     \
     "scene all"                         \

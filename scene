@@ -7,6 +7,8 @@ log (){ echo "$0 $(date-ft) entry[$entry]: $@" >> ~/.temp/scene.txt ;}
 
 daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
 daytime_pipe="$(realpath ~/.temp/daytime)"
+[ -p "$daytime_pipe" ] || mkfifo "$daytime_pipe"
+
 calc_ranges() {
     if [ "$ranges_calculated_on" = "$(date-ft)" ]; then
         return
@@ -36,11 +38,33 @@ calc_ranges() {
 
 daytimes="day twilight evening night darkness midnight"
 
+function brightness_for {
+    local daytime="$1"
+    case "$daytime" in
+        day)      printf 100 ;;
+        twilight) printf 100 ;;
+        evening)  printf  75 ;;
+        night)    printf  50 ;;
+        darkness) printf  25 ;;
+        midnight) printf   5 ;;
+    esac
+}
+
+function first { printf "$daytimes" |sed -r 's/^([^ ]+) .*$/\1/' ;}
+function last { printf "$daytimes" |sed -r 's/^.* ([^ ]+)$/\1/' ;}
+function next_after {
+    local daytime="$1"
+    if [ "$daytime" = "$(last)" ]; then
+        printf "$(first)"
+    else
+        printf "$daytimes" |sed -r "s/^.*$daytime ([^ ]+).*$/\1/"
+    fi
+}
+
 function nominal {
     calc_ranges
     local now=$(date +%s)
-    local last=""; for daytime in $daytimes; do last="$daytime"; done
-    local prev="$last"
+    local prev="$(last)"
     for daytime in $daytimes; do
         if [ $now -lt "${!daytime}" ]; then  # bash
             printf "$prev"
@@ -77,20 +101,11 @@ case "$action" in
         fi
         light corridor off
         sleep 2
-        brightness 0.5
+        brightness set scene 50
         while _external-display-connected; do sleep 1; done
         $0 "$(nominal)"
         ;;
-    next)
-        calc_ranges
-        now=$(date +%s)
-        for daytime in $daytimes; do
-            if [ $now -lt "${!daytime}" ]; then
-                $0 "$daytime"
-                break
-            fi
-        done
-        ;;
+    next) $0 "$(next_after "$($0 actual)")" ;;
     actual) cat "$daytime_file" ;;
     when)
         calc_ranges
@@ -124,47 +139,37 @@ case "$action" in
             sleep 1
         done
         ;;
-    server)
-        dir="$(dirname "$daytime_file")"
-
-        # pkill http-server  # kills innocents
-        # pkill "$dir"  # kills itself
-        _fkill -q "$dir"
-
-        port=9473
-        fuser -k $port/tcp ||:
-        eval "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'"
-        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
-        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
-        ;;
-    brightness)
-        daytime="$2"
-        case "$daytime" in
-            day)      printf 100 ;;
-            twilight) printf  75 ;;
-            evening)  printf  50 ;;
-            night)    printf  25 ;;
-            darkness) printf  10 ;;
-            midnight) printf   5 ;;
-        esac
-        ;;
+#    server)
+#        dir="$(dirname "$daytime_file")"
+#
+#        # pkill http-server  # kills innocents
+#        # pkill "$dir"  # kills itself
+#        _fkill -q "$dir"
+#
+#        port=9473
+#        fuser -k $port/tcp ||:
+#        eval "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'"
+#        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
+#        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
+#        ;;
     light)
         daytime="$2"
         calc_ranges
-        brightness=$($0 brightness "$daytime")
-        if [ "$daytime" = "day" ]; then
-            brightness       "$brightness"
+
+        if [ "$daytime" = "$(last)" ] || [ "$daytime" != "$(nominal)" ]; then
+            brightness transition  # kill a running one
+            brightness set scene "$(brightness_for "$daytime")"
         else
-            brightness --max "$brightness"
+            next="$(next_after "$daytime")"
+            run-detached "brightness transition $(brightness_for $daytime) ${!daytime} $(brightness_for $next) ${!next}"
         fi
+
         if at-home; then
             to=""
             if [ "$daytime" = "$(nominal)" ]; then
-                case "$daytime" in
-                    twilight) to="evening"  ;;
-                    evening)  to="night"    ;;
-                    darkness) to="midnight" ;;
-                esac
+                if [[ " twilight evening darkness " =~ " $daytime " ]]; then  # bash
+                    to="$(next_after $daytime)"
+                fi
             fi
             if [ "$to" ]; then
                 run-detached "light transition $daytime ${!daytime} $to ${!to}"  # bash
@@ -208,10 +213,9 @@ case "$action" in
         save_bg "$($0 actual)"
         parallel -n "
             $0 schedule
-            $0 server
             $0 listen_pipe
         "
         ;;
     help) echo "Options: $daytimes movie next actual when nominal" ;;
-    *) echo "Options: $daytimes movie next actual when nominal schedule server brightness light listen_pipe all" >&2 ;;
+    *) echo "Options: $daytimes movie next actual when nominal schedule light listen_pipe all" >&2 ;;
 esac

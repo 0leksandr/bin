@@ -1,5 +1,19 @@
 #!/bin/sh
-# kill other instances of the script
-procname=$(ps -o comm= $PPID)
-# procname=$(realpath "$procname")
-pgrep --exact "$procname" |egrep --invert-match --line-regexp "($(_parents))" |xargs --no-run-if-empty fkill
+# kill other instances of a parent script
+set -e
+
+if [ "$1" = "--unique" ]; then  # only kill exact others
+    command="$(ps -o command= $PPID)"
+    pids="$(pgrep --exact --full "$command")"
+elif echo "$1" |grep -Eq "^[0-9]+$"; then
+    command="$(ps -o command= $PPID)"
+    search="$(echo "$command" |sed -r "s/^ *([^ ]+ +[^ ]+( +[^ ]+){$1}).*$/\1/")"
+    #pids="$(pgrep "^$search")"  # does not work that way
+    pids="$(proc -x -P "$search" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/g')"
+else
+    procname=$(ps -o comm= $PPID)
+    # procname=$(realpath "$procname")
+    pids="$(pgrep --exact "$procname")"
+fi
+
+echo "$pids" |egrep --invert-match --line-regexp "($(_parents))" |xargs --max-args=1 --no-run-if-empty fkill

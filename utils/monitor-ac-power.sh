@@ -9,12 +9,12 @@ update() {
     case "$1" in
         off-line)
             log "off"
-            brightness --max 50
+            brightness set power 50
             cpu-set powersave
             ;;
         on-line)
             log "on"
-            brightness $(scene brightness "$(scene actual)")
+            brightness set power 100
             cpu-set performance
             ;;
         *) exit 1 ;;

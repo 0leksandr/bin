@@ -14,5 +14,14 @@ echo "!-1[${!-1}]"
 n=1
 echo "n=1[${!n}]"
 echo "1[${1}]"
+
 hr
 echo "-2[${@:(-2):1}]"
+
+name="test"
+test=3
+echo "test[$test]"
+echo "!name[${!name}]"
+echo "$($name)"
+eval "$name=4"
+echo "test[$test]"
