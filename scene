@@ -157,11 +157,10 @@ case "$action" in
         calc_ranges
 
         if [ "$daytime" = "$(last)" ] || [ "$daytime" != "$(nominal)" ]; then
-            brightness transition  # kill a running one
             brightness set scene "$(brightness_for "$daytime")"
         else
             next="$(next_after "$daytime")"
-            run-detached "brightness transition $(brightness_for $daytime) ${!daytime} $(brightness_for $next) ${!next}"
+            run-detached "brightness transition scene $(brightness_for $daytime) ${!daytime} $(brightness_for $next) ${!next}"
         fi
 
         if at-home; then

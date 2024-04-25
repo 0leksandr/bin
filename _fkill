@@ -9,18 +9,20 @@ else
 fi
 
 if [ "$pids" ]; then
-    echo "$pids" |while read pid; do
+    for pid in $pids; do
         if ps -p $pid > /dev/null; then
-            if echo $pid |grep -E -v -x -q "($(_parents))"; then  # except this `fkill` and its parents
-                children=$(pgrep -P $pid)
-                if [ "$children" ]; then
-                    echo "$children" |while read child; do
-                        $0 "" $child
-                    done
-                fi
-                if ps -p $pid > /dev/null; then
-                    kill -9 $pid
-                fi
+            if echo $pid |grep -E -v -x -q "($(_parents))"; then  # except this $0 and its parents
+                #children=$(pgrep -P $pid)
+                #if [ "$children" ]; then
+                #    for child in $children; do
+                #        $0 "" $child
+                #    done
+                #fi
+                #if ps -p $pid > /dev/null; then
+                #    kill -9 $pid
+                #fi
+
+                kill -9 -$pid
             fi
         fi
     done

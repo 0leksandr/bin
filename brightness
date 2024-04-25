@@ -15,6 +15,16 @@ case "$action" in
         channel="$2"
         value="$3"
 
+        if [ "$channel" = "help" ]; then
+            echo "Options: user"
+            exit
+        fi
+        if [ "$value" = "help" ]; then
+            echo "Options: 100"
+            exit
+        fi
+
+        $0 transition "$channel"  # kill a running one
 
         case "${value:0:1}" in  # bash
             +) value=$(($(cat "$dir/$channel") + ${value:1})) ;;  # bash
@@ -22,7 +32,7 @@ case "$action" in
         esac
         printf "$value" > "$dir/$channel"
         ;;
-    get)
+    get|"")
         for channel in $(ls -1 "$dir"); do
             echo "$channel: $(cat "$dir/$channel")"
         done
@@ -60,13 +70,6 @@ case "$action" in
         #}
         #apply
         #tail -f "$pipe" |while read channel value; do
-        #    if [ "$channel" = "get" ]; then
-        #        for channel in $channels; do
-        #            echo "$channel: ${!channel}"
-        #        done
-        #        echo "final: $(($(brightnessctl get) * 100 / $(brightnessctl max)))"
-        #        continue
-        #    fi
         #    if echo "$value" |grep -Eq "^[1-9][0-9]{0,2}$"; then
         #        eval "$channel=$value"
         #        apply
@@ -74,16 +77,19 @@ case "$action" in
         #        echo "channel[$channel] value[$value]" >&2
         #    fi
         #done
+        $0 set user 100
         $0 update
         inotifywait --monitor --quiet --event CLOSE_WRITE -- "$dir" |while read; do
             $0 update
         done
         ;;
     transition)
-        _highlander 1
-        if [ "$2" ]; then
+        _highlander 2
+        channel="$2"
+
+        if [ "$6" ]; then
             dir="$HOME/PycharmProjects/light"
-            "$dir/venv/3.11/bin/python" "$dir/screen-brightness.py" "$2" "$3" "$4" "$5"
+            "$dir/venv/3.11/bin/python" "$dir/screen-brightness.py" "$channel" "$3" "$4" "$5" "$6"
         fi
         ;;
     #"") echo "get" > "$pipe" ;;
