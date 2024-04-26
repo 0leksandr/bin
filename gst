@@ -19,7 +19,7 @@ check_reg() {
     cmd="$1"
     reg="$2"
 
-    out="$(git $cmd |grep --line-number -E "$reg")"
+    out="$(git $cmd |grep --line-number -E "$reg" ||:)"
     if [ "$out" ]; then
         err echo "'$(git -c color.status=always $cmd |sed -n "$(echo "$out" |sed -r 's/^([0-9]+):.*$/\1p;/g' |tr -d '\n')")'"
     fi
