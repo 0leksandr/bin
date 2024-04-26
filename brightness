@@ -33,11 +33,16 @@ case "$action" in
         printf "$value" > "$dir/$channel"
         ;;
     get|"")
-        for channel in $(ls -1 "$dir"); do
-            echo "$channel: $(cat "$dir/$channel")"
-        done
-        echo ""
-        echo "final: $(($(brightnessctl get) * 100 / $(brightnessctl max)))"
+        final=$(($(brightnessctl get) * 100 / $(brightnessctl max)))
+        if [ $(nr-files "$dir") -eq 0 ]; then
+            echo "$final"
+        else
+            for channel in $(ls -1 "$dir"); do
+                echo "$channel: $(cat "$dir/$channel")"
+            done
+            echo ""
+            echo "final: $final"
+        fi
         ;;
     update)
         final=100
@@ -45,6 +50,7 @@ case "$action" in
             value="$(cat "$dir/$channel")"
             if echo "$value" |grep -Eq "^[1-9][0-9]{0,2}$"; then
                 final=$((final * value / 100))
+                [ "$value" -ne 100 ] || rm "$dir/$channel"
             else
                 echo "channel[$channel] value[$value]" >&2
                 rm "$dir/$channel"

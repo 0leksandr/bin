@@ -3,7 +3,7 @@ set -e
 
 _ignore-completion "$1"
 
-_gcm "--amend --no-edit" "$@"
+_gcm "--amend" "$@"
 printf "\n"
 
 gst
