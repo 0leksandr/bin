@@ -3,21 +3,29 @@ set -e
 args=$*
 
 arg_all=""
-if [ "$args" = "--all" ]; then
+if [ "$args" = "-a" ]; then
     args=""
     arg_all=1
 fi
 
 ok=1
 err() {
+    [ "$ok" ] || echo ""
     eval "$@"
     ok=""
 }
 
-cmd="git status --short $args"
-if [ "$($cmd 2>&1)" ]; then
-    err "$cmd"
-fi
+check_reg() {
+    cmd="$1"
+    reg="$2"
+
+    out="$(git $cmd |grep --line-number -E "$reg")"
+    if [ "$out" ]; then
+        err echo "'$(git -c color.status=always $cmd |sed -n "$(echo "$out" |sed -r 's/^([0-9]+):.*$/\1p;/g' |tr -d '\n')")'"
+    fi
+}
+
+check_reg "status --short $args" '.*'
 
 has_remote=""
 if [ "$(git remote show)" != "" ]; then
@@ -37,10 +45,7 @@ if [ "$has_remote" ]; then
     fi
 fi
 
-cmd="git status --short --branch $args"
-if $cmd |grep -Eq ' \[(ahead [0-9]+, )?behind [0-9]+\]$'; then
-    err "$cmd"
-fi
+check_reg "status --short --branch $args" ' \[(ahead [0-9]+, )?behind [0-9]+\]$'
 
 if [ "$has_remote" ]; then
     reg="^ +([^ ]+) +[0-9a-f]+ +\[behind [0-9]+\].*$"
@@ -91,10 +96,7 @@ if [ "$has_remote" ]; then
     fi
 fi
 
-cmd="git status --short --branch $args"
-if $cmd |grep -Eq ' \[ahead [0-9]+\]$'; then
-    err "$cmd"
-fi
+check_reg "status --short --branch $args" ' \[ahead [0-9]+\]$'
 
 if [ "$ok" ]; then
     #env printf '\xF0\x9F\x91\x8D\n'
