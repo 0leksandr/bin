@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 _highlander
 
 if [ "$1" != "background" ]; then
