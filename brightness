@@ -26,9 +26,10 @@ case "$action" in
 
         $0 transition "$channel"  # kill a running one
 
+        current() { [ -f "$dir/$channel" ] && cat "$dir/$channel" || echo 100 ;}
         case "${value:0:1}" in  # bash
-            +) value=$(($(cat "$dir/$channel") + ${value:1})) ;;  # bash
-            -) value=$(($(cat "$dir/$channel") - ${value:1})) ;;  # bash
+            +) value=$(($(current) + ${value:1})) ;;  # bash
+            -) value=$(($(current) - ${value:1})) ;;  # bash
         esac
         printf "$value" > "$dir/$channel"
         ;;
