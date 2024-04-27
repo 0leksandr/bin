@@ -21,7 +21,15 @@ check_reg() {
 
     out="$(git $cmd |grep --line-number -E "$reg" ||:)"
     if [ "$out" ]; then
-        err echo "'$(git -c color.status=always $cmd |sed -n "$(echo "$out" |sed -r 's/^([0-9]+):.*$/\1p;/g' |tr -d '\n')")'"
+        err echo "'$(                                    \
+            git -c color.status=always $cmd              \
+                |sed -n "$(                              \
+                    echo "$out"                          \
+                        |sed -r 's/^([0-9]+):.*$/\1p;/g' \
+                        |tr -d '\n'                      \
+                )"                                       \
+                |sed "s/'/'\"'\"'/g"                     \
+        )'"
     fi
 }
 
@@ -41,7 +49,12 @@ if [ "$has_remote" ]; then
     esac
     fetched_ago=$(($(date +%s) - fetched_at))
     if [ $fetched_ago -gt 60 ]; then
+        msg="fetching..."
+        printf "$msg"
         git fetch --quiet
+        printf "\r"
+        printf '%*s' $(echo "$msg" |wc --chars)
+        printf "\r"
     fi
 fi
 
