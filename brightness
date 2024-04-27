@@ -34,7 +34,7 @@ case "$action" in
         printf "$value" > "$dir/$channel"
         ;;
     get|"")
-        final=$(($(brightnessctl get) * 100 / $(brightnessctl max)))
+        final="$(echo "scale=2; $(brightnessctl get) * 100 / $(brightnessctl max)" |bc |sed -r 's/\.00$//')"
         if [ $(nr-files "$dir") -eq 0 ]; then
             echo "$final"
         else
@@ -46,7 +46,8 @@ case "$action" in
         fi
         ;;
     update)
-        final=100
+        final="$(brightnessctl max)"
+        min=$((final * 5 / 1000 + 1))
         for channel in $(ls -1 "$dir"); do
             value="$(cat "$dir/$channel")"
             if echo "$value" |grep -Eq "^[1-9][0-9]{0,2}$"; then
@@ -57,8 +58,8 @@ case "$action" in
                 rm "$dir/$channel"
             fi
         done
-        [ "$final" -ge 1 ] || final=1
-        sudo brightnessctl set "$final"%
+        [ $final -ge $min ] || final=$min
+        sudo brightnessctl set $final
         ;;
     daemon)
         _highlander 1
