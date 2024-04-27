@@ -49,11 +49,10 @@ if [ "$has_remote" ]; then
     esac
     fetched_ago=$(($(date +%s) - fetched_at))
     if [ $fetched_ago -gt 60 ]; then
-        msg="fetching..."
-        printf "$msg"
+        printf "fetching..."
         git fetch --quiet
         printf "\r"
-        printf '%*s' $(echo "$msg" |wc --chars)
+        printf '%*s' "${COLUMNS:-$(tput cols)}"
         printf "\r"
     fi
 fi
