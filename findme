@@ -1,2 +1,6 @@
 #!/bin/sh
-eval "findp $(_path 2 "$@") -regextype awk -iregex '.*($1)[^/]*' -exec ls -dp {} \;" |grep -iE --color=auto "$1"
+set -e
+
+eval "findp $(_path 2 "$@") -regextype awk -iregex '.*($1)[^/]*' -exec ls -dp {} \;" \
+    |sort --version-sort                                                             \
+    |grep -iE --color=auto "$1"

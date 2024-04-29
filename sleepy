@@ -17,13 +17,13 @@ fi
 file="$HOME/_/Programs/text@nezhraba/texts/.shutdown"
 
 #define shutdown time
-shutdowntime=$(date -d $1 +%s)
+shutdowntime=$(date --date=$1 +%s)
 now=$(date +%s)
 if ! [ $shutdowntime ]; then
     shutdowntime=$(($now + 10))
 fi
 if [ $shutdowntime -le $now ]; then
-    shutdowntime=$(date -d "tomorrow $1" +%s)
+    shutdowntime=$(date --date="tomorrow $1" +%s)
 fi
 
 function timediff {

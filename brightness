@@ -2,27 +2,25 @@
 set -e
 action="$1"
 
-#channels="user scene power"
-#pipe="$HOME/.temp/brightness"
 dir="$HOME/.temp/brightness"
 
-#if [[ " $channels " =~ " $action " ]]; then  # bash
-#    echo "$action $2" > "$pipe"
-#    exit 0
-#fi
+nr_args=$#
+eval last=\${$#}
+options() {
+    if [ "$last" = "help" ]; then
+        local nr=$((nr_args - 1))
+        eval option=\${$nr}
+        echo "Options: $option"
+        exit
+    fi
+}
+
 case "$action" in
     set)
         channel="$2"
         value="$3"
 
-        if [ "$channel" = "help" ]; then
-            echo "Options: user"
-            exit
-        fi
-        if [ "$value" = "help" ]; then
-            echo "Options: 100"
-            exit
-        fi
+        options "user" "100"
 
         $0 transition "$channel"  # kill a running one
 
@@ -63,28 +61,6 @@ case "$action" in
         ;;
     daemon)
         _highlander 1
-        #for channel in $channels; do
-        #    eval "$channel=100"
-        #done
-        #[ -p "$pipe" ] || mkfifo "$pipe"
-        #function apply {
-        #    local final=100
-        #    for channel in $channels; do
-        #        local value="${!channel}"  # bash
-        #        final=$((final * value / 100))
-        #    done
-        #    [ "$final" -ge 1 ] || final=1
-        #    sudo brightnessctl set "$final"%
-        #}
-        #apply
-        #tail -f "$pipe" |while read channel value; do
-        #    if echo "$value" |grep -Eq "^[1-9][0-9]{0,2}$"; then
-        #        eval "$channel=$value"
-        #        apply
-        #    else
-        #        echo "channel[$channel] value[$value]" >&2
-        #    fi
-        #done
         $0 set user 100
         $0 update
         inotifywait --monitor --quiet --event CLOSE_WRITE -- "$dir" |while read; do
@@ -95,14 +71,13 @@ case "$action" in
         _highlander 2
         channel="$2"
 
+        options "user" "100" "$(date +%R)" "1" "$(date --date="+1 hour" +%R)"
+
         if [ "$6" ]; then
             dir="$HOME/PycharmProjects/light"
             "$dir/venv/3.11/bin/python" "$dir/screen-brightness.py" "$channel" "$3" "$4" "$5" "$6"
         fi
         ;;
-    #"") echo "get" > "$pipe" ;;
-    #help) echo "Options: $channels" ;;
-    #*) echo "$channels daemon" >&2 ;;
-    help) echo "Options: set get update" ;;
+    help) echo "Options: set get transition" ;;
     *) echo "set get update daemon transition" >&2 ;;
 esac
