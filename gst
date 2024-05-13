@@ -33,6 +33,14 @@ check_reg() {
     fi
 }
 
+clear_line() {
+    printf "\r"
+    printf '%*s' "${COLUMNS:-$(tput cols)}"
+    printf "\r"
+}
+
+git status >/dev/null  # exit and print info if not in git repository
+
 check_reg "status --short $args" '.*'
 
 has_remote=""
@@ -51,9 +59,7 @@ if [ "$has_remote" ]; then
     if [ $fetched_ago -gt 60 ]; then
         printf "fetching..."
         git fetch --quiet
-        printf "\r"
-        printf '%*s' "${COLUMNS:-$(tput cols)}"
-        printf "\r"
+        clear_line
     fi
 fi
 
@@ -93,7 +99,10 @@ if [ "$has_remote" ]; then
 
     if [ "$branches" ]; then
         for branch in $branches; do
-            for remote_base_branch in $(gh pr list --head "$branch" --json baseRefName --jq '.[].baseRefName'); do
+            printf "querying PRs for branch $branch..."
+            remote_base_branches="$(gh pr list --head "$branch" --json baseRefName --jq '.[].baseRefName')"
+            clear_line
+            for remote_base_branch in $remote_base_branches; do
                 if echo "$all_branches" |grep -Eq "^$remote_base_branch$"; then
                     last_commit="$(git show-ref --heads -s "$remote_base_branch")"
                     common_commit="$(git merge-base "$branch" "$remote_base_branch")"

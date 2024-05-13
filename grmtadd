@@ -5,7 +5,9 @@ if [ "$remote" = "" ]; then
     remote="$(basename "$(pwd)")"
 fi
 
-git remote add origin "git@github.com:0leksandr/$remote.git"
+git remote add origin "git@github.com:$(gh api user --jq ".login")/$remote.git"
 git remote set-branches --add origin main
 
 gpsh
+
+git fetch  # for `gst`
