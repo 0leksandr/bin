@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+path="$(_path 1 "$@")"
+
+_chmod () {
+    # -perm -o+x
+    eval "find $path -type $2 -exec chmod $1 {} +"
+}
+_chmod 775 d
+_chmod 664 f

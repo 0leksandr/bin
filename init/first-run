@@ -1,4 +1,4 @@
 #!/bin/sh
 echo "\n\n. \"$(realpath ../rc/profile)\"" >> ~/.profile
-echo "\n\n. \"$(realpath ../rc/bashrc)\"" >> ~/.bashrc
+echo "\n\n. \"$(realpath ../rc/rc)\"" >> ~/."$(basename $(which $SHELL))"rc
 # sudo sh -c "echo \"\\n. $(realpath ./rc/profile_root)\" >> /etc/environment"

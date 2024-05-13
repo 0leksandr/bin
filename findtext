@@ -4,6 +4,7 @@ search="$1"
 max_line_len=100
 
 search1=".{0,$max_line_len}$search.{0,$max_line_len}"
+search2="$(echo "$search" |sed "s / \\\\/ g")"
 esc=$(printf '\033')
 
 # -aHrinEo
@@ -21,7 +22,7 @@ eval "                                                                          
         -- '$search1' $(_path 2 "$@")                                               \
 "                                                                                   \
     |sed -r --unbuffered "s/^([^:]+)(:[0-9]+:)(.+)$/$esc[35m\1$esc[32m\2$esc[0m\3/" \
-    |sed -r --unbuffered --regexp-extended "s/$search/$esc[1m$esc[91m\0$esc[0m/ig"  \
+    |sed -r --unbuffered --regexp-extended "s/$search2/$esc[1m$esc[91m\0$esc[0m/ig" \
 &&:
 
 #|grep -aiE --color=auto -- "$search"

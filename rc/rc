@@ -1,0 +1,96 @@
+if [ $0 = "bash" ]; then
+    HISTCONTROL=ignoreboth
+    HISTTIMEFORMAT="[%F %T] "
+    HISTSIZE=-1
+    HISTFILESIZE=-1
+    # Change the file location because certain bash sessions truncate .bash_history file upon close.
+    # http://superuser.com/questions/575479/bash-history-truncated-to-500-lines-on-each-login
+    HISTFILE=~/_/.bash_eternal_history
+    # Force prompt to write history after every command.
+    # http://superuser.com/questions/20900/bash-history-loss
+    PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+    # terminal prefix
+    # PS1="\[\e[32;1m\]\w > \[\e[0m\]"
+    PS1="\[\033[01;32m\]\w \[\033[44m\]>\[\033[00m\] "
+
+
+
+    # enable color support of ls and also add handy aliases
+    if [ -x /usr/bin/dircolors ]; then
+        test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+        alias ls='ls --color=auto'
+        #alias dir='dir --color=auto'
+        #alias vdir='vdir --color=auto'
+
+        alias grep='grep --color=auto'
+        alias fgrep='fgrep --color=auto'
+        alias egrep='egrep --color=auto'
+    fi
+
+    # colored GCC warnings and errors
+    export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+fi # BASH SHELL
+
+if [ $SHELL = "$(which zsh)" ]; then
+    zstyle ":completion:*:commands" rehash 1
+
+    bindkey \^U backward-kill-line
+
+    HISTSIZE=10000000  # -1 does not work
+    SAVEHIST=$HISTSIZE
+    HISTFILE=~/_/.history
+   preexec() {  # TODO: remove
+       file="$HOME/.temp/history"
+       echo "1[$1]" >> $file
+       echo "2[$2]" >> $file
+       echo "@[$@]" >> $file
+   }
+
+    # errors red
+    autoload colors && colors
+    eval "exec 2>>( sed -u 's/^/${fg[red]}/; s/\$/${reset_color}/' )"  # eval to not break basic Ubuntu shell
+
+    setopt NO_HUP  # keep bg procs on exit
+fi
+
+# some more ls aliases
+alias ll='ls -alF --time-style=long-iso --group-directories-first'
+alias la='ls -A --group-directories-first'
+alias l='ls -CF --group-directories-first'
+
+if [ "$(pwd)" = "$HOME" ]; then
+    cd _
+fi
+
+alias cd_='cd ~/_'
+mkcdir () { mkdir -p -- "$1" && cd -- "$1" ;}
+# alias please='sudo $(fc -ln -1)'
+alias reload='source ~/.zshrc'
+
+
+
+
+# if [ $0 = "zsh" ]; then
+# if [ $0 != "bash" ]; then
+if [ $SHELL = "$(which zsh)" ]; then
+    # autoload bashcompinit
+    # bashcompinit
+
+    autoload -U +X compinit && compinit
+    autoload -U +X bashcompinit && bashcompinit
+fi
+source /etc/profile.d/bash_completion.sh
+for file in $HOME/_/Programs/bin/bash_completion/* ; do
+    source "$file"
+done
+
+# LD_PRELOAD="$HOME/_/Programs/vendor/stderred/build/libstderred.so${LD_PRELOAD:+:$LD_PRELOAD}"
+
+GLOBIGNORE=".:.."
+
+# set show-all-if-ambiguous on  # autocomplete with 1 tab. Not wonking..
+
+# export SHELL=$(which zsh) && exec zsh -l
+
+complete -C $HOME/go/bin/gocomplete go

@@ -14,10 +14,12 @@ if [ "$1" = "--noalert" ]; then
     set -- "${@:2}"
 fi
 
-file="$HOME/_/Programs/text@nezhraba/texts/.shutdown"
+file="$HOME/_/Programs/applets/text@nezhraba/texts/.shutdown"
 
 #define shutdown time
-shutdowntime=$(date --date=$1 +%s)
+if [ "$1" ]; then
+    shutdowntime=$(date --date=$1 +%s ||:)
+fi
 now=$(date +%s)
 if ! [ $shutdowntime ]; then
     shutdowntime=$(($now + 10))
@@ -66,7 +68,7 @@ while true; do
             fi
         done
     fi
-    if [[ $seconds_left -le 10 ]]; then
+    if [ $seconds_left -le 10 ]; then
         _say $seconds_left
     fi
 
@@ -78,8 +80,9 @@ while true; do
     fi
 
     # write to widget
-    if [[ $# == 2  || $(($shutdowntime - $cur)) -le $((60 * 60 * 2)) ]]; then
-        if [ $# == 2 ] && [ $2 != '+' ]; then
+    limit1=$((60 * 60 * 2))
+    if [ $# = 2 ] || [ $seconds_left -le $limit1 ]; then
+        if [ $# = 2 ] && [ $2 != '+' ]; then
             starttime=$(date -d$2 +%s)
             timevalue=$(bc <<< "scale=1;($shutdowntime - $cur) * 2 / ($shutdowntime - $starttime)")
 #            timevalue=$(printf %.1f $timevalue)
@@ -90,7 +93,9 @@ while true; do
         echo "$countdown" > "$file"
     fi
 
-    sleep 1
+    sleep_seconds=10
+    if [ $seconds_left -le $((limit1 + sleep_seconds)) ]; then
+        sleep_seconds="$(echo "1 - 0.$(date +%N)" |bc)"
+    fi
+    sleep $sleep_seconds
 done
-
-exit 0

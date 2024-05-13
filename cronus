@@ -1,3 +1,0 @@
-#!/bin/bash
-_highlander
-python3.12 ~/PycharmProjects/cronus/cronus.py "$@"

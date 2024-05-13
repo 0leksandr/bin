@@ -1,8 +1,9 @@
-dir="$HOME/_/Programs/bin"
-if [ -d $dir ] ; then
-    PATH="$dir:$dir/root:$PATH"
-    # export PATH
-fi
+for dir in "$HOME/_/Programs/bin" "$HOME/_/Programs/bin/root" "$HOME/_/Programs/local-bin"; do
+    if [ -d $dir ] ; then
+        PATH="$dir:$PATH"
+        # export PATH
+    fi
+done
 
 export GOPATH="$HOME/go"
 export GOROOT="$GOPATH/sdk/go1.16.3"

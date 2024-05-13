@@ -1,2 +1,2 @@
 #!/bin/sh
-du -sh -- "$@" |sort -hr
+du --human-readable --summarize -- "$@" |sort --human-numeric-sort --reverse
