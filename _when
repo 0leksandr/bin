@@ -10,7 +10,7 @@ if [ ! "$max_timeout" ]; then max_timeout=3600; fi
 start=$(date +%s)
 while ! $command ; do
     sleep "$timeout"
-    if [ $(date +%s) -gt $(($start + $max_timeout)) ]; then
+    if [ $(date +%s) -gt $((start + max_timeout)) ]; then
         exit 1
     fi
 done

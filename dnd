@@ -1,15 +1,15 @@
 #!/bin/sh
 set -e
-
 minutes="$1"
-sendkey () { xdotool key Super_L+i ;}
+
+sendkey() { xdotool key Super_L+i ;}
 sendkey
 
-# sleep "$minutes"m
-seconds=$((minutes * 60))
-while [ $seconds -gt 0 ]; do
-    printf "\r%2d:%02d" $((seconds / 60)) $((seconds - seconds / 60 * 60))
-    seconds=$((seconds - 1))
+deadline=$(date --date="+$minutes minutes" +%s)
+while :; do
+    seconds_left="$(echo "$deadline - $(date +%s)" |bc)"
+    [ $(echo "$seconds_left > 0" |bc) -eq 1 ] || break
+    printf "\r%2d:%02d" $((seconds_left / 60)) $((seconds_left % 60))
     sleep 1
 done
 

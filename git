@@ -1,10 +1,7 @@
 #!/bin/bash
 set -e
 
-# log (){ echo "$(date-ft): $@" >> ~/.temp/git.log ;}
-# log "$@"
-
-function git_real() {
+git_real() {
     basename="$(basename $0)"
     real="$(type -a "$basename" |sed -r "s/^$basename is //g" |egrep --invert-match "^$(realpath "$0")$" |head --lines=1)"
     _transfer "$real" "$@"

@@ -2,7 +2,7 @@
 new_title="$1"
 
 dir="$HOME/Downloads"
-files () { ls -1 --sort=none "$dir" |sort ;}
+files() { ls -1 --sort=none "$dir" |sort ;}
 old_files="$(files)"
 i=0
 while [ $i -lt 10 ]; do

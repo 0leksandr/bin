@@ -40,7 +40,7 @@ case "$1" in
         ;;
     restore)
         dir="$(dirname $file)"
-        last () { printf "$dir/"; ls "$dir" -1v |tail -n1 ;}
+        last() { printf "$dir/"; ls "$dir" -1v |tail -n1 ;}
         rm "$(last)"
         cp "$(last)" "$file"
         $0 move

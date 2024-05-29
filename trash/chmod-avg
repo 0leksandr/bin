@@ -2,7 +2,7 @@
 set -e
 path="$(_path 1 "$@")"
 
-_chmod () {
+_chmod() {
     # -perm -o+x
     eval "find $path -type $2 -exec chmod $1 {} +"
 }

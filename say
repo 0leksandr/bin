@@ -10,7 +10,7 @@ fi
 if [ ! "$vol" ]; then
     vol=100
 fi
-function play_file {
+play_file() {
     file="$HOME/.temp/$1/$text.wav"
     if ! [ -f "$file" ]; then
         eval "$(echo "$2" |sed -r "s~\[file]~'$file'~g")"
@@ -22,7 +22,7 @@ function play_file {
 
     # rm "$file"
 }
-function vol_unsupported {
+vol_unsupported() {
     if [ $vol -ne 100 ]; then
         echo "volume is not supported" >&2
     fi

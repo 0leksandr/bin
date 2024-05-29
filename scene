@@ -2,11 +2,8 @@
 set -e
 action="$1"
 
-entry="$(date-ft)_$(_rand 1000)"
-log (){ echo "$0 $(date-ft) entry[$entry]: $@" >> ~/.temp/scene.txt ;}
-
-daytime_file="$(realpath ~/_/localhost/http-server/daytime.txt)"
-daytime_pipe="$(realpath ~/.temp/daytime)"
+daytime_file="$HOME/_/localhost/http-server/daytime.txt"
+daytime_pipe="$HOME/.temp/daytime"
 [ -p "$daytime_pipe" ] || mkfifo "$daytime_pipe"
 
 calc_ranges() {
@@ -22,7 +19,7 @@ calc_ranges() {
         --longitude E$(location longitude)                     \
         --timezone  $(date +%z |sed -r 's/^\+0([0-9])00$/\1/') \
         2>/dev/null)"
-    when () { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
+    when() { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
     _date() { date --date="$1" +%s ;}
 
     sunrise=$(_date $(when sunrise))
@@ -38,7 +35,7 @@ calc_ranges() {
 
 daytimes="day twilight evening night darkness midnight"
 
-function brightness_for {
+brightness_for() {
     local daytime="$1"
     case "$daytime" in
         day)      printf 100 ;;
@@ -50,9 +47,9 @@ function brightness_for {
     esac
 }
 
-function first { printf "$daytimes" |sed -r 's/^([^ ]+) .*$/\1/' ;}
-function last { printf "$daytimes" |sed -r 's/^.* ([^ ]+)$/\1/' ;}
-function next_after {
+first() { printf "$daytimes" |sed -r 's/^([^ ]+) .*$/\1/' ;}
+last() { printf "$daytimes" |sed -r 's/^.* ([^ ]+)$/\1/' ;}
+next_after() {
     local daytime="$1"
     if [ "$daytime" = "$(last)" ]; then
         printf "$(first)"
@@ -61,7 +58,7 @@ function next_after {
     fi
 }
 
-function nominal {
+nominal() {
     calc_ranges
     local now=$(date +%s)
     local prev="$(last)"
@@ -75,15 +72,28 @@ function nominal {
     done
 }
 
+pause_schedule_file="$HOME/.temp/scene-pause-schedule"
+schedule_pause() {
+    touch "$pause_schedule_file"
+}
+schedule_resume() {
+    rm "$pause_schedule_file"
+}
+schedule_paused() {
+    if [ -f "$pause_schedule_file" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 bgs_file="$HOME/.temp/backgrounds.txt"
-function save_bg {
+save_bg() {
     local daytime="$1"
     touch "$bgs_file"
     sed -i "/^$daytime:.*\$/d" "$bgs_file"
     echo "$daytime: $(get-background)" >> "$bgs_file"
 }
-
-log "@: $@"
 
 if [[ " $daytimes " =~ " $action " ]]; then
     echo "$action" > "$daytime_pipe"
@@ -92,8 +102,8 @@ fi
 
 case "$action" in
     movie)
+        schedule_pause
         while ! _external-display-connected; do sleep 1; done
-        prev="$($0 actual)"
         if [ "$2" ]; then
             light desk "$2"
         else
@@ -102,8 +112,24 @@ case "$action" in
         light corridor off
         sleep 2
         brightness set scene 50
+        run-detached "$0 _monitor-movie"
+        ;;
+    _monitor-movie)
         while _external-display-connected; do sleep 1; done
         $0 "$(nominal)"
+        schedule_resume
+        ;;
+    call)
+        schedule_pause
+        mic-on
+        light twilight
+        brightness set scene 100
+        run-detached "$0 _monitor-call"
+        ;;
+    _monitor-call)
+        while [ "$(mic-status)" = "on" ]; do sleep 1; done
+        $0 "$(nominal)"
+        schedule_resume
         ;;
     next) $0 "$(next_after "$($0 actual)")" ;;
     actual) cat "$daytime_file" ;;
@@ -121,11 +147,11 @@ case "$action" in
         echo "sunset: $(date --date=@$sunset $format)"
         ;;
     nominal) echo "$(nominal)" ;;
-    schedule)
+    _schedule)
         prev=""
         while :; do
-            if _external-display-connected; then
-                sleep 10
+            if schedule_paused; then
+                sleep 1
                 continue
             fi
 
@@ -139,7 +165,7 @@ case "$action" in
             sleep 1
         done
         ;;
-#    server)
+#    _server)
 #        dir="$(dirname "$daytime_file")"
 #
 #        # pkill http-server  # kills innocents
@@ -152,7 +178,7 @@ case "$action" in
 #        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
 #        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
 #        ;;
-    light)
+    _light)
         daytime="$2"
         calc_ranges
 
@@ -177,7 +203,7 @@ case "$action" in
             fi
         fi
         ;;
-    listen_pipe)
+    _listen_pipe)
         prev="$($0 actual)"
         tail -f "$daytime_pipe" |while read daytime; do
             # MAYBE: parallel
@@ -203,18 +229,18 @@ case "$action" in
                 dconf write "$conf_key" "$new_theme"
             fi
 
-            $0 light "$daytime"
+            $0 _light "$daytime"
 
             prev="$daytime"
         done
         ;;
-    all)
+    _all)
         save_bg "$($0 actual)"
         parallel -n "
-            $0 schedule
-            $0 listen_pipe
+            $0 _schedule
+            $0 _listen_pipe
         "
         ;;
-    help) echo "Options: $daytimes movie next actual when nominal" ;;
-    *) echo "Options: $daytimes movie next actual when nominal schedule light listen_pipe all" >&2 ;;
+    help) echo "Options: $daytimes movie call next actual when nominal" ;;
+    *) echo "Options: $daytimes movie call next actual when nominal _schedule _light _listen_pipe _all" >&2 ;;
 esac

@@ -1,18 +1,12 @@
 #!/bin/sh
 # no connection with parents
 
-if [ $# -eq 1 ]; then
-    name="$1"
-    cmd="$1"
-else
-    name="$1"
-    cmd="$2"
-fi
-
 if [ "$1" = "-q" ]; then
     name=""
+    cmd="$2"
 else
-    name="$(echo '$name'| sed -r 's/[^a-zA-Z0-9]/_/g')"
+    name="$1"
+    cmd="$1"
 fi
 
 # eval "$cmd" &
@@ -20,10 +14,9 @@ fi
 # nohup
 
 if [ "$name" ]; then
-    errors="$(errors for "$name")"
-    sh -c "$cmd" >/dev/null 2>"$errors" &
+    sh -c "$cmd" >/dev/null 2>"$(errors for "$name")" &
 else
-    sh -c "$cmd" >/dev/null 2>&1 &
+    sh -c "$cmd" >/dev/null &
 fi
 
 echo "$!"

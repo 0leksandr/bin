@@ -16,14 +16,14 @@ http-server -a $url -p $port -d false -i false 2>/dev/null |while read line; do
         # length=$(echo "$uri" |awk '{print length($0)}')
         # uri="$(echo "$uri" |cut -c1-$(($length-5)))"
 
-        get_url_param (){
+        get_url_param() {
             param="$1"
             default="$2"
             # echo "$uri" |php -r "parse_str(substr(fgets(STDIN), 1), \$params); echo \$params['$param'] ?? '$default';"
             python -c "from urllib import parse; print(dict(parse.parse_qsl(parse.urlsplit('$uri').query)).get('$param', '$default'))"
         }
         action=$(get_url_param "action")
-        run_script (){
+        run_script() {
             # pass uri keys, which must be read
             cmd="$(dirname $0)/utils/system-server-scripts/$action.sh"
             for key in "$@"; do

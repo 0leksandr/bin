@@ -3,7 +3,7 @@ set -e
 
 sleep 10  # TODO: fix in `daemons`? Or remove. Is it actual?
 
-connected (){ _external-display-connected && echo '1' || echo '' ;}
+connected(){ _external-display-connected && echo '1' || echo '' ;}
 current="$(connected)"
 while read line; do
     if echo "$line" |egrep --invert-match --quiet ' member=MonitorsChanged$'; then continue; fi

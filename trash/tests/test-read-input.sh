@@ -43,10 +43,14 @@ if [ "" ]; then
     done
 fi
 
-if [ "1" ]; then
+if [ "" ]; then
     if [ "$(read)" ]; then
         echo "yes"
     else
         echo "no"
     fi
+fi
+
+if [ "1" ]; then
+    read _
 fi

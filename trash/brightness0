@@ -6,7 +6,7 @@ if [ $# -le 1 ]; then
     exit
 fi
 
-force () {
+force() {
     xrandr --output "$(xrandr -q |grep " connected" |sed -r 's_^([^ ]+) .*$_\1_g')" --brightness "$1"
 }
 

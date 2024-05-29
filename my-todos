@@ -1,9 +1,11 @@
 #!/bin/sh
 set -e
 
-reg="@todo |// TODO: "
-git --no-pager grep -I --extended-regexp --name-only "$reg"                                  \
+user="$(git config user.name)"
+text="@todo |// TODO: |# TODO: "
+
+git --no-pager grep -I --extended-regexp --name-only "$text"                                 \
     | xargs --max-args=1 --no-run-if-empty git --no-pager blame --show-name --show-number -w \
-    | grep "$(git config user.name)"                                                         \
-    | sed -r 's/^[^ ]+ +([^ ]+) +[0-9]+ \([^)]+ ([0-9]+)\)(.*)$/\1:\2 \3/'                   \
-    | grep --extended-regexp --color=auto "$reg"
+    | grep "$user"                                                                           \
+    | sed -r 's/^[^ ]+ +(.+) +[0-9]+ \([^)]+ ([0-9]+)\)(.*)$/\1:\2 \3/'                      \
+    | grep --extended-regexp --color=auto "$text"

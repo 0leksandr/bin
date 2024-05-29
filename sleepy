@@ -28,7 +28,7 @@ if [ $shutdowntime -le $now ]; then
     shutdowntime=$(date --date="tomorrow $1" +%s)
 fi
 
-function timediff {
+timediff() {
     seconds=$(($2 - $1))
     minutes=$(($seconds / 60))
     seconds=$(($seconds -  $minutes * 60))
@@ -36,7 +36,7 @@ function timediff {
     minutes=$(($minutes - $hours * 60))
     echo "$(printf '%02d:%02d:%02d' $hours $minutes $seconds)"
 }
-function _say {
+_say() {
     vol=100
     # if _external-display-connected; then vol=50; fi
     say "$1" text2wave "$vol" &

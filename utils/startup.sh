@@ -4,9 +4,8 @@ set -e
 # self-control
 control=$(run-detached -q "sleep 50 && alert '$0 was not finished correctly'")
 
-echo '' >> "$HOME/_/test.txt"
-log (){
-    echo "$0 $(date-ft): $@" >> "$HOME/_/test.txt"
+log(){
+    _log "$@"
     notify "$0: $@"
 }
 log "this is a test 1"
@@ -20,10 +19,7 @@ volume 40
 
 log "this is a test 2"
 
-#notify "$(ls /tmp/errors)"
 errors init
-#notify "$(ls /tmp/errors)"
-echo "$0: [$(ls /tmp/errors)]" > "$HOME/_/test.txt"
 
 log "this is a test 3"
 
@@ -33,7 +29,7 @@ daemons                                 \
     "brightness daemon"                 \
     "$utils/monitor-ac-power.sh"        \
     "system-server"                     \
-    "scene all"                         \
+    "scene _all"                        \
     "conky-my"                          \
     "$utils/external-display-settings"  \
                                         &
