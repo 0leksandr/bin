@@ -3,5 +3,4 @@
 parallel "
     vivaldi
     vivaldi-windows listen
-    #sleep 5 && vivaldi-control
 "

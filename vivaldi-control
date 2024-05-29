@@ -1,9 +1,0 @@
-#!/bin/sh
-_highlander
-while :; do
-    if [ ! "$(procx vivaldi-bin)" ]; then
-        run-detached "fkill vivaldi-my"
-        break
-    fi
-    sleep 1
-done
