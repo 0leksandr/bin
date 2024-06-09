@@ -13,7 +13,7 @@ calc_ranges() {
         ranges_calculated_on="$(date-ft)"
     fi
 
-    astro="$(hdate                                             \
+    local astro="$(hdate                                       \
         --sun                                                  \
         --latitude  N$(location latitude)                      \
         --longitude E$(location longitude)                     \
@@ -25,26 +25,40 @@ calc_ranges() {
     sunrise=$(_date $(when sunrise))
     sunset=$(_date $(when sunset))
 
-    day=$sunrise
-    twilight=$(( $sunset - 45*60 ))
-    evening=$(( $sunset + 15*60 ))
-    night=$(_date "22:00")
-    darkness=$(_date "23:00")
-    midnight=$(_date "tomorrow 00:00")
-}
+    local _daytimes="
+         day             $sunrise                        100
+         twilight        $((sunset - 45*60))             100     x
+         evening         $((sunset + 15*60))             75      x
+         night           $(_date 22:00)                  50
+         darkness        $(_date 23:00)                  25      x
+         midnight        $(_date 'tomorrow 00:00')       5
+    "
+    daytimes=""
+    transitive_daytimes=""
 
-daytimes="day twilight evening night darkness midnight"
+    local col='([^ ]+)'
+    local reg="^ *$col +$col +$col( +x)?$"
+    local nr_lines=$(echo "$_daytimes" |wc -l)
+    local ii=0
+    while [ $ii -lt $nr_lines ]; do
+        ii=$((ii + 1))
+        local line="$(echo "$_daytimes" |sed "${ii}q;d")"
+        if ! echo "$line" |grep -q '^ *$'; then
+            _eval() { eval "$(echo "$line" |sed -r "s/$reg/$1/")" ;}
+            _eval "\1=\2"
+            _eval "daytimes='$daytimes \1'"
+            _eval "brightness_\1=\3"
+            _eval "if [ '\4' ]; then transitive_daytimes='$transitive_daytimes \1'; fi"
+        fi
+    done
+}
+calc_ranges  # TODO: remove function
 
 brightness_for() {
     local daytime="$1"
-    case "$daytime" in
-        day)      printf 100 ;;
-        twilight) printf 100 ;;
-        evening)  printf  75 ;;
-        night)    printf  50 ;;
-        darkness) printf  25 ;;
-        midnight) printf   5 ;;
-    esac
+    local var="brightness_$daytime"
+    eval "local brightness=\${$var}"
+    printf "$brightness"
 }
 
 first() { printf "$daytimes" |sed -r 's/^([^ ]+) .*$/\1/' ;}
@@ -59,7 +73,6 @@ next_after() {
 }
 
 nominal() {
-    calc_ranges
     local now=$(date +%s)
     local prev="$(last)"
     for daytime in $daytimes; do
@@ -134,7 +147,6 @@ case "$action" in
     next) $0 "$(next_after "$($0 actual)")" ;;
     actual) cat "$daytime_file" ;;
     when)
-        calc_ranges
         current="$($0 actual)"
         format="+%H:%M"
         for daytime in $daytimes; do
@@ -180,7 +192,6 @@ case "$action" in
 #        ;;
     _light)
         daytime="$2"
-        calc_ranges
 
         if [ "$daytime" = "$(last)" ] || [ "$daytime" != "$(nominal)" ]; then
             brightness set scene "$(brightness_for "$daytime")"
@@ -192,7 +203,7 @@ case "$action" in
         if at-home; then
             to=""
             if [ "$daytime" = "$(nominal)" ]; then
-                if [[ " twilight evening darkness " =~ " $daytime " ]]; then  # bash
+                if [[ " $transitive_daytimes " =~ " $daytime " ]]; then  # bash
                     to="$(next_after $daytime)"
                 fi
             fi
