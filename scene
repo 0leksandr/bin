@@ -6,6 +6,32 @@ daytime_file="$HOME/_/localhost/http-server/daytime.txt"
 daytime_pipe="$HOME/.temp/daytime"
 [ -p "$daytime_pipe" ] || mkfifo "$daytime_pipe"
 
+minutes() {
+    local _hours=$(date --date="$1" +%-H)
+    local _minutes=$(date --date="$1" +%-M)
+    printf $((_hours * 60 + _minutes))
+}
+
+minutes_to_time() {
+    local _hours=$(($1 / 60))
+    local _minutes=$(($1 - _hours * 60))
+    printf "%02d:%02d" $_hours $_minutes
+}
+
+minutes_range_to_timestamps() {
+    timestamp() {
+        printf "$(date --date="$1" +%s)"
+    }
+
+    echo "$(timestamp "$(minutes_to_time $1)")"
+    local time_to="$(minutes_to_time $2)"
+    if [ $1 -lt $2 ]; then
+        echo "$(timestamp "$time_to")"
+    else
+        echo "$(timestamp "tomorrow $time_to")"
+    fi
+}
+
 calc_ranges() {
     if [ "$ranges_calculated_on" = "$(date-ft)" ]; then
         return
@@ -19,19 +45,20 @@ calc_ranges() {
         --longitude E$(location longitude)                     \
         --timezone  $(date +%z |sed -r 's/^\+0([0-9])00$/\1/') \
         2>/dev/null)"
-    when() { echo "$astro" |grep "$1" |sed -r "s/^.*$1: ([0-9]{2}:[0-9]{2}).*$/\1/" ;}
-    _date() { date --date="$1" +%s ;}
+    when() { echo "$astro" |grep "$1" |sed -r "s/^$1: ([0-9]{2}:[0-9]{2})$/\1/" ;}
 
-    sunrise=$(_date $(when sunrise))
-    sunset=$(_date $(when sunset))
+    sunrise=$(minutes $(when sunrise))
+    sunset=$(minutes $(when sunset))
 
     local _daytimes="
-         day             $sunrise                        100
-         twilight        $((sunset - 45*60))             100     x
-         evening         $((sunset + 15*60))             75      x
-         night           $(_date 22:00)                  50
-         darkness        $(_date 23:00)                  25      x
-         midnight        $(_date 'tomorrow 00:00')       5
+        morning         $((sunrise - 60))      1       x
+        day             $((sunrise - 15))      100
+        dusk            $((sunset - 45))       100     x
+        twilight        $((sunset + 15))       75      x
+        evening         $(minutes 22:00)       50
+        night           $(minutes 23:00)       25      x
+        midnight        $(minutes 00:00)       5       x
+        darkness        $(minutes 00:30)       1
     "
     daytimes=""
     transitive_daytimes=""
@@ -61,29 +88,34 @@ brightness_for() {
     printf "$brightness"
 }
 
-first() { printf "$daytimes" |sed -r 's/^([^ ]+) .*$/\1/' ;}
+first() { printf "$daytimes" |sed -r 's/^ *([^ ]+) .*$/\1/' ;}
 last() { printf "$daytimes" |sed -r 's/^.* ([^ ]+)$/\1/' ;}
 next_after() {
     local daytime="$1"
     if [ "$daytime" = "$(last)" ]; then
         printf "$(first)"
     else
-        printf "$daytimes" |sed -r "s/^.*$daytime ([^ ]+).*$/\1/"
+        printf "$daytimes" |sed -r "s/^.* $daytime ([^ ]+).*$/\1/"
     fi
 }
 
 nominal() {
-    local now=$(date +%s)
+    local now=$(minutes "$(date +%T)")
     local prev="$(last)"
     for daytime in $daytimes; do
-        if [ $now -lt "${!daytime}" ]; then  # bash
+        if [ "${!prev}" -le $now ] && [ $now -lt "${!daytime}" ]; then
             printf "$prev"
             return
-        else
-            prev="$daytime"
         fi
+        if [ "${!daytime}" -lt "${!prev}" ] && [ "${!prev}" -le $now ]; then
+            printf "$prev"
+            return
+        fi
+        prev="$daytime"
     done
+    echo "cannot calculate nominal" >&2
 }
+actual() { cat "$daytime_file" |tr -d '\n' ;}
 
 pause_schedule_file="$HOME/.temp/scene-pause-schedule"
 schedule_pause() {
@@ -130,6 +162,7 @@ case "$action" in
     _monitor-movie)
         while _external-display-connected; do sleep 1; done
         $0 "$(nominal)"
+        sleep 1  # avoid race conditions
         schedule_resume
         ;;
     call)
@@ -142,23 +175,24 @@ case "$action" in
     _monitor-call)
         while [ "$(mic-status)" = "on" ]; do sleep 1; done
         $0 "$(nominal)"
+        sleep 1  # avoid race conditions
         schedule_resume
         ;;
     next) $0 "$(next_after "$($0 actual)")" ;;
-    actual) cat "$daytime_file" ;;
+    actual) echo "$(actual)" ;;
     when)
         current="$($0 actual)"
-        format="+%H:%M"
         for daytime in $daytimes; do
-            echo "$daytime: $(date --date=@${!daytime} $format)"  # bash
+            echo "$daytime: $(minutes_to_time ${!daytime})"  # bash
             if [ "$daytime" = "$current" ]; then
-                echo "  now: $(date $format)"
+                echo "  now: $(date +"%H:%M")"
             fi
         done
         echo ""
-        echo "sunset: $(date --date=@$sunset $format)"
+        echo "sunset: $(minutes_to_time $sunset)"
         ;;
     nominal) echo "$(nominal)" ;;
+    force-actual) $0 "$(actual)" ;;
     _schedule)
         prev=""
         while :; do
@@ -192,23 +226,26 @@ case "$action" in
 #        ;;
     _light)
         daytime="$2"
+        next="$(next_after "$daytime")"
+        timestamps="$(minutes_range_to_timestamps ${!daytime} ${!next})"  # bash
+        daytime_timestamp="$(echo "$timestamps" |sed '1q;d')"
+        next_timestamp="$(echo "$timestamps" |sed '2q;d')"
 
         if [ "$daytime" = "$(last)" ] || [ "$daytime" != "$(nominal)" ]; then
             brightness set scene "$(brightness_for "$daytime")"
         else
-            next="$(next_after "$daytime")"
-            run-detached "brightness transition scene $(brightness_for $daytime) ${!daytime} $(brightness_for $next) ${!next}"
+            run-detached "brightness transition scene $(brightness_for $daytime) $daytime_timestamp $(brightness_for $next) $next_timestamp"
         fi
 
         if at-home; then
-            to=""
+            transitive=""
             if [ "$daytime" = "$(nominal)" ]; then
                 if [[ " $transitive_daytimes " =~ " $daytime " ]]; then  # bash
-                    to="$(next_after $daytime)"
+                    transitive="1"
                 fi
             fi
-            if [ "$to" ]; then
-                run-detached "light transition $daytime ${!daytime} $to ${!to}"  # bash
+            if [ "$transitive" ]; then
+                run-detached "light transition $daytime $daytime_timestamp $next $next_timestamp"
             else
                 light "$daytime"
             fi
@@ -229,7 +266,7 @@ case "$action" in
             fi
 
             # themes
-            if [ "$daytime" = "day" ]; then
+            if [[ " morning day " =~ " $daytime " ]]; then  # bash
                 new_theme="'Adapta'"
             else
                 new_theme="'Adapta-Nokto'"
@@ -252,6 +289,6 @@ case "$action" in
             $0 _listen_pipe
         "
         ;;
-    help) echo "Options: $daytimes movie call next actual when nominal" ;;
-    *) echo "Options: $daytimes movie call next actual when nominal _schedule _light _listen_pipe _all" >&2 ;;
+    help) echo "Options: $daytimes movie call next actual when nominal force-actual" ;;
+    *) echo "Options: $daytimes movie call next actual when nominal force-actual _schedule _light _listen_pipe _all" >&2 ;;
 esac

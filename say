@@ -18,7 +18,7 @@ play_file() {
 
     # aplay "$file" 2> /dev/null
     # mplayer alsa:device=dmix "$file"
-    cvlc --play-and-exit --gain $(calc -p $vol / 100) "$file" 2> /dev/null
+    cvlc --play-and-exit --gain $(calc -p $vol / 100) "$file" 2>/dev/null
 
     # rm "$file"
 }
@@ -38,4 +38,8 @@ case "$app" in
         festival -b '(voice_cmu_us_slt_arctic_hts)' '(SayText "'"$text"'")'
         ;;
     4|text2wave) play_file "text2wave" "text2wave -o [file] <(echo '$text')" ;;  # bash
+    *)
+        echo "Unknown app: $app" >&2
+        exit 1
+        ;;
 esac

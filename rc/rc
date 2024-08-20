@@ -41,10 +41,7 @@ if [ $SHELL = "$(which zsh)" ]; then
     SAVEHIST=$HISTSIZE
     HISTFILE=~/_/.history
    preexec() {  # TODO: remove
-       file="$HOME/.temp/history"
-       echo "1[$1]" >> $file
-       echo "2[$2]" >> $file
-       echo "@[$@]" >> $file
+       echo "$1" >> "$HOME/.temp/history"
    }
 
     # errors red
@@ -55,7 +52,7 @@ if [ $SHELL = "$(which zsh)" ]; then
 fi
 
 # some more ls aliases
-alias ll='ls -alF --time-style=long-iso --group-directories-first'
+alias ll='ls -alF --time-style=long-iso --group-directories-first --human-readable --sort=version'
 alias la='ls -A --group-directories-first'
 alias l='ls -CF --group-directories-first'
 

@@ -50,7 +50,7 @@ while true; do
     cur=$(date +%s)
 
     # boot late after shutdowntime
-    if [[ $cur -ge $(($shutdowntime + 30)) ]]; then
+    if [[ $cur -ge $(($shutdowntime + 5)) ]]; then
         shutdowntime=$(($cur + 60))
     fi
 
