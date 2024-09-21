@@ -50,7 +50,7 @@ sleepy 00:00
 sleep 5
 start-closed 1password "Lock Screen — 1Password"
 #start-closed slack '(.+ - )?Slack'
-start-closed telegram '(Telegram|Oleksandr Boiko)( \([0-9]+\))?'
+start-closed telegram '.{0,2}(Telegram|Oleksandr Boiko)(.{1,2}\([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'
 #steam &
 

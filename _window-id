@@ -2,5 +2,5 @@
 set -e
 name="$1"
 
-reg="^([^ ]+) +-?[0-9]+ +[^ ]+ +$name\$"
+reg="^([^ ]+) +-?[0-9]+ +$(hostname) +$name\$"
 echo "$(wmctrl -l |grep -E "$reg" |sed -r "s/$reg/\\1/")"

@@ -10,5 +10,5 @@ fi
 
 random_file=$(eval "findp . $opts -type f" | shuf -n 1)
 
-copy echo "$random_file"
+echo "$random_file"
 gopen "$random_file"
