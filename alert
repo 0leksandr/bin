@@ -2,4 +2,8 @@
 # icons: /usr/share/icons/Mint-X/
 
 # notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"
-notify-send --urgency=critical --icon=emblem-important "$@"
+
+case "$(_os)" in
+    linux) notify-send --urgency=critical --icon=emblem-important "$@" ;;
+    mac)   terminal-notifier -message "$@"                             ;;
+esac

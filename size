@@ -1,2 +1,5 @@
 #!/bin/sh
-du --human-readable --summarize -- "$@" |sort --human-numeric-sort --reverse
+case "$(_os)" in
+    linux) du --human-readable --summarize -- "$@" |sort --human-numeric-sort --reverse ;;
+    mac)   du               -h          -s -- "$@" |sort --human-numeric-sort --reverse ;;
+esac
