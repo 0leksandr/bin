@@ -77,7 +77,10 @@ if [ $SHELL = "$(which zsh)" ]; then
     autoload -U +X compinit && compinit
     autoload -U +X bashcompinit && bashcompinit
 fi
-source /etc/profile.d/bash_completion.sh
+case "$(_os)" in
+    linux) source /etc/profile.d/bash_completion.sh                 ;;
+    mac)   source $(brew --prefix)/etc/profile.d/bash_completion.sh ;;
+esac
 for file in $HOME/_/Programs/bin/bash_completion/* ; do
     source "$file"
 done

@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+
+case "$(uname -s)" in
+  Darwin) echo "mac" ;;
+  *) printf "$(realpath $0): unknown OS\n" >&2 ;;
+esac

@@ -1,4 +1,36 @@
 #!/bin/sh
-echo "\n\n. \"$(realpath ../rc/profile)\"" >> ~/.profile
-echo "\n\n. \"$(realpath ../rc/rc)\"" >> ~/."$(basename $(which $SHELL))"rc
+
+mkdir -p "$HOME/.temp"
+touch "$HOME/.temp/history"
+
+if [ "$(../_os)" = "mac" ]; then
+  is_mac="1"
+else
+  is_mac=""
+fi
+
+if [ "$is_mac" ]; then
+  brew install bash-completion@2
+  [[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]] && . "/opt/homebrew/etc/profile.d/bash_completion.sh"
+fi
+
+rc_file="$HOME"/."$(basename $(which $SHELL))"rc
+case "$(../_os)" in
+  linux) echo "\n\n. \"$(realpath ../rc/profile)\"" >> "$HOME/.profile" ;;
+  mac)   echo "\n\n. \"$(realpath ../rc/profile)\"" >> "$rc_file" ;;
+esac
+echo "\n\n. \"$(realpath ../rc/rc)\"" >> "$rc_file"
 # sudo sh -c "echo \"\\n. $(realpath ./rc/profile_root)\" >> /etc/environment"
+
+read -p "GitHub name: " gh_name
+read -p "GitHub email: " gh_email
+git config --global user.name "${gh_name}"
+git config --global user.email "${gh_email}"
+
+if [ "$is_mac" ]; then
+  brew install gh
+fi
+gh auth login
+
+printf '/.idea/\n/.venv/\n/__pycache__/\n' > "$HOME/.gitignore"
+git config --global core.excludesFile "$HOME/.gitignore"
