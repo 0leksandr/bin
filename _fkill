@@ -9,32 +9,37 @@ else
     pids=$(proc $flag "$proc" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/')
 fi
 
-#if [ "$pids" ]; then
-#    for pid in $pids; do
-#        if ps -p $pid > /dev/null; then
-#            if echo $pid |grep -E -v -x -q "($(_parents))"; then  # except this $0 and its parents
-#                children=$(pgrep -P $pid ||:)
-#                if [ "$children" ]; then
-#                    for child in $children; do
-#                        $0 "" $child
-#                    done
-#                fi
-#                if ps -p $pid > /dev/null; then
-#                    kill -9 $pid ||:
-#                fi
-#
-#                #kill -9 -$pid
-#            fi
-#        fi
-#    done
-#fi
+case "$(_os)" in
+    mac)
+        if [ "$pids" ]; then
+            for pid in $pids; do
+                if ps -p $pid > /dev/null; then
+                    if echo $pid |grep -E -v -x -q "($(_parents))"; then  # except this $0 and its parents
+                        children=$(pgrep -P $pid ||:)
+                        if [ "$children" ]; then
+                            for child in $children; do
+                                $0 "" $child
+                            done
+                        fi
+                        if ps -p $pid > /dev/null; then
+                            kill -9 $pid ||:
+                        fi
 
-if [ "$pids" ]; then
-    for pid in $pids; do
-        pids="$pids $(pstree -p -T $pid |grep -E --only-matching '\([0-9]+\)' |grep -E --only-matching '[0-9]+')"
-    done
-    pids="$(echo "$pids" |grep -E --invert-match --line-regexp "($(_parents))" |sort --unique |sort --numeric-sort --reverse)"
-    for pid in $pids; do
-        kill -9 $pid 2>/dev/null ||:
-    done
-fi
+                        #kill -9 -$pid
+                    fi
+                fi
+            done
+        fi
+        ;;
+    linux)
+        if [ "$pids" ]; then
+            for pid in $pids; do
+                pids="$pids $(pstree -p -T $pid |grep -E --only-matching '\([0-9]+\)' |grep -E --only-matching '[0-9]+')"
+            done
+            pids="$(echo "$pids" |grep -E --invert-match --line-regexp "($(_parents))" |sort --unique |sort --numeric-sort --reverse)"
+            for pid in $pids; do
+                kill -9 $pid 2>/dev/null ||:
+            done
+        fi
+        ;;
+esac

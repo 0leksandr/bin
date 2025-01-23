@@ -2,7 +2,7 @@
 set -e
 
 user="$(git config user.name)"
-text="@todo |// TODO: |# TODO: "
+text="@todo |// TODO: |# TODO: |// MAYBE: "
 
 git --no-pager grep -I --extended-regexp --name-only "$text"                                 \
     | xargs --max-args=1 --no-run-if-empty git --no-pager blame --show-name --show-number -w \
