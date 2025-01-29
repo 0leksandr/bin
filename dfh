@@ -1,3 +1,12 @@
 #!/bin/sh
-# df -h --output=source,target,fstype
-df -h --type=ext4 --type=fuseblk --output=target,size,used,avail,pcent
+set -e
+
+case "$(_os)" in
+    linux)
+        # df -h --output=source,target,fstype
+        df -h --type=ext4 --type=fuseblk --output=target,size,used,avail,pcent
+        ;;
+    mac)
+        df -h -I /System/Volumes/Data
+        ;;
+esac
