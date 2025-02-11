@@ -2,6 +2,7 @@
 set -e
 
 case "$(uname -s)" in
-  Darwin) echo "mac" ;;
-  *) printf "$(realpath $0): unknown OS\n" >&2 ;;
+    Darwin) echo "mac" ;;
+    Linux)  echo "linux" ;;
+    *)      echo>&2 "$(realpath $0): unknown OS" ;;
 esac
