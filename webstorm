@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE "$(IDE dir WebStorm)"/bin/webstorm.sh
+IDE "$(IDE dir webstorm)"/bin/webstorm.sh

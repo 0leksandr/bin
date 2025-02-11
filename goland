@@ -1,2 +1,2 @@
 #!/bin/sh
-IDE "$(IDE dir Goland)"/bin/goland.sh
+IDE "$(IDE dir goland)"/bin/goland.sh

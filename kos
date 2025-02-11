@@ -10,5 +10,5 @@ fi
 
 if [ "$(procx $(basename $0))" ]; then exit; fi
 
-sleep 35
+#sleep 35
 wine $HOME/_/Programs/other/Games/sol.exe

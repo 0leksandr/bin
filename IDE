@@ -2,6 +2,9 @@
 set -e
 
 if [ "$1" = "dir" ]; then
+    echo "$HOME/_/Programs/vendor/JetBrains/Toolbox/$2"
+    exit
+
     find "$HOME/_/Programs/vendor/JetBrains/Toolbox/apps/$2" \
         -mindepth 2                                          \
         -maxdepth 2                                          \

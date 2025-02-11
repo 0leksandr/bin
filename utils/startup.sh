@@ -14,8 +14,8 @@ utils="$HOME/_/Programs/bin/utils"
 #bluetooth-off
 mic-off
 
-#[ $(volume) -gt 40 ] && volume 40
-volume 40
+[ $(volume) -gt 40 ] && volume 40
+#volume 40
 
 log "this is a test 2"
 
@@ -31,8 +31,8 @@ daemons                                 \
     "system-server"                     \
     "scene _all"                        \
     "conky-my"                          \
-    "$utils/external-display-settings"  \
                                         &
+# $utils/external-display-settings
 
 #supervisord --configuration=./supervisord.conf
 
@@ -45,10 +45,10 @@ log "this is a test 4"
 
 sleep 5
 run-detached "$utils/battery-control.sh"
-sleepy 00:00
+#sleepy 00:00
 
 sleep 5
-start-closed 1password "Lock Screen — 1Password"
+#start-closed 1password "Lock Screen — 1Password"
 #start-closed slack '(.+ - )?Slack'
 start-closed telegram '.{0,2}(Telegram|Oleksandr Boiko)(.{1,2}\([0-9]+\))?'
 #start-closed skypeforlinux 'Skype'
