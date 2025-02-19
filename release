@@ -2,9 +2,13 @@
 set -e
 tag="$1"
 
-if [ "$(git tag --list)" ]; then
-    last_tag="$(git describe --abbrev=0 --tags)"
-    if [ "$last_tag" = "$(echo "$last_tag\n$tag" |sort --version-sort |tail --lines=1)" ]; then
+last() { echo "$1" |sort --version-sort |tail --lines=1 ;}
+
+tags="$(git tag --list)"
+if [ "$tags" ]; then
+    #last_tag="$(git describe --abbrev=0 --tags)"  # WTF
+    last_tag="$(last "$tags")"
+    if [ "$last_tag" = "$(last "$last_tag\n$tag")" ]; then
         echo>&2 "last tag: $last_tag"
         exit 1
     fi
