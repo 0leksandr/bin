@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+#git rev-parse --abbrev-ref HEAD
+if git symbolic-ref -q --short HEAD; then
+    exit 0
+fi
+
+tag="$(git describe --tags --exact-match)"
+if [ "$(echo "$tag" |wc -l)" -gt 1 ]; then  # TODO: fix
+    echo>&2 "I do not know how to process multiple tags: $tag"
+    exit 1
+fi
+if [ "$tag" ]; then
+    echo "refs/tags/$tag"
+    exit 0
+fi
+
+echo "No branches or tags" >&2
+exit 1
