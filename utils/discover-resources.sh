@@ -1,8 +1,17 @@
 #!/bin/sh
 set -e
 
-end=""
-#end=":"
+#end=""
+end=":"
+
+#resources_view="hosts"
+#resources_view="table"
+resources_view="tree"
+
+table() {
+    local columns="NAMESPACE:.metadata.namespace,CONTAINER:.spec.containers[*].name,NODE:.spec.nodeName,POD:.metadata.name"
+    kubectl get pods --all-namespaces -o custom-columns="$columns" |sort -u
+}
 
 strip_head() {
     local nr_lines="$(echo "$1" |wc -l)"
@@ -33,7 +42,8 @@ indented() {
 projects="$(gcloud projects list)"
 projects="$(strip_head "$projects")"
 
-projects="$(echo "$projects" |grep --invert-match prod)"
+#projects="$(echo "$projects" |grep --invert-match prod)"
+projects="$(echo "$projects" |head -1)"
 echo "$projects" |while read -r project; do
     project="$(nth "$project" 1)"
     echo "project[$project]$end"
@@ -48,37 +58,40 @@ echo "$projects" |while read -r project; do
         # authenticate project.cluster
         gcloud container clusters --project "$project" get-credentials "$cluster_name" --zone "$cluster_location"  2>/dev/null
 
-        # hosts
-        indented "    " "$(kubectl get ingress --all-namespaces)"
-
-#        ## pretty-print namespaces and containers
-#        indent="    "
-#        #columns="NAMESPACE:.metadata.namespace,CONTAINER:.spec.containers[*].name"
-#        #columns="NAMESPACE:.metadata.namespace,NODE:.spec.nodeName,POD:.metadata.name,CONTAINER:.spec.containers[*].name"
-#        columns="NAMESPACE:.metadata.namespace,CONTAINER:.spec.containers[*].name,NODE:.spec.nodeName,POD:.metadata.name"
-#        table="$(kubectl get pods --all-namespaces -o custom-columns="$columns" |sort -u)"
-##        # table
-##        indented "$indent" "$table"
-#        # tree
-#        strip_head "$table" \
-#            | sed -r "s/$indent/$indent/" \
-#            | python3 -c '
-#import sys
-#d = {}
-#lines = sys.stdin.read().split("\n")
-#for line in lines:
-#    d2 = d
-#    for w in filter(None, line.split(" ")):
-#        if w not in d2:
-#            d2[w] = {}
-#        d2 = d2[w]
-#def p(v: dict, indent: str) -> None:
-#    for k in v.keys():
-#        print(indent + k)
-#        p(v[k], indent + "  ")
-#p(d, "    ")
-#            ' \
-#            | sed -r "s/$/$end/"
+        indent="    "
+        case "$resources_view" in
+            hosts)
+                indented "$indent" "$(kubectl get ingress --all-namespaces)"
+                ;;
+            table)
+                indented "$indent" "$(table)"
+                ;;
+            tree)
+                script=$(cat <<PYTHON
+                    import sys
+                    d = {}
+                    lines = sys.stdin.read().split("\\\n")
+                    for line in lines:
+                        d2 = d
+                        for w in filter(None, line.split(" ")):
+                            if w not in d2:
+                                d2[w] = {}
+                            d2 = d2[w]
+                    def p(v: dict, indent: str) -> None:
+                        for k in v.keys():
+                            print(indent + k)
+                            p(v[k], indent + "  ")
+                    p(d, "    ")
+PYTHON
+                )
+                script=$(echo "$script" |sed -r "s/^$(echo "$script" |head --lines=1 |sed -r "s/^( *)[^ ].*$/\1/")//g")
+                strip_head "$(table)" \
+                    | sed -r "s/$indent/$indent/" \
+                    | python3 -c "$script" \
+                    | sed -r "s/$/$end/"
+                printf "\n"
+                ;;
+        esac
 
         #namespaces="$(kubectl get namespace)"
         #namespaces="$(strip_head "$namespaces")"
@@ -115,4 +128,4 @@ done
 
 #kubectl config delete-context "$(kubectl config current-context)"
 #kubectl config unset clusters >/dev/null
-kubectl config unset current-context
+kubectl config unset current-context >/dev/null

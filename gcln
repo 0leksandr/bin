@@ -7,7 +7,7 @@ if [ ! "$destination" ]; then
 fi
 
 # git clone https://github.com/$1/$2 $3
-git clone "git@github.com:$1" "$destination"
+git clone --recurse-submodules "git@github.com:$1" "$destination"
 
 # initialize .git/FETCH_HEAD, used by `gst`
 git -C "$destination" fetch
