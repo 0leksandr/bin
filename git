@@ -2,35 +2,41 @@
 set -e
 
 git_real() {
-    basename="$(basename $0)"
-    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |egrep --invert-match "^$(realpath "$0")$" |head --lines=1)"
+    basename="$(basename "$0")"
+    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |grep -E --invert-match "^$(realpath "$0")$" |head --lines=1)"
     _transfer "$real" "$@"
 }
 
-key="git-switch"  # TODO: update
+key="git-switch"  # MAYBE: update
 
 nr_args=$#
 if [ "${!nr_args}" = "--" ]; then
-    nr_args=$(($nr_args-1))
+    nr_args=$((nr_args-1))
 fi
 n=$nr_args
-n1=$(($n - 1))
-n2=$(($n - 2))
+n1=$((n - 1))
+n2=$((n - 2))
 if [ $nr_args -ge 2 ]; then
     if [ "${!n1}" = "checkout" ]; then
-        branch="${!n}"
+        branch_or_tag="${!n}"
 
         if [ "$(git_real status --short)" != "" ]; then
             #git_real add .
-            git_real stash push --include-untracked --message "$key"
+
+            if [ "$(_git-current-branch)" ]; then
+                message="$key"
+            else
+                message="$key: $(_git-current-branch-or-tag)"
+            fi
+            git_real stash push --include-untracked --message "$message"
         fi
 
         git_real "$@"
 
-        branch="$(echo $branch |sed -r 's / \\/ g')"
-        echo "$(git_real --no-pager stash list)" |while read stash; do
-            match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: On $branch: $key$/\1/")"
-            if [ "$(echo $match |grep -E '^[0-9]+$')" ]; then
+        branch_or_tag="$(echo "$branch_or_tag" |sed -r 's / \\/ g')"
+        git_real --no-pager stash list |while read -r stash; do
+            match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: (On $branch_or_tag: $key|On \(no branch\): $key: $branch_or_tag)$/\1/")"
+            if echo "$match" |grep -Eq "^[0-9]+$"; then
                 git_real stash pop "stash@{$match}"
                 break
             fi

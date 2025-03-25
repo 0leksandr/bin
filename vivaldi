@@ -1,1 +1,17 @@
-/usr/bin/vivaldi
+#!/bin/sh
+set -e
+
+case "$(_os)" in
+    linux)
+        /usr/bin/vivaldi
+        ;;
+    mac)
+        /Applications/Vivaldi.app/Contents/MacOS/Vivaldi \
+            --flag-switches-begin                        \
+            --flag-switches-end                          \
+            --restore-last-session                       \
+            --save-page-as-mhtml                         \
+            --enable-smooth-scrolling                    \
+        &&:
+        ;;
+esac

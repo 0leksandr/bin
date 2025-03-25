@@ -41,9 +41,6 @@ indented() {
 
 projects="$(gcloud projects list)"
 projects="$(strip_head "$projects")"
-
-#projects="$(echo "$projects" |grep --invert-match prod)"
-projects="$(echo "$projects" |head -1)"
 echo "$projects" |while read -r project; do
     project="$(nth "$project" 1)"
     echo "project[$project]$end"
@@ -84,18 +81,23 @@ echo "$projects" |while read -r project; do
                     p(d, "    ")
 PYTHON
                 )
-                script=$(echo "$script" |sed -r "s/^$(echo "$script" |head --lines=1 |sed -r "s/^( *)[^ ].*$/\1/")//g")
-                strip_head "$(table)" \
+                script=$(                                    \
+                    echo "$script"                           \
+                        |sed -r "s/^$(                       \
+                            echo "$script"                   \
+                                |head --lines=1              \
+                                |sed -r "s/^( *)[^ ].*$/\1/" \
+                        )//g"                                \
+                )
+                strip_head "$(table)"             \
                     | sed -r "s/$indent/$indent/" \
-                    | python3 -c "$script" \
-                    | sed -r "s/$/$end/"
-                printf "\n"
+                    | python3 -c "$script"        \
+                    | sed -r "s/$/$end/"          \
                 ;;
         esac
 
         #namespaces="$(kubectl get namespace)"
         #namespaces="$(strip_head "$namespaces")"
-        #namespaces="papi-dev"  # TODO: remove
         #echo "$namespaces" |while read -r namespace; do
         #    namespace="$(nth "$namespace" 1)"
         #    echo "    namespace[$namespace]"
@@ -125,6 +127,8 @@ PYTHON
         #done
     done
 done
+
+printf "\n"
 
 #kubectl config delete-context "$(kubectl config current-context)"
 #kubectl config unset clusters >/dev/null

@@ -1,6 +1,6 @@
 #!/bin/sh
 name="$1"
 if [ ! "$name" ]; then
-    name="$(_git-current-branch)"
+    name="$(_git-current-branch-or-tag)"
 fi
 git stash push --include-untracked --message "$name"
