@@ -1,0 +1,295 @@
+#!/bin/bash
+set -e
+
+strip_head() {
+    local nr_lines="$(echo "$1" |wc -l)"
+    echo "$1" |tail --lines="$((nr_lines - 1))"
+}
+indented() {
+    local indent="$1"
+    local value="$2"
+    echo "$value" |sed -r "s/^/$indent/"
+}
+nth() {
+    local groups=""
+    if [ "$2" -gt 1 ]; then
+        for _ in $(seq 1 "$(($2 - 1))"); do
+            groups="$groups""[^ ]+ +"
+        done
+    fi
+    echo "$1" |sed -r "s/^$groups([^ ]+) +.*$/\1/"
+}
+no() {
+    case "$1" in
+        "")   return 0 ;;
+        help) return 0 ;;
+        *)    return 1 ;;
+    esac
+}
+
+args=$*
+current_arg_file=/tmp/current-arg  # TODO: delete file afterwards
+echo 0 > "$current_arg_file"
+next_arg() {
+    current_arg="$(cat "$current_arg_file")"
+    echo "$((current_arg + 1))" > "$current_arg_file"
+    reg="^([^ ]+ +){$current_arg}([^ ]+).*$"
+    if echo "$args" |grep -Eq "$reg"; then
+        echo "$args" |sed -r "s/$reg/\2/"
+    fi
+}
+options() {
+    echo "Options: $*"
+    exit
+}
+#_select() {
+#    local prefix="$1"
+#    local fn="$2"
+#
+#    local value="$(next_arg)"
+#    if no "$value"; then
+#        options "$prefix $($fn "${@:3}")"
+#    else
+#        echo "$value"
+#    fi
+#}
+
+# company-specific
+filter_pods() {
+    local pods="$1"
+
+    echo "$pods" |sed -r 's/^linkerd-proxy,//g'
+}
+service_port() {
+    local namespace="$1"
+    local container="$2"
+
+#    kubectl get svc --namespace="$namespace" |grep -E "^$container "
+    reg="^Port: +[a-z]+ +([0-9]+)/[A-Z]+$"
+    kubectl describe service --namespace="$namespace" "$container" |grep -E "$reg" |sed -r "s#$reg#\1#"
+}
+
+projects() {
+    local projects="$(gcloud projects list)"
+    nth "$(strip_head "$projects")" 1
+}
+clusters() {
+    local project="$1"
+
+    local clusters="$(gcloud container clusters --project="$project" list  2>/dev/null)"
+    strip_head "$clusters" |sed -r 's/^([^ ]+) +([^ ]+) .*$/\1:\2/g'
+}
+authenticate() {
+    local project="$1"
+    local cluster="$2"
+
+    reg='^([^:]+):([^:]+)$'
+    local cluster_name="$(echo "$cluster" |sed -r "s/$reg/\1/")"
+    local cluster_location="$(echo "$cluster" |sed -r "s/$reg/\2/")"
+
+    gcloud container clusters --project "$project" get-credentials "$cluster_name" --zone "$cluster_location"  2>/dev/null
+}
+namespaces() {
+    local namespaces="$(kubectl get namespace)"
+    nth "$(strip_head "$namespaces")" 1
+}
+containers() {
+    local namespace="$1"
+
+    local containers="$(kubectl get pods --namespace="$namespace" -o custom-columns="CONTAINER:.spec.containers[*].name")"
+    filter_pods "$(strip_head "$containers")" |sort |uniq
+}
+pods() {
+#    local namespace="$1"
+#
+#    local pods="$(kubectl get pods --namespace="$namespace")"
+#    nth "$(strip_head "$pods")" 1
+
+    local namespace="$1"
+    local container="$2"
+
+    local containers_pods="$(                                                         \
+        kubectl get pods                                                              \
+            --namespace="$namespace"                                                  \
+            -o custom-columns="CONTAINER:.spec.containers[*].name,POD:.metadata.name" \
+        &&:
+    )"
+    filter_pods "$(strip_head "$containers_pods")" |grep -E "^$container " |sed -r "s/^.+ +(.+)$/\1/g"
+}
+
+current_context() {
+#    kubectl config view --minify -o jsonpath='{..current-context}'
+    kubectl config current-context
+}
+dump_hosts() {
+    projects |while read -r project; do
+        echo "project[$project]"
+        clusters "$project" |while read -r cluster; do
+            echo "  cluster[$cluster]"
+            authenticate "$project" "$cluster"
+            indented "    " "$(kubectl get ingress --all-namespaces)"
+        done
+    done
+    close
+}
+telepresence_() {
+    telepresence connect
+    printf "Telepresence started. Press [enter] to stop"
+    read -r
+    telepresence quit --stop-daemons
+}
+port_forward() {
+    local namespace="$1"
+    local container="$2"
+
+    local pod="$(pods "$namespace" "$container" |head --lines=1)"
+    local port="$(service_port "$namespace" "$container")"
+
+    kubectl port-forward -n "$namespace" "$pod" "$port" || alert "port-forward connection lost"
+    ## cat pf-svc-admin-panel-stage
+    #kubectl                                                    \
+    #    --context gke_dmarket-uat_europe-west4-b_dmarket-stage \
+    #    -n marketplace-admin-stage                             \
+    #    port-forward                                           \
+    #    svc/gtw-marketplace-admin-dmar-17305-admin-panel       \
+    #    44333:443                                              \
+    #    &&:
+}
+close() {
+    #kubectl config delete-context "$(kubectl config current-context)"
+    #kubectl config unset clusters >/dev/null
+    kubectl config unset current-context >/dev/null
+}
+
+command_hosts="-hosts"
+command_current_context="-current-context"
+command_close="-close"
+command_telepresence="-telepresence"
+command_port_forward="-port-forward"
+
+#gcloud auth login
+
+## list resource types
+#kubectl api-resources
+
+#kubectx  # list or select context (project+cluster)
+
+#<editor-fold desc="project">
+project="$(next_arg)"
+if no "$project"; then
+    options "--command: $command_hosts $command_current_context $command_close .project: $(projects)"
+fi
+case "$project" in
+    "$command_hosts")           dump_hosts      ;;
+    "$command_current_context") current_context ;;
+    "$command_close")           close           ;;
+    *)                          continue="1"    ;;
+esac
+[ "$continue" ] && continue="" || exit
+#</editor-fold>
+
+#<editor-fold desc="cluster">
+cluster="$(next_arg)"
+if no "$cluster"; then
+    options ".cluster: $(clusters "$project")"
+fi
+#</editor-fold>
+
+#<editor-fold desc="authenticate">
+if [ "$(current_context 2>/dev/null)" != "gke_$project""_$(echo "$cluster"| sed -r 's/^(.+):(.+)$/\2_\1/')" ]; then
+    authenticate "$project" "$cluster"
+    echo>&2 "authenticated to project[$project]cluster[$cluster]"
+fi
+#</editor-fold>
+
+#<editor-fold desc="namespace">
+# kubens
+# kubectl config view --minify -o jsonpath='{..namespace}'
+namespace="$(next_arg)"
+if no "$namespace"; then
+    options "--command: $command_telepresence .namespace: $(namespaces)"
+fi
+case "$namespace" in
+    "$command_telepresence") telepresence_ ;;
+    *)                       continue="1"  ;;
+esac
+if [ "$continue" ]; then
+    continue=""
+else
+    close
+    exit
+fi
+#</editor-fold>
+
+#<editor-fold desc="container">
+container="$(next_arg)"
+if no "$container"; then
+    options ".container: $(containers "$namespace")"
+fi
+#</editor-fold>
+
+#<editor-fold desc="command">
+command="$(next_arg)"
+if no "$command"; then
+    options "--command: $command_port_forward"
+fi
+case "$command" in
+    "$command_port_forward") port_forward "$namespace" "$container" ;;
+    *)                       continue="1"                           ;;
+esac
+if [ "$continue" ]; then
+    continue=""
+else
+    close
+    exit
+fi
+#</editor-fold>
+
+close
+
+# [other]
+#kubectl get nodes
+#procs="$(kubectl exec "$pod" --container "$container" -- )"
+
+#columns="NAMESPACE:.metadata.namespace,CONTAINER:.spec.containers[*].name,NODE:.spec.nodeName,POD:.metadata.name"
+#script=$(cat <<PYTHON
+#    import sys
+#    lines = sys.stdin.read().split("\n")
+#    keys, headers = lines.pop(0).split("|")
+#    def split(line: str) -> list[str]:
+#        return list(filter(None, line.split(" ")))
+#    keys = split(keys)
+#    headers = split(headers)
+#    d = {}
+#    for line in lines:
+#        d2 = d
+#        for w in split(line):
+#            if w not in d2:
+#                d2[w] = {}
+#            d2 = d2[w]
+#    #def p(v: dict, indent: str) -> None:
+#    #    for k in v.keys():
+#    #        print(indent + k)
+#    #        p(v[k], indent + "  ")
+#    #p(d, "    ")
+#    for key in keys:
+#        if key in d:
+#            d = d[key]
+#            headers = headers[1:]
+#        else:
+#            break
+#    print(f"_{headers[0].lower()}: " + " ".join(list(d.keys())))
+#PYTHON
+#)
+#script=$(                                    \
+#    echo "$script"                           \
+#        |sed -r "s/^$(                       \
+#            echo "$script"                   \
+#                |head --lines=1              \
+#                |sed -r "s/^( *)[^ ].*$/\1/" \
+#        )//g"                                \
+#)
+#table="$(kubectl get pods --all-namespaces -o custom-columns="$columns")"
+#options "$(echo "$(next_arg) $(next_arg) $(next_arg) $(next_arg)|$table" |python3 -c "$script")"
+
+#echo "project[$project] cluster_name[$cluster_name] cluster_location[$cluster_location] namespace[$namespace]"

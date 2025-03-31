@@ -25,7 +25,7 @@ _complete_by_options() {
     list=$($command help |sed -r 's/Options: (.*)/\1/')
     COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
 }
-complete -F _complete_by_options aqi brightness errors light location scene vivaldi-windows
+complete -F _complete_by_options aqi brightness errors kub light location scene vivaldi-windows
 
 
 _complete_files() {

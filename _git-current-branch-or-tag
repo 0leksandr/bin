@@ -16,5 +16,5 @@ if [ "$tag" ]; then
     exit 0
 fi
 
-echo "No branches or tags" >&2
+echo>&2 "No branches or tags"
 exit 1
