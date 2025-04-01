@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+# helpers
 strip_head() {
     local nr_lines="$(echo "$1" |wc -l)"
     echo "$1" |tail --lines="$((nr_lines - 1))"
@@ -26,7 +27,15 @@ no() {
         *)    return 1 ;;
     esac
 }
+keep() {
+    local text="$1"
 
+    [ "$text" ] && text="$text. "
+    printf "%sPress [enter] to stop" "$text"
+    read -r
+}
+
+# autocomplete & arguments
 args=$*
 current_arg_file=/tmp/current-arg  # TODO: delete file afterwards
 echo 0 > "$current_arg_file"
@@ -42,17 +51,9 @@ options() {
     echo "Options: $*"
     exit
 }
-#_select() {
-#    local prefix="$1"
-#    local fn="$2"
-#
-#    local value="$(next_arg)"
-#    if no "$value"; then
-#        options "$prefix $($fn "${@:3}")"
-#    else
-#        echo "$value"
-#    fi
-#}
+no_more_args() {
+    echo>&2 "No more arguments available"
+}
 
 # company-specific
 filter_pods() {
@@ -69,6 +70,7 @@ service_port() {
     kubectl describe service --namespace="$namespace" "$container" |grep -E "$reg" |sed -r "s#$reg#\1#"
 }
 
+# list resources
 projects() {
     local projects="$(gcloud projects list)"
     nth "$(strip_head "$projects")" 1
@@ -117,6 +119,7 @@ pods() {
     filter_pods "$(strip_head "$containers_pods")" |grep -E "^$container " |sed -r "s/^.+ +(.+)$/\1/g"
 }
 
+# commands (operations)
 current_context() {
 #    kubectl config view --minify -o jsonpath='{..current-context}'
     kubectl config current-context
@@ -130,12 +133,11 @@ dump_hosts() {
             indented "    " "$(kubectl get ingress --all-namespaces)"
         done
     done
-    close
+    close >/dev/null
 }
 telepresence_() {
     telepresence connect
-    printf "Telepresence started. Press [enter] to stop"
-    read -r
+    keep "Telepresence started."
     telepresence quit --stop-daemons
 }
 port_forward() {
@@ -156,23 +158,22 @@ port_forward() {
     #    &&:
 }
 close() {
-    #kubectl config delete-context "$(kubectl config current-context)"
-    #kubectl config unset clusters >/dev/null
-    kubectl config unset current-context >/dev/null
+    #kubectl config delete-context "$(current_context)"
+    #kubectl config unset clusters
+    kubectl config unset current-context
 }
 
 command_hosts="-hosts"
 command_current_context="-current-context"
 command_close="-close"
+command_keep="-keep"
 command_telepresence="-telepresence"
 command_port_forward="-port-forward"
 
 #gcloud auth login
-
-## list resource types
-#kubectl api-resources
-
+#kubectl api-resources  # list resource types
 #kubectx  # list or select context (project+cluster)
+:
 
 #<editor-fold desc="project">
 project="$(next_arg)"
@@ -207,10 +208,11 @@ fi
 # kubectl config view --minify -o jsonpath='{..namespace}'
 namespace="$(next_arg)"
 if no "$namespace"; then
-    options "--command: $command_telepresence .namespace: $(namespaces)"
+    options "--command: $command_telepresence $command_keep .namespace: $(namespaces)"
 fi
 case "$namespace" in
     "$command_telepresence") telepresence_ ;;
+    "$command_keep")         keep          ;;
     *)                       continue="1"  ;;
 esac
 if [ "$continue" ]; then
