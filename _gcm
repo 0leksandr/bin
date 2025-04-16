@@ -1,13 +1,15 @@
 #!/bin/sh
 set -e
+flags="$1"
+files="$(_path 2 "$@")"
 
 # git add .
 # # git add -u
 # # git add -u -- .
 # git commit -a -m "$@"
 
-flags="$1"
-eval "git add $(_path 2 "$@")"
+git reset
+eval "git add $files"
 
 sign="(MacPaw|macpaw|MythicalGames)"
 if [ "$sign" ]; then
