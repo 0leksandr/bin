@@ -1,0 +1,122 @@
+#!/bin/bash
+set -e
+
+git_real() {
+    basename="$(basename "$0")"
+    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |grep -E --invert-match "^$(realpath "$0")$" |head --lines=1)"
+    _transfer "$real" "$@"
+}
+
+#if true; then git_real "$@"; exit; fi
+#if [ "$1" = "test" ]; then realpath "$0"; exit; fi
+
+escape() {
+    local value="$1"
+    echo "$value" |tr '/' '#'
+}
+
+key="git-switch"  # MAYBE: update
+
+stash() {
+    local message="$1"
+    notify "stashing $message"
+
+    if [ "$(git_real status --short)" ]; then
+notify "must stash"
+        #git_real add .
+        git_real stash push --include-untracked --message "$message"
+else notify "no stash needed"
+    fi
+}
+unstash() {
+    local message="$1"
+    notify "unstashing $message"
+
+    message="$(echo "$message" |sed -r 's / \\/ g')"
+    git_real --no-pager stash list |while read -r stash; do
+        match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: $message$/\1/")"
+        if echo "$match" |grep -Eq "^[0-9]+$"; then
+            git_real stash pop "stash@{$match}"
+            break
+        fi
+    done
+}
+key_my_stash="my-stash"
+key_my_unstash="my-unstash"
+case "$1" in
+    "$key_my_stash")   stash "$2"   ;;
+    "$key_my_unstash") unstash "$2" ;;
+    *)                 continue=1   ;;
+esac
+if [ "$continue" ]; then continue=""; else exit; fi
+
+dir_my_submodules=".git/my-stashed-submodules"
+
+nr_args=$#
+if [ "${!nr_args}" = "--" ]; then
+    nr_args=$((nr_args-1))
+fi
+n=$nr_args
+n1=$((n - 1))
+n2=$((n - 2))
+if [ $nr_args -ge 2 ]; then
+    if [ "${!n1}" = "checkout" ]; then
+        source="$(_git-current-branch-or-tag)"
+        target="${!n}"
+
+        if [ "$(_git-current-branch)" ]; then
+            message="$key"
+        else
+            message="$key: $(_git-current-branch-or-tag)"
+        fi
+
+        stash "$message"
+
+        git_real "$@"
+
+        reg='^\?\? +([^ ].*[^/]|[^ /])/?$'
+        submodules="$(git_real status --short |grep -E "$reg" |sed -r "s#$reg#\1#g")"
+        if [ "$submodules" ]; then
+            dir="$dir_my_submodules/$(escape "$source")"
+            mkdir -p "$dir"
+            echo "$submodules" |while read -r file; do
+                mkdir -p "$(dirname "$dir/$file")"
+                mv "$file" "$dir/$file"
+            done
+        fi
+
+        submodule_message="$key: $source"
+        git submodule foreach sh -e -c "
+            $(realpath "$0") $key_my_stash '$submodule_message'
+            $(realpath "$0") $key_my_unstash 'On [^:]+: $submodule_message'
+        "
+
+        dir="$dir_my_submodules/$(escape "$target")"
+        if [ -d "$dir" ]; then
+            cp -a "$dir/." .
+            rm -rf "$dir"
+            if [ -z "$(ls -A "$dir_my_submodules")" ]; then
+                rm -rf "$dir_my_submodules"
+            fi
+        fi
+
+        unstash "(On $target: $key|On \(no branch\): $key: $target)"
+
+        exit 0
+    fi
+fi
+if [ $nr_args -ge 3 ]; then
+    if [ "${!n2}" = "branch" ] && [ "${!n1}" = "-d" ]; then
+        stash="$(git_real --no-pager stash list |grep -E "^stash@{[0-9]+}: On ${!n}: $key$" ||true)"
+        if [ "$stash" ]; then
+            stash="$(echo "$stash" |sed -r 's/^([^:]+):.+$/\1/')"
+            git_real stash drop "$stash"
+        fi
+    fi
+fi
+
+#args=""
+#for arg in "$@"; do args="$args $(printf "%q" "$arg")"; done
+#eval "git_real $args"
+
+git_real "$@"

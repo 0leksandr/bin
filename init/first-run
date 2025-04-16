@@ -28,6 +28,8 @@ read -p "GitHub name: " gh_name
 read -p "GitHub email: " gh_email
 git config --global user.name "${gh_name}"
 git config --global user.email "${gh_email}"
+# https://stackoverflow.com/questions/1899792/why-is-git-submodule-not-updated-automatically-on-git-checkout
+git config --global submodule.recurse true
 
 if [ "$is_mac" ]; then
   brew install gh

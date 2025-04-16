@@ -1,5 +1,11 @@
 #!/bin/sh
 set -e
 
-git init
-gcm 'In the Beginning, There Was Chaos'
+if [ -d .git ]; then
+    git submodule update --init --recursive --checkout
+    #git submodule update --remote
+else
+    git init
+    gcm 'In the Beginning, There Was Chaos'
+fi
+
