@@ -1,13 +1,39 @@
 #!/bin/bash
 set -e
 
+key="git-switch"  # MAYBE: update
+dir_my_submodules=".git/my-stashed-submodules"
+
 git_real() {
     basename="$(basename "$0")"
     real="$(type -a "$basename" |sed -r "s/^$basename is //g" |grep -E --invert-match "^$(realpath "$0")$" |head --lines=1)"
     _transfer "$real" "$@"
 }
+escape() {
+    local value="$1"
+    echo "$value" |tr '/' '#'
+}
+stashes_for() {
+    local target="$1"
 
-key="git-switch"  # MAYBE: update
+    target="$(echo "$target" |sed -r 's / \\/ g')"
+    #local reg="^(stash@\{([0-9]+)\}): (On $target: $key|On \(no branch\): $key: $target)$"
+    for reg in                                            \
+        "On [^:]+: $key: $target"                         \
+        "On $target: $key" `# for backward compatibility` \
+        ; do
+        local reg="^(stash@\{([0-9]+)\}): $reg$"
+        git_real --no-pager stash list |grep -E "$reg" |sed -r "s#$reg#\1#g"
+    done
+}
+list_submodules() {
+    git config --file .gitmodules --get-regexp path |sed -r 's/^[^ ]+ +([^ ]+)$/\1/g'
+}
+submodules_cleanup() {
+    if [ -z "$(ls -A "$dir_my_submodules")" ]; then
+        rm -rf "$dir_my_submodules"
+    fi
+}
 
 nr_args=$#
 if [ "${!nr_args}" = "--" ]; then
@@ -18,28 +44,41 @@ n1=$((n - 1))
 n2=$((n - 2))
 if [ $nr_args -ge 2 ]; then
     if [ "${!n1}" = "checkout" ]; then
-        branch_or_tag="${!n}"
+        source="$(_git-current-branch-or-tag)"
+        target="${!n}"
 
-        if [ "$(git_real status --short)" != "" ]; then
+        if [ "$(git_real status --short)" ]; then
             #git_real add .
 
-            if [ "$(_git-current-branch)" ]; then
-                message="$key"
-            else
-                message="$key: $(_git-current-branch-or-tag)"
-            fi
+            message="$key: $source"  # git stash incorrectly identifies branch when new submodule is added
             git_real stash push --include-untracked --message "$message"
         fi
 
         git_real "$@"
 
-        branch_or_tag="$(echo "$branch_or_tag" |sed -r 's / \\/ g')"
-        git_real --no-pager stash list |while read -r stash; do
-            match="$(echo "$stash" |sed -r "s/^stash@\{([0-9]+)\}: (On $branch_or_tag: $key|On \(no branch\): $key: $branch_or_tag)$/\1/")"
-            if echo "$match" |grep -Eq "^[0-9]+$"; then
-                git_real stash pop "stash@{$match}"
-                break
-            fi
+        submodules="$(git_real status --short |sed -r 's#^\?\? +([^ ].*[^/]|[^ /])/?$#\1#g')"
+        if [ "$submodules" ]; then
+            dir="$dir_my_submodules/$(escape "$source")"
+            mkdir -p "$dir"
+            echo "$submodules" |while read -r file; do
+                mkdir -p "$(dirname "$dir/$file")"
+                mv "$file" "$dir/$file"
+            done
+        fi
+
+        #list_submodules |while read -r submodule; do
+        #    rm -rf "$submodule"
+        #done
+        dir="$dir_my_submodules/$(escape "$target")"
+        if [ -d "$dir" ]; then
+            cp -a "$dir/." .
+            rm -rf "$dir"
+            submodules_cleanup
+        fi
+
+        stashes_for "$target" |while read -r stash; do
+            git_real stash pop "$stash"
+            break
         done
 
         exit 0
@@ -47,10 +86,15 @@ if [ $nr_args -ge 2 ]; then
 fi
 if [ $nr_args -ge 3 ]; then
     if [ "${!n2}" = "branch" ] && [ "${!n1}" = "-d" ]; then
-        stash="$(git_real --no-pager stash list |grep -E "^stash@{[0-9]+}: On ${!n}: $key$" ||true)"
-        if [ "$stash" ]; then
-            stash="$(echo "$stash" |sed -r 's/^([^:]+):.+$/\1/')"
+        target="${!n}"
+        stashes_for "$target" |while read -r stash; do
             git_real stash drop "$stash"
+        done
+
+        dir="$dir_my_submodules/$(escape "$target")"
+        if [ -d "$dir" ]; then
+            rm -rf "$dir"
+            submodules_cleanup
         fi
     fi
 fi

@@ -11,6 +11,7 @@ const keys = {
     "notify"     : ["message",                 ],
     "mouse-click": ["x", "y",                  ],
     "mac-scene"  : [                           ],
+    "proxy"      : ["url"                      ],
 };
 
 http
@@ -30,24 +31,27 @@ http
             exec(
                 command,
                 (error, stdout, stderr) => {
-                    if (error) {
-                        response.writeHead(500);
-                        response.end();
-                        console.error(`error: ${error.message}`);
-                    } else if (stderr) {
-                        response.writeHead(500);
-                        response.end();
-                        console.error(`stderr: ${stderr}`);
-                    } else {
-                        response.writeHead(200);
-                        response.end(stdout);
-                    }
+                    const [code, body] = (() => {
+                        if (error) {
+                            return [500, `error: ${error.message}`];
+                        //} else if (stderr) {
+                        //    return [500, `stderr: ${stderr}`];
+                        } else {
+                            return [200, stdout];
+                        }
+                    })();
+                    response.writeHead(
+                        code,
+                        {"Access-Control-Allow-Origin": "*"},
+                    );
+                    response.write(body);
+                    response.end();
                 }
             );
         } else {
             response.writeHead(400);
+            response.write(`unknown action: ${action}`);
             response.end();
-            console.error(`unknown action: ${action}`);
         }
     })
     .listen(port);

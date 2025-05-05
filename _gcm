@@ -18,4 +18,4 @@ if [ "$sign" ]; then
     fi
 fi
 
-eval "git commit $flags"  # `git commit -m "$1"` does not work
+eval "git commit $flags"

@@ -19,23 +19,23 @@ parents=""
 first="1"
 while true; do
     parents="$parents $parent"
-    parent="$(_parent $parent ||:)"
+    parent="$(_parent "$parent" ||:)"
 
     if [ "$parent" = "0" ]; then
-        alert "parent = 0; [$(procx $(_parent $pid))]"
+        alert "parent = 0; [$(procx "$(_parent "$pid")")]"
         exit 1
     fi
     if [ "$parent" = "" ]; then
-        alert "$(basename $0): parent not found. Probably, process is dead. @[$@] parents[$parents]"
+        alert "$(basename "$0"): parent not found. Probably, process is dead. *[$*] parents[$parents]"
         exit 1
     fi
-    if ! echo "$parent" | egrep -q '^[0-9]+$'; then
-        alert "parent is not a nr: [$parent]; pid[$pid] _parent[$(_parent $pid)] procx-pid[$(procx $pid)] procx-parent[$(procx $(_parent $pid))]"
+    if ! echo "$parent" | grep -E -q '^[0-9]+$'; then
+        alert "parent is not a nr: [$parent]; pid[$pid] _parent[$(_parent "$pid")] procx-pid[$(procx "$pid")] procx-parent[$(procx "$(_parent "$pid")")]"
         exit 1
     fi
 
-    if [ ! "$first" ]; then printf "$delim"; fi
-    printf $parent
+    if [ ! "$first" ]; then printf "%s" "$delim"; fi
+    printf "%s" "$parent"
     first=""
 
     if [ "$parent" = "1" ]; then break; fi
