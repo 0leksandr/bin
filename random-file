@@ -4,7 +4,10 @@ if [ $# -ge 1 ]; then
     if [ "$1" = "-here" ] || [ "$1" = "-h" ]; then
         opts="-maxdepth 1"
     else
-        opts="-regextype awk -iregex '.*$1.*'"
+        opts="-iregex '.*$1.*'"
+        if [ "$(_os)" = "linux" ]; then
+            opts="-regextype awk $opts"
+        fi
     fi
 fi
 

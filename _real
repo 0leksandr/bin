@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+file="$1"
+
+basename="$(basename "$file")"
+type -a "$basename"                                               \
+    | sed -r "s/^$basename is //g"                                \
+    | grep -E --invert-match "^$(dirname "$(realpath "$file")")/" \
+    | head --lines=1                                              \
+    &&:

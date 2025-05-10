@@ -1,2 +1,2 @@
 #!/bin/sh
-nano $(which $1)
+nano "$(which $1)"

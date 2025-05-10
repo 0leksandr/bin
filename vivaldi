@@ -3,7 +3,8 @@ set -e
 
 case "$(_os)" in
     linux)
-        /usr/bin/vivaldi
+#        /usr/bin/vivaldi
+        eval "_real $0"
         ;;
     mac)
         /Applications/Vivaldi.app/Contents/MacOS/Vivaldi \

@@ -1,13 +1,13 @@
 #!/bin/sh
 set -e
 
-_log "$@"
-_log "SHELL[$SHELL]"
+#_log "$@"
+#_log "SHELL[$SHELL]"
 
 if echo "$1" |grep -q "^-.*f"; then
     #/bin/rm -rf "${@:2}"
     cmd="/bin/rm -rf $(_path 2 "$@")"
-    _log "cmd[$cmd]"
+    #_log "cmd[$cmd]"
     eval "$cmd"
 else
     trash "$@"

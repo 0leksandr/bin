@@ -6,18 +6,24 @@ path="$2"
 prefix="$3"
 
 if [ "$path" != "" ]; then
-    if [ $(expr index "$path" /) = 0 ]; then
-        filename="$path"
-    else
-        filename=$(expr "$path" : '.*/\([^/]*\)')
-        dirLen=$(( $(expr length "$path") - $(expr length "$filename") - 1 ))
-        cd "$(expr substr "$path" 1 "$dirLen")"
-        # cd "`expr substr \"$path\" 1 \"$dirLen\"`"
+    if ! echo "$path" |grep -Eq "^/"; then
+        path="$(pwd)/$path"
     fi
+    path="Z:$(echo "$path" |tr '/' "\\")"
 fi
 
 if [ "$prefix" != "" ]; then
-    WINEPREFIX="$prefix" wine "$program" "$filename"
+    # to initialize:
+    # - `WINEPREFIX=~/_/Programs/.wine2 regedit`
+    # - set:
+    #   My Computer
+    #   > HKEY_CURRENT_USER
+    #   > Control Panel
+    #   > International
+    #     edit:
+    #     - sShortDate: yyyy-MM-dd
+    #     - sTimeFormat: HH:mm:ss
+    WINEPREFIX="$prefix" wine "$program" "$path"
 else
-    wine "$program" "$filename"
+    wine "$program" "$path"
 fi

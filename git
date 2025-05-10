@@ -5,9 +5,7 @@ key="git-switch"  # MAYBE: update
 dir_my_submodules=".git/my-stashed-submodules"
 
 git_real() {
-    basename="$(basename "$0")"
-    real="$(type -a "$basename" |sed -r "s/^$basename is //g" |grep -E --invert-match "^$(realpath "$0")$" |head --lines=1)"
-    _transfer "$real" "$@"
+    _transfer "$(_real "$0")" "$@"
 }
 escape() {
     local value="$1"
