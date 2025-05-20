@@ -102,7 +102,7 @@ authenticate() {
     gcloud container clusters --project "$project" get-credentials "$cluster_name" --zone "$cluster_location"  2>/dev/null
 }
 contexts() {
-    nth "$(strip_head "$(kubectl config get-contexts)")" 1
+    strip_head "$(kubectl config get-contexts)" |sed -r "s/^\*? *([^ ]+) .*$/\1/g"
 }
 namespaces() {
     local namespaces="$(kubectl get namespace)"
@@ -232,8 +232,9 @@ else
     exit 0
 fi
 
-set_context "$context"
-echo>&2 "using context [$context]"
+if [ "$(current_context 2>/dev/null)" != "$context" ]; then
+    set_context "$context"
+fi
 #</editor-fold>
 
 #<editor-fold desc="namespace">
