@@ -11,7 +11,7 @@ const keys = {
     "notify"     : ["message",                 ],
     "mouse-click": ["x", "y",                  ],
     "mac-scene"  : [                           ],
-    "proxy"      : ["url"                      ],
+    "proxy"      : ["url", "header ''",        ],
 };
 
 http

@@ -3,12 +3,13 @@ set -e
 
 _ignore-completion "$1"
 
-_gcm "--message='$1'" "${@:2}"
-printf "\n"
+gcm "$@"
 
 if [ "$(git remote --verbose)" ]; then
     gpsh
 fi
 printf "\n"
 
-gst
+if ! _is_in_script; then
+    gst
+fi

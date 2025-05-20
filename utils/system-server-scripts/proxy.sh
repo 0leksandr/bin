@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
 url="$1"
+header="$2"
 
-curl "$url"
+curl --header "$header" -v "$url"

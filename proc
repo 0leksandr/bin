@@ -16,9 +16,8 @@ for input; do
 done
 
 if [ ! "$flagX" ] && [ ! "$flagQ" ]; then
-    parent=$(_parent)
-    if [ "$($0 -x -P $parent |sed -r 's/^.* ([^ ]+)$/\1/')" != "zsh" ]; then
-        error="$(basename $0) called from script without -x option"
+    if _is_in_script; then
+        error="$(basename "$0") called from script without -x option"
         echo>&2 "$error"
         alert "$error"
     fi
@@ -28,7 +27,7 @@ reg="$search"
 if [ "$flagX" ]; then
     col="([^ ]+ +)"
     pid="$search"
-    shell="((/bin/sh|/bin/bash) +)"
+    shell="(($(_shells)) +)"
     title="(/[^ ]+/)?$search"
     reg="^($col{10}$shell?$title( |$)|$col$pid )"
 fi

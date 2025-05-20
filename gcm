@@ -1,9 +1,15 @@
 #!/bin/bash
 set -e
+message="$1"
 
-_ignore-completion "$1"
+_ignore-completion "$message"
 
-_gcm "--message='$1'" "${@:2}"
+#message="$(echo "$message" |sed -r 's/'"'"'/'"'"'"'"'"'"'"'"'/g')"
+a="'"
+message="$(echo "$message" |sed -r "s/$a/$a\"$a\"$a/g")"
+_gcm "--message='$message'" "${@:2}"
 printf "\n"
 
-gst
+if ! _is_in_script; then
+    gst
+fi

@@ -3,22 +3,28 @@ set -e
 
 # helpers
 strip_head() {
-    local nr_lines="$(echo "$1" |wc -l)"
-    echo "$1" |tail --lines="$((nr_lines - 1))"
+    local text="$1"
+
+    local nr_lines="$(echo "$text" |wc -l)"
+    echo "$text" |tail --lines="$((nr_lines - 1))"
 }
 indented() {
     local indent="$1"
     local value="$2"
+
     echo "$value" |sed -r "s/^/$indent/"
 }
 nth() {
-    local groups=""
-    if [ "$2" -gt 1 ]; then
-        for _ in $(seq 1 "$(($2 - 1))"); do
+    local text="$1"
+    local column="$2"
+
+    local groups=" *"
+    if [ "$column" -gt 1 ]; then
+        for _ in $(seq 1 "$((column - 1))"); do
             groups="$groups""[^ ]+ +"
         done
     fi
-    echo "$1" |sed -r "s/^$groups([^ ]+) +.*$/\1/"
+    echo "$text" |sed -r "s/^$groups([^ ]+) +.*$/\1/"
 }
 no() {
     case "$1" in
@@ -37,7 +43,7 @@ keep() {
 
 # autocomplete & arguments
 args=$*
-current_arg_file=/tmp/current-arg  # TODO: delete file afterwards
+current_arg_file=/tmp/current-arg
 echo 0 > "$current_arg_file"
 next_arg() {
     current_arg="$(cat "$current_arg_file")"
@@ -49,7 +55,7 @@ next_arg() {
 }
 options() {
     echo "Options: $*"
-    exit
+    exit 0
 }
 no_more_args() {
     echo>&2 "No more arguments available"
@@ -65,9 +71,13 @@ service_port() {
     local namespace="$1"
     local container="$2"
 
-#    kubectl get svc --namespace="$namespace" |grep -E "^$container "
+    # kubectl get svc --namespace="$namespace" |grep -E "^$container "
     reg="^Port: +[a-z]+ +([0-9]+)/[A-Z]+$"
-    kubectl describe service --namespace="$namespace" "$container" |grep -E "$reg" |sed -r "s#$reg#\1#"
+    kubectl describe service --namespace="$namespace" "$container" \
+        |grep -E "$reg"                                            \
+        |grep --invert-match metrics                               \
+        |sed -r "s#$reg#\1#g"                                      \
+    &&:
 }
 
 # list resources
@@ -91,6 +101,9 @@ authenticate() {
 
     gcloud container clusters --project "$project" get-credentials "$cluster_name" --zone "$cluster_location"  2>/dev/null
 }
+contexts() {
+    nth "$(strip_head "$(kubectl config get-contexts)")" 1
+}
 namespaces() {
     local namespaces="$(kubectl get namespace)"
     nth "$(strip_head "$namespaces")" 1
@@ -101,12 +114,12 @@ containers() {
     local containers="$(kubectl get pods --namespace="$namespace" -o custom-columns="CONTAINER:.spec.containers[*].name")"
     filter_pods "$(strip_head "$containers")" |sort |uniq
 }
-pods() {
-#    local namespace="$1"
-#
-#    local pods="$(kubectl get pods --namespace="$namespace")"
-#    nth "$(strip_head "$pods")" 1
+list_pods_for_namespace() {
+    local namespace="$1"
 
+    kubectl get pods --namespace="$namespace"
+}
+pods_for_namespace_container() {
     local namespace="$1"
     local container="$2"
 
@@ -127,14 +140,16 @@ current_context() {
 #    kubectl config view --minify -o jsonpath='{..current-context}'
     kubectl config current-context
 }
+set_context() {
+    local context="$1"
+
+    kubectl config use-context "$context" >/dev/null
+}
 dump_hosts() {
-    projects |while read -r project; do
-        echo "project[$project]"
-        clusters "$project" |while read -r cluster; do
-            echo "  cluster[$cluster]"
-            authenticate "$project" "$cluster"
-            indented "    " "$(hosts)"
-        done
+    contexts |while read -r context; do
+        echo "$context"
+        set_context "$context"
+        indented "  " "$(hosts)"
     done
     close >/dev/null
 }
@@ -147,30 +162,35 @@ port_forward() {
     local namespace="$1"
     local container="$2"
 
-    local pod="$(pods "$namespace" "$container" |head --lines=1)"
+    local pod="$(pods_for_namespace_container "$namespace" "$container" |head --lines=1)"
     local port="$(service_port "$namespace" "$container")"
 
-    kubectl port-forward -n "$namespace" "$pod" "$port" || alert "port-forward connection lost"
-    ## cat pf-svc-admin-panel-stage
-    #kubectl                                                    \
-    #    --context gke_dmarket-uat_europe-west4-b_dmarket-stage \
-    #    -n marketplace-admin-stage                             \
-    #    port-forward                                           \
-    #    svc/gtw-marketplace-admin-dmar-17305-admin-panel       \
-    #    44333:443                                              \
-    #    &&:
+    kubectl port-forward --namespace="$namespace" "$pod" "$port" || alert "port-forward connection lost"
+}
+logs() {
+    local namespace="$1"
+
+    printf "search: "
+    read -r search
+    [ "$search" ] || search=".*"
+    stern --namespace "$namespace" "$search" ||:
 }
 close() {
     #kubectl config delete-context "$(current_context)"
     #kubectl config unset clusters
     kubectl config unset current-context
+
+    rm -f "$current_arg_file"
 }
 
 command_hosts="-hosts"
 command_current_context="-current-context"
+command_authenticate="-authenticate"
 command_close="-close"
 command_keep="-keep"
 command_telepresence="-telepresence"
+command_statuses="-statuses"
+command_logs="-logs"
 command_port_forward="-port-forward"
 
 #gcloud auth login
@@ -178,32 +198,42 @@ command_port_forward="-port-forward"
 #kubectx  # list or select context (project+cluster)
 :
 
-#<editor-fold desc="project">
-project="$(next_arg)"
-if no "$project"; then
-    options "--command: $command_hosts $command_current_context $command_close .project: $(projects)"
+#<editor-fold desc="context">
+context="$(next_arg)"
+if no "$context"; then
+    options "--command: $command_hosts $command_current_context $command_authenticate $command_close .context: $(contexts)"
 fi
-case "$project" in
+case "$context" in
     "$command_hosts")           dump_hosts      ;;
     "$command_current_context") current_context ;;
     "$command_close")           close           ;;
-    *)                          continue="1"    ;;
+    "$command_authenticate")
+        project="$(next_arg)"
+        if no "$project"; then
+            options ".project: $(projects)"
+        fi
+
+        cluster="$(next_arg)"
+        if no "$cluster"; then
+            options ".cluster: $(clusters "$project")"
+        fi
+
+        if [ "$(current_context 2>/dev/null)" != "gke_$project""_$(echo "$cluster"| sed -r 's/^(.+):(.+)$/\2_\1/')" ]; then
+            authenticate "$project" "$cluster"
+            echo>&2 "authenticated to project[$project]cluster[$cluster]"
+        fi
+        ;;
+    *) continue="1" ;;
 esac
-[ "$continue" ] && continue="" || exit
-#</editor-fold>
-
-#<editor-fold desc="cluster">
-cluster="$(next_arg)"
-if no "$cluster"; then
-    options ".cluster: $(clusters "$project")"
+if [ "$continue" ]; then
+    continue=""
+else
+    close
+    exit 0
 fi
-#</editor-fold>
 
-#<editor-fold desc="authenticate">
-if [ "$(current_context 2>/dev/null)" != "gke_$project""_$(echo "$cluster"| sed -r 's/^(.+):(.+)$/\2_\1/')" ]; then
-    authenticate "$project" "$cluster"
-    echo>&2 "authenticated to project[$project]cluster[$cluster]"
-fi
+set_context "$context"
+echo>&2 "using context [$context]"
 #</editor-fold>
 
 #<editor-fold desc="namespace">
@@ -223,18 +253,27 @@ if [ "$continue" ]; then
     continue=""
 else
     close
-    exit
+    exit 0
 fi
 #</editor-fold>
 
 #<editor-fold desc="container">
 container="$(next_arg)"
 if no "$container"; then
-    options ".container: $(containers "$namespace")"
+    options "--command: $command_statuses $command_logs .container: $(containers "$namespace")"
+fi
+case "$container" in
+    "$command_statuses") list_pods_for_namespace "$namespace" ;;
+    "$command_logs")     logs "$namespace"                    ;;
+    *)                   continue="1"                         ;;
+esac
+if [ "$continue" ]; then
+    continue=""
+else
+    close
+    exit 0
 fi
 #</editor-fold>
-
-# stern !
 
 #<editor-fold desc="command">
 command="$(next_arg)"
@@ -249,7 +288,7 @@ if [ "$continue" ]; then
     continue=""
 else
     close
-    exit
+    exit 0
 fi
 #</editor-fold>
 

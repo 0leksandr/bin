@@ -1,0 +1,17 @@
+#!/bin/sh
+
+shells="$(_shells '\n')"
+shells="$shells\n$(echo "$shells" |sed -r 's ^.*/([^/]+)$ \1 g')"
+shells="$(echo "$shells" |tr '\n' '|' |sed -r 's/\|$//')"
+
+#parent="$(_parent "$(_parent)")"  # subshells!
+parent="$(_parent)"
+parent="$(_parent "$parent")"
+#parent="$(_parents $$ ' ' |sed -r 's/^[^ ]+ +([^ ]+) .*$/\1/')"
+
+parent="$(proc -x -P "$parent" |sed -r 's/^([^ ]+ +){10}(.+)$/\2/')"
+if echo "$parent" |grep -E -q "^($shells|/bin/zsh --login -i)$"; then
+    exit 1
+else
+    exit 0
+fi
