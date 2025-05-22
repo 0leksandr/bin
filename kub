@@ -60,12 +60,30 @@ options() {
 no_more_args() {
     echo>&2 "No more arguments available"
 }
+read_() {
+    local name="$1"
+    local default="$2"
+
+    printf "%s: " "$name"
+    read -r value
+
+    if [ ! "$value" ]; then
+        if [ $# -ge 2 ]; then
+            value="$default"
+        else
+            echo>&2 "$name is required"
+            exit 1
+        fi
+    fi
+
+    eval "$name=$value"
+}
 
 # company-specific
-filter_pods() {
-    local pods="$1"
+filter_containers() {
+    local containers="$1"
 
-    echo "$pods" |sed -r 's/^linkerd-proxy,//g'
+    echo "$containers" |grep --invert-match --line-regexp "linkerd-proxy"
 }
 service_port() {
     local namespace="$1"
@@ -112,7 +130,7 @@ containers() {
     local namespace="$1"
 
     local containers="$(kubectl get pods --namespace="$namespace" -o custom-columns="CONTAINER:.spec.containers[*].name")"
-    filter_pods "$(strip_head "$containers")" |sort |uniq
+    filter_containers "$(strip_head "$containers" |tr ',' '\n')" |sort |uniq
 }
 list_pods_for_namespace() {
     local namespace="$1"
@@ -129,7 +147,10 @@ pods_for_namespace_container() {
             -o custom-columns="CONTAINER:.spec.containers[*].name,POD:.metadata.name" \
         &&:
     )"
-    filter_pods "$(strip_head "$containers_pods")" |grep -E "^$container " |sed -r "s/^.+ +(.+)$/\1/g"
+    strip_head "$containers_pods"                 \
+        |grep -E "^([^ ]+,)?$container(,[^ ]+)? " \
+        |sed -r "s/^.+ +(.+)$/\1/g"               \
+    &&:
 }
 hosts() {
     kubectl get ingress --all-namespaces
@@ -170,10 +191,37 @@ port_forward() {
 logs() {
     local namespace="$1"
 
-    printf "search: "
-    read -r search
-    [ "$search" ] || search=".*"
+    local search
+    read_ search ".*"
+
     stern --namespace "$namespace" "$search" ||:
+}
+execute_all_pods() {
+    local namespace="$1"
+    local container="$2"
+
+    read_ command
+
+    for pod in $(pods_for_namespace_container "$namespace" "$container"); do
+        echo "pod[$pod]"
+        execute "$namespace" "$container" "$pod" "$command"
+    done
+}
+execute() {
+    local namespace="$1"
+    local container="$2"
+    local pod="$3"
+
+    read_ command
+
+    kubectl exec --namespace "$namespace" --container "$container" "$pod" -- "$command"
+}
+login() {
+    local namespace="$1"
+    local container="$2"
+    local pod="$3"
+
+    kubectl exec -it --namespace "$namespace" --container "$container" "$pod" -- "sh"
 }
 close() {
     #kubectl config delete-context "$(current_context)"
@@ -192,6 +240,9 @@ command_telepresence="-telepresence"
 command_statuses="-statuses"
 command_logs="-logs"
 command_port_forward="-port-forward"
+command_execute_all_pods="-execute-all-pods"
+command_execute="-execute"
+command_login="-login"
 
 #gcloud auth login
 #kubectl api-resources  # list resource types
@@ -228,7 +279,6 @@ esac
 if [ "$continue" ]; then
     continue=""
 else
-    close
     exit 0
 fi
 
@@ -276,14 +326,33 @@ else
 fi
 #</editor-fold>
 
+#<editor-fold desc="pod">
+pod="$(next_arg)"
+if no "$pod"; then
+    options "--command: $command_port_forward $command_execute_all_pods .pod: $(pods_for_namespace_container "$namespace" "$container")"
+fi
+case "$pod" in
+    "$command_port_forward")     port_forward "$namespace" "$container"     ;;
+    "$command_execute_all_pods") execute_all_pods "$namespace" "$container" ;;
+    *)                           continue="1"                               ;;
+esac
+if [ "$continue" ]; then
+    continue=""
+else
+    close
+    exit 0
+fi
+#</editor-fold>
+
 #<editor-fold desc="command">
 command="$(next_arg)"
 if no "$command"; then
-    options "--command: $command_port_forward"
+    options "--command: $command_execute $command_login"
 fi
 case "$command" in
-    "$command_port_forward") port_forward "$namespace" "$container" ;;
-    *)                       continue="1"                           ;;
+    "$command_execute") execute "$namespace" "$container" "$pod" ;;
+    "$command_login")   login "$namespace" "$container" "$pod"   ;;
+    *)                  continue="1"                             ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -297,7 +366,6 @@ close
 
 # [other]
 #kubectl get nodes
-#procs="$(kubectl exec "$pod" --container "$container" -- )"
 
 #columns="NAMESPACE:.metadata.namespace,CONTAINER:.spec.containers[*].name,NODE:.spec.nodeName,POD:.metadata.name"
 #script=$(cat <<PYTHON
