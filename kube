@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # helpers
@@ -40,6 +40,60 @@ keep() {
     printf "%sPress [enter] to stop" "$text"
     read -r
 }
+foreach() {
+    local indent=${indent:-0}  # Default to 0 if not set
+    local prefix
+
+    # Base case: if only one command left, execute it with all accumulated args
+    if [ $# -eq 1 ]; then
+        local cmd=$1
+        # Get all accumulated arguments from the environment
+        local _args=("${foreach_args[@]}")
+        # Create indentation prefix (2 spaces per level)
+        printf -v prefix '%*s' $((indent * 2)) ""
+        # Execute the command with all accumulated arguments
+        #echo "${prefix}${cmd} ${_args[*]}"  # Show the command being executed
+        "$cmd" "${_args[@]}"
+        return
+    fi
+
+    # Get the current level's variable/function
+    local current=$1
+    shift
+
+    # Save the current foreach_args to restore later
+    local old_foreach_args=("${foreach_args[@]}")
+
+    ## Evaluate the current argument to get the list of items
+    #local items=($($current "${old_foreach_args[@]}"))
+    # Properly read command output into array without word splitting issues
+    local items=()
+    while IFS= read -r line; do
+        items+=("$line")
+    done < <($current "${old_foreach_args[@]}")
+
+    # If no items, return
+    if [ ${#items[@]} -eq 0 ]; then
+        return
+    fi
+
+    # Create indentation prefix for this level
+    printf -v prefix '%*s' $((indent * 2)) ""
+
+    # For each item, add it to the args and recurse
+    for item in "${items[@]}"; do
+        echo "${prefix}${item}"  # Show the current item with proper indentation
+        foreach_args=("${old_foreach_args[@]}" "$item")
+        indent=$((indent + 1)) foreach "$@"
+        indent=$((indent - 1))
+    done
+
+    # Restore the old foreach_args
+    foreach_args=("${old_foreach_args[@]}")
+}
+_1() {
+    echo "$1"
+}
 
 # autocomplete & arguments
 args=$*
@@ -80,11 +134,6 @@ read_() {
 }
 
 # company-specific
-filter_containers() {
-    local containers="$1"
-
-    echo "$containers" |grep --invert-match --line-regexp "linkerd-proxy"
-}
 service_port() {
     local namespace="$1"
     local container="$2"
@@ -97,6 +146,7 @@ service_port() {
         |sed -r "s#$reg#\1#g"                                      \
     &&:
 }
+deduplicate_logs_timestamps='s/^(.*@timestamp.*),"@timestamp":[0-9]+([^0-9].*)$/\1\2/g'
 
 # list resources
 projects() {
@@ -120,36 +170,65 @@ authenticate() {
     gcloud container clusters --project "$project" get-credentials "$cluster_name" --zone "$cluster_location"  2>/dev/null
 }
 contexts() {
-    strip_head "$(kubectl config get-contexts)" |sed -r "s/^\*? *([^ ]+) .*$/\1/g"
+    #kubectx
+    #kubectl config get-contexts --output=name
+
+    timeout=3
+    #kubectl config get-contexts --output=name | xargs -P 10 -I {} sh -c \
+    #    'if kubectl --context="{}" auth can-i list pods --request-timeout='"$timeout"'s &>/dev/null; then echo "{}"; fi'
+    kubectl config get-contexts --output=name | xargs -P 10 -I {} sh -c \
+        'if timeout '"$timeout"' kubectl --context="{}" auth can-i list pods &>/dev/null; then echo "{}"; fi'
 }
 namespaces() {
-    local namespaces="$(kubectl get namespace)"
-    nth "$(strip_head "$namespaces")" 1
+    #kubens
+    kubectl get namespaces --output=custom-columns=NAME:.metadata.name --no-headers
 }
 containers() {
     local namespace="$1"
 
-    local containers="$(kubectl get pods --namespace="$namespace" -o custom-columns="CONTAINER:.spec.containers[*].name")"
-    filter_containers "$(strip_head "$containers" |tr ',' '\n')" |sort |uniq
+    kubectl get pods                                                 \
+        --namespace="$namespace"                                     \
+        --output=custom-columns="CONTAINER:.spec.containers[*].name" \
+        --no-headers                                                 \
+        |tr ',' '\n'                                                 \
+        |sort                                                        \
+        |uniq                                                        \
+    &&:
 }
-list_pods_for_namespace() {
-    local namespace="$1"
+statuses_all_contexts() {
+    #foreach contexts
+    for context in $(contexts); do
+        echo "context[$context]"
+        use_context "$context"
+        statuses_all_namespaces
+    done
+}
+statuses_all_namespaces() {
+    #kubectl get pods --all-namespaces --field-selector=status.phase!=Running,status.phase!=Succeeded
 
-    kubectl get pods --namespace="$namespace"
+    local pods="$(                                                      \
+        kubectl get pods                                                \
+            --all-namespaces                                            \
+            |grep -E --invert-match "^([^ ]+ +){3}(Running|Completed) " \
+        &&:
+    )"
+    if [ "$(echo "$pods" |wc -l)" -gt 1 ]; then
+        echo "$pods"
+    else
+        echo "✅"
+    fi
 }
 pods_for_namespace_container() {
     local namespace="$1"
     local container="$2"
 
-    local containers_pods="$(                                                         \
-        kubectl get pods                                                              \
-            --namespace="$namespace"                                                  \
-            -o custom-columns="CONTAINER:.spec.containers[*].name,POD:.metadata.name" \
-        &&:
-    )"
-    strip_head "$containers_pods"                 \
-        |grep -E "^([^ ]+,)?$container(,[^ ]+)? " \
-        |sed -r "s/^.+ +(.+)$/\1/g"               \
+    [ "$container" = "$any_container" ] && container=".*"
+    kubectl get pods                                                                    \
+        --namespace="$namespace"                                                        \
+        --output=custom-columns="CONTAINER:.spec.containers[*].name,POD:.metadata.name" \
+        --no-headers                                                                    \
+        |grep -E "^([^ ]+,)?$container(,[^ ]+)? "                                       \
+        |sed -r "s/^[^ ]+ +([^ ]+)$/\1/g"                                               \
     &&:
 }
 hosts() {
@@ -158,10 +237,10 @@ hosts() {
 
 # commands (operations)
 current_context() {
-#    kubectl config view --minify -o jsonpath='{..current-context}'
+    #kubectl config view --minify --output=jsonpath='{..current-context}'
     kubectl config current-context
 }
-set_context() {
+use_context() {
     local context="$1"
 
     kubectl config use-context "$context" >/dev/null
@@ -169,7 +248,7 @@ set_context() {
 dump_hosts() {
     contexts |while read -r context; do
         echo "$context"
-        set_context "$context"
+        use_context "$context"
         indented "  " "$(hosts)"
     done
     close >/dev/null
@@ -190,11 +269,47 @@ port_forward() {
 }
 logs() {
     local namespace="$1"
+    local container="$2"
+    local pod="$3"
 
-    local search
-    read_ search ".*"
+    if [ "$pod" ]; then
+        #kubectl logs --namespace "$namespace" --container "$container" "$pod"
 
-    stern --namespace "$namespace" "$search" ||:
+        local cmd="kubectl logs --namespace $namespace $pod"
+        [ "$container" = "$any_container" ] || cmd="$cmd --container $container"
+        eval "$cmd"
+    else
+        local search
+        read_ search ".*"
+
+        stern --namespace "$namespace" "$search" ||:
+    fi
+}
+errors() {
+    local namespace="$1"
+    local container="$2"
+    local pod="$3"
+
+    #logs "$namespace" "$container" "$pod" | jq -c 'select(.["log.level"] != "DEBUG" and .["log.level"] != "INFO")'
+
+    declare -A colors=(
+        [red]=31
+        [green]=32
+        [yellow]=33
+        [blue]=34
+    )
+    logs "$namespace" "$container" "$pod" \
+        | sed -r "$deduplicate_logs_timestamps" \
+        | jq -r '
+            select(.["log.level"] != "DEBUG" and .["log.level"] != "INFO") |
+            to_entries | map(
+                if .key == "message" or .key == "error" or .key == "err" then
+                    "\(.key): \u001b[1;'"${colors[red]}"'m\(.value)\u001b[0m"
+                else
+                    "\(.key): \(.value)"
+                end
+            ) | join(" | ")
+        '
 }
 execute_all_pods() {
     local namespace="$1"
@@ -202,17 +317,15 @@ execute_all_pods() {
 
     read_ command
 
-    for pod in $(pods_for_namespace_container "$namespace" "$container"); do
-        echo "pod[$pod]"
-        execute "$namespace" "$container" "$pod" "$command"
-    done
+    foreach "_1 $namespace" "_1 $container" pods_for_namespace_container "_1 $command" execute
 }
 execute() {
     local namespace="$1"
     local container="$2"
     local pod="$3"
+    local command="$4"
 
-    read_ command
+    [ "$command" ] || read_ command
 
     kubectl exec --namespace "$namespace" --container "$container" "$pod" -- "$command"
 }
@@ -222,6 +335,12 @@ login() {
     local pod="$3"
 
     kubectl exec -it --namespace "$namespace" --container "$container" "$pod" -- "sh"
+}
+describe() {
+    local namespace="$1"
+    local pod="$2"
+
+    kubectl describe pod --namespace "$namespace" "$pod"
 }
 close() {
     #kubectl config delete-context "$(current_context)"
@@ -237,27 +356,32 @@ command_authenticate="-authenticate"
 command_close="-close"
 command_keep="-keep"
 command_telepresence="-telepresence"
-command_statuses="-statuses"
+command_status="-status"
 command_logs="-logs"
+command_errors="-errors"
 command_port_forward="-port-forward"
 command_execute_all_pods="-execute-all-pods"
 command_execute="-execute"
 command_login="-login"
+command_describe="-describe"
+
+each_namespace="_each-namespace"
+any_container="_any-container"
 
 #gcloud auth login
 #kubectl api-resources  # list resource types
-#kubectx  # list or select context (project+cluster)
 :
 
 #<editor-fold desc="context">
 context="$(next_arg)"
 if no "$context"; then
-    options "--command: $command_hosts $command_current_context $command_authenticate $command_close .context: $(contexts)"
+    options "--command: $command_hosts $command_current_context $command_authenticate $command_status $command_close .context: $(contexts)"
 fi
 case "$context" in
-    "$command_hosts")           dump_hosts      ;;
-    "$command_current_context") current_context ;;
-    "$command_close")           close           ;;
+    "$command_hosts")           dump_hosts            ;;
+    "$command_current_context") current_context       ;;
+    "$command_status")          statuses_all_contexts ;;
+    "$command_close")           close                 ;;
     "$command_authenticate")
         project="$(next_arg)"
         if no "$project"; then
@@ -283,22 +407,23 @@ else
 fi
 
 if [ "$(current_context 2>/dev/null)" != "$context" ]; then
-    set_context "$context"
+    use_context "$context"
 fi
 #</editor-fold>
 
 #<editor-fold desc="namespace">
 # kubens
-# kubectl config view --minify -o jsonpath='{..namespace}'
+# kubectl config view --minify --output=jsonpath='{..namespace}'
 namespace="$(next_arg)"
 if no "$namespace"; then
-    options "--command: $command_telepresence $command_keep $command_hosts .namespace: $(namespaces)"
+    options "--command: $command_telepresence $command_keep $command_hosts $command_status .namespace: $(namespaces) $each_namespace"
 fi
 case "$namespace" in
-    "$command_telepresence") telepresence_ ;;
-    "$command_keep")         keep          ;;
-    "$command_hosts")        hosts         ;;
-    *)                       continue="1"  ;;
+    "$command_telepresence") telepresence_           ;;
+    "$command_keep")         keep                    ;;
+    "$command_hosts")        hosts                   ;;
+    "$command_status")       statuses_all_namespaces ;;
+    *)                       continue="1"            ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -311,12 +436,12 @@ fi
 #<editor-fold desc="container">
 container="$(next_arg)"
 if no "$container"; then
-    options "--command: $command_statuses $command_logs .container: $(containers "$namespace")"
+    options "--command: $command_logs $command_errors .container: $(containers "$namespace") $any_container"
 fi
 case "$container" in
-    "$command_statuses") list_pods_for_namespace "$namespace" ;;
-    "$command_logs")     logs "$namespace"                    ;;
-    *)                   continue="1"                         ;;
+    "$command_logs")   logs "$namespace"   ;;
+    "$command_errors") errors "$namespace" ;;
+    *)                 continue="1"        ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -347,12 +472,15 @@ fi
 #<editor-fold desc="command">
 command="$(next_arg)"
 if no "$command"; then
-    options "--command: $command_execute $command_login"
+    options "--command: $command_execute $command_login $command_describe $command_logs $command_errors"
 fi
 case "$command" in
-    "$command_execute") execute "$namespace" "$container" "$pod" ;;
-    "$command_login")   login "$namespace" "$container" "$pod"   ;;
-    *)                  continue="1"                             ;;
+    "$command_execute")  execute "$namespace" "$container" "$pod" ;;
+    "$command_login")    login "$namespace" "$container" "$pod"   ;;
+    "$command_describe") describe "$namespace" "$pod"             ;;
+    "$command_logs")     logs "$namespace" "$container" "$pod"    ;;
+    "$command_errors")   errors "$namespace" "$container" "$pod"  ;;
+    *)                   continue="1"                             ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -405,7 +533,7 @@ close
 #                |sed -r "s/^( *)[^ ].*$/\1/" \
 #        )//g"                                \
 #)
-#table="$(kubectl get pods --all-namespaces -o custom-columns="$columns")"
+#table="$(kubectl get pods --all-namespaces --output=custom-columns="$columns")"
 #options "$(echo "$(next_arg) $(next_arg) $(next_arg) $(next_arg)|$table" |python3 -c "$script")"
 
 #echo "project[$project] cluster_name[$cluster_name] cluster_location[$cluster_location] namespace[$namespace]"

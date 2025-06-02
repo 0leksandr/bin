@@ -6,12 +6,12 @@ const url = require("url");
 
 const port = 8703;
 const keys = {
-    "browser-key": ["title", "delay 0", "-key",],
-    "radio-nv"   : ["title",                   ],
-    "notify"     : ["message",                 ],
-    "mouse-click": ["x", "y",                  ],
-    "mac-scene"  : [                           ],
-    "proxy"      : ["url", "header ''",        ],
+    "browser-key": ["title", "delay 0", "-key",      ],
+    "radio-nv"   : ["title",                         ],
+    "notify"     : ["message",                       ],
+    "mouse-click": ["x", "y",                        ],
+    "mac-scene"  : [                                 ],
+    "proxy"      : ["method GET", "header ''", "url",],
 };
 
 http

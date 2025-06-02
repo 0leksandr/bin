@@ -1,6 +1,18 @@
 #!/bin/sh
 set -e
-url="$1"
+method="$1"
 header="$2"
+url="$3"
 
-curl --header "$header" -v "$url"
+echo>&2 "method[$method] header[$header] url[$url]"
+
+#curl --request "$method" --header "$header" -v "$url"
+
+case "$method" in
+    HEAD) method="--head"            ;;
+    GET)  method=""                  ;;
+    .*)   method="--request $method" ;;
+esac
+[ "$header" ] && header="--header '$header'"
+
+eval "curl $method $header -v $url"
