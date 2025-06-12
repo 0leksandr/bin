@@ -171,13 +171,14 @@ authenticate() {
 }
 contexts() {
     #kubectx
-    #kubectl config get-contexts --output=name
 
-    timeout=3
+    kubectl config get-contexts --output=name
+
+    #timeout=3
+    ##kubectl config get-contexts --output=name | xargs -P 10 -I {} sh -c \
+    ##    'if kubectl --context="{}" auth can-i list pods --request-timeout='"$timeout"'s &>/dev/null; then echo "{}"; fi'
     #kubectl config get-contexts --output=name | xargs -P 10 -I {} sh -c \
-    #    'if kubectl --context="{}" auth can-i list pods --request-timeout='"$timeout"'s &>/dev/null; then echo "{}"; fi'
-    kubectl config get-contexts --output=name | xargs -P 10 -I {} sh -c \
-        'if timeout '"$timeout"' kubectl --context="{}" auth can-i list pods &>/dev/null; then echo "{}"; fi'
+    #    'if timeout '"$timeout"' kubectl --context="{}" auth can-i list pods &>/dev/null; then echo "{}"; fi'
 }
 namespaces() {
     #kubens
@@ -198,9 +199,10 @@ containers() {
 statuses_all_contexts() {
     #foreach contexts
     for context in $(contexts); do
-        echo "context[$context]"
+        printf "context[%s] " "$context"
         use_context "$context"
         statuses_all_namespaces
+        hr
     done
 }
 statuses_all_namespaces() {
@@ -213,7 +215,7 @@ statuses_all_namespaces() {
         &&:
     )"
     if [ "$(echo "$pods" |wc -l)" -gt 1 ]; then
-        echo "$pods"
+        printf "\n%s\n" "$pods"
     else
         echo "✅"
     fi

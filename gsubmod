@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+branch="$1"
+
+git fetch --all
+
+git branch --list |grep --invert-match 'HEAD detached' |while read -r local_branch; do
+    git branch --delete --force "$local_branch"
+done
+
+if [ "$branch" = "help" ]; then
+    echo "Options: $(git branch --remotes)"
+else
+    git checkout --track "$branch"
+fi
