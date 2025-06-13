@@ -10,6 +10,4 @@ if [ "$(git remote --verbose)" ]; then
 fi
 printf "\n"
 
-if ! _is_in_script; then
-    gst
-fi
+_is_in_script || gst

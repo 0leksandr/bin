@@ -10,6 +10,4 @@ message="$(echo "$message" |sed -r "s/$a/$a\"$a\"$a/g")"
 _gcm "--message='$message'" "${@:2}"
 printf "\n"
 
-if ! _is_in_script; then
-    gst
-fi
+_is_in_script || gst
