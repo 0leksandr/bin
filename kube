@@ -377,7 +377,7 @@ any_container="_any-container"
 #<editor-fold desc="context">
 context="$(next_arg)"
 if no "$context"; then
-    options "--command: $command_hosts $command_current_context $command_authenticate $command_status $command_close .context: $(contexts)"
+    options "--command: $command_hosts $command_current_context $command_status $command_close $command_authenticate .context: $(contexts)"
 fi
 case "$context" in
     "$command_hosts")           dump_hosts            ;;

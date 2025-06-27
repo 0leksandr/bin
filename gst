@@ -19,7 +19,7 @@ check_reg() {
     cmd="$1"
     reg="$2"
 
-    out="$(git $cmd |grep --line-number -E "$reg" ||:)"
+    out="$(git $cmd |grep -E --line-number "$reg" ||:)"
     if [ "$out" ]; then
         err echo "'$(                                    \
             git -c color.status=always $cmd              \
@@ -35,7 +35,7 @@ check_reg() {
 
 clear_line() {
     printf "\r"
-    printf '%*s' "${COLUMNS:-$(tput cols)}"
+    printf '%*s' "${COLUMNS:-$(tput cols)}" ""
     printf "\r"
 }
 
@@ -99,7 +99,7 @@ if [ "$has_remote" ]; then
 
     if [ "$branches" ]; then
         for branch in $branches; do
-            printf "querying PRs for branch $branch..."
+            printf "querying PRs for branch %s..." "$branch"
             remote_base_branches="$(gh pr list --head "$branch" --json baseRefName --jq '.[].baseRefName')"
             clear_line
             for remote_base_branch in $remote_base_branches; do
