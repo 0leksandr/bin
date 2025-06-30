@@ -8,6 +8,12 @@ tags="$(git tag --list)"
 if [ "$tags" ]; then
     #last_tag="$(git describe --abbrev=0 --tags)"  # WTF
     last_tag="$(last "$tags")"
+
+    if [ "$tag" = "help" ]; then
+        echo "Options: $last_tag"
+        exit 0
+    fi
+
     if [ "$last_tag" = "$(last "$last_tag\n$tag")" ]; then
         echo>&2 "last tag: $last_tag"
         exit 1
