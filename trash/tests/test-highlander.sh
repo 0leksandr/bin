@@ -5,4 +5,4 @@ echo "last[$last]"
 _highlander "$last"
 
 #sleep infinity
-while :; do sleep 1000; done
+while :; do sleep 100; done

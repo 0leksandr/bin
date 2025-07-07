@@ -2,18 +2,19 @@
 # kill other instances of a parent script
 set -e
 
+command="$(ps -o command= $PPID)"
 if [ "$1" = "--unique" ]; then  # only kill exact others
-    command="$(ps -o command= $PPID)"
     pids="$(pgrep --exact --full "$command")"
 elif echo "$1" |grep -Eq "^[0-9]+$"; then
-    command="$(ps -o command= $PPID)"
     search="$(echo "$command" |sed -r "s/^ *([^ ]+ +[^ ]+( +[^ ]+){$1}).*$/\1/")"
     #pids="$(pgrep "^$search")"  # does not work that way
     pids="$(proc -x -P "$search" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/g')"
 else
-    procname=$(ps -o comm= $PPID)
-    # procname=$(realpath "$procname")
-    pids="$(pgrep --exact "$procname")"
+    #procname=$(ps -o comm= $PPID)
+    procname="$(echo "$command" |sed -r "s#^(($(_shells)) +)+##g")"
+
+    #pids="$(pgrep --exact "$procname")"
+    pids="$(proc -q "$procname" |sed -r 's/^[^ ]+ +([0-9]+) .*$/\1/g')"
 fi
 
-echo "$pids" |egrep --invert-match --line-regexp "($(_parents))" |xargs --max-args=1 --no-run-if-empty fkill
+echo "$pids" |grep -E --invert-match --line-regexp "($(_parents))" |xargs --max-args=1 --no-run-if-empty fkill
