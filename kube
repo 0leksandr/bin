@@ -134,19 +134,9 @@ read_() {
 }
 
 # company-specific
-service_port() {
-    local namespace="$1"
-    local container="$2"
-
-    # kubectl get svc --namespace="$namespace" |grep -E "^$container "
-    reg="^Port: +[a-z]+ +([0-9]+)/[A-Z]+$"
-    kubectl describe service --namespace="$namespace" "$container" \
-        |grep -E "$reg"                                            \
-        |grep --invert-match metrics                               \
-        |sed -r "s#$reg#\1#g"                                      \
-    &&:
-}
+ignored_port_services="metrics"
 deduplicate_logs_timestamps='s/^(.*@timestamp.*),"@timestamp":[0-9]+([^0-9].*)$/\1\2/g'
+ignored_pods="((kong|kube-janitor|alloy|linkerd)-(dev|qa|stage|sandbox|prod)|scaleops-healthcheck)"
 
 # list resources
 projects() {
@@ -212,10 +202,11 @@ statuses_all_namespaces() {
         kubectl get pods                                                \
             --all-namespaces                                            \
             |grep -E --invert-match "^([^ ]+ +){3}(Running|Completed) " \
+            |grep -E --invert-match "^$ignored_pods "                   \
         &&:
     )"
     if [ "$(echo "$pods" |wc -l)" -gt 1 ]; then
-        printf "\n%s\n" "$pods"
+        printf "❌\n%s\n" "$pods"
     else
         echo "✅"
     fi
@@ -235,6 +226,18 @@ pods_for_namespace_container() {
 }
 hosts() {
     kubectl get ingress --all-namespaces
+}
+service_port() {
+    local namespace="$1"
+    local container="$2"
+
+    # kubectl get svc --namespace="$namespace" |grep -E "^$container "
+    reg="^Port: +[a-z]+ +([0-9]+)/[A-Z]+$"
+    kubectl describe service --namespace="$namespace" "$container" \
+        |grep -E "$reg"                                            \
+        |grep --invert-match "$ignored_port_services"              \
+        |sed -r "s#$reg#\1#g"                                      \
+    &&:
 }
 
 # commands (operations)
