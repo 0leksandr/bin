@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+reg="^Python ([0-9]+(\\.[0-9]+){2})$"
+version="$(python3 --version)"
+if echo "$version" |grep -Eq "$reg"; then
+    version="$(echo "$version" |sed -r "s/$reg/\1/")"
+else
+    echo>&2 "Invalid version: $version"
+    exit 1
+fi
+
+mkdir -p .venv
+python3 -m venv ".venv/$version"
+"./.venv/$version/bin/pip" install --upgrade pip
+
+requirements="requirements.txt"
+if [ -f "$requirements" ]; then
+    "./.venv/$version/bin/pip" install -r "$requirements"
+fi

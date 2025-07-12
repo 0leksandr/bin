@@ -1,2 +1,10 @@
 #!/bin/sh
-eval "sudo chown -R $USER:$USER $(_path 1 "$@")"
+set -e
+
+case "$(_os)" in
+    linux) group="$USER" ;;
+    mac)   group="staff" ;;
+    *)     exit 1
+esac
+
+eval "sudo chown -R $USER:$group $(_path 1 "$@")"
