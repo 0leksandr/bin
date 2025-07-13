@@ -1,4 +1,10 @@
 #!/bin/sh
-# find "$@" -printf '%P\n'
-# find "$@" | cut -c3-
-find "$@" |sed -r 's|^\./||'
+set -e
+
+case "$(_os)" in
+    linux) cmd="find"  ;;
+    mac)   cmd="gfind" ;;
+    *)     exit 1      ;;
+esac
+
+_transfer "$cmd" "$@" |sed -r 's|^\./||'

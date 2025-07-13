@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 cmd=""
 for arg in "$@"; do
     cmd="$cmd $(printf "%q" "$arg")"

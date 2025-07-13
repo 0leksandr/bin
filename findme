@@ -1,11 +1,7 @@
 #!/bin/sh
 set -e
 
-case "$(_os)" in
-    linux) regex_args="-regextype awk -iregex '.*($1)[^/]*'" ;;
-    mac)   regex_args="-iregex '.*$1[^/]*'"                  ;;
-esac
-
-eval "findp $(_path 2 "$@") $regex_args -exec ls -dp {} \;" \
+eval "findp $(_path 2 "$@") -regextype awk -iregex '.*($1)[^/]*' -exec ls -dp {} \;" \
     |sort --version-sort                                                             \
-    |grep -iE --color=auto "$1"
+    |grep -iE --color=auto "$1"                                                      \
+&&:
