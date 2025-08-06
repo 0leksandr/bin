@@ -5,11 +5,11 @@ branch="$1"
 git fetch --all
 
 git branch --list |grep --invert-match 'HEAD detached' |while read -r local_branch; do
-    git branch --delete --force "$local_branch"
+    git branch --delete --force "$local_branch" >/dev/null
 done
 
 if [ "$branch" = "help" ]; then
-    echo "Options: $(git branch --remotes)"
+    echo "Options: $(git branch --remotes |sed -r 's#^( *[^ ]+)( .*)?$#\1#g')"
 else
     git checkout --track "$branch"
 fi
