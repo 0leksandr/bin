@@ -1,2 +1,7 @@
 #!/bin/sh
-gnome-open "$@"
+set -e
+
+case "$(_os)" in
+    linux) gnome-open "$@" ;;
+    mac)   open "$@"       ;;
+esac
