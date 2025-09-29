@@ -1,5 +1,0 @@
-#!/bin/sh
-stdbuf -oL "$@" |while IFS= read -r line; do
-    echo "$line"
-    echo "$line" |tr -d '\r\n' |xsel -bi
-done

@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+case "$(_os)" in
+    linux)
+        stdbuf -oL "$@" |while IFS= read -r line; do
+            echo "$line"
+            echo "$line" |tr -d '\r\n' |xsel -bi
+        done
+        ;;
+    mac)
+        output="$(eval "$*")"
+        echo "$output"
+        echo "$output" |pbcopy
+        ;;
+esac
