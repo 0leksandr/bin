@@ -3,7 +3,11 @@ set -e
 
 _ignore-completion "$1"
 
-_gcm "--amend" "$@"
+flags="--amend"
+if [ "$(git status --short)" ]; then
+    flags="$flags --no-edit"
+fi
+_gcm "$flags" "$@"
 printf "\n"
 
 gst

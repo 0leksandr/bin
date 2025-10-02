@@ -4,7 +4,7 @@ branch="$1"
 
 git fetch --all
 
-git branch --list |grep --invert-match 'HEAD detached' |while read -r local_branch; do
+git branch --list |grep --invert-match 'HEAD detached' |sed -r 's/^ *\* *//g' |while read -r local_branch; do
     git branch --delete --force "$local_branch" >/dev/null
 done
 
