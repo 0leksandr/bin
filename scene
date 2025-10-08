@@ -8,9 +8,20 @@ daytime_file="$HOME/_/localhost/http-server/daytime.txt"
 daytime_pipe="$HOME/.temp/daytime"
 [ -p "$daytime_pipe" ] || mkfifo "$daytime_pipe"
 
+_date() {
+    local _date="$1"
+    local format="$2"
+
+    case "$(_os)" in
+        linux) date --date="$_date" "$format"                    ;;
+        mac)   date -j -f "%Y-%m-%d %H:%M:%S" "$_date" "$format" ;;
+        *)     exit 1                                            ;;
+    esac
+}
+
 minutes() {
-    local _hours=$(date --date="$1" +%-H)
-    local _minutes=$(date --date="$1" +%-M)
+    local _hours=$(_date "$1" +%-H)
+    local _minutes=$(_date "$1" +%-M)
     printf $((_hours * 60 + _minutes))
 }
 
@@ -22,7 +33,7 @@ minutes_to_time() {
 
 minutes_range_to_timestamps() {
     timestamp() {
-        printf "$(date --date="$1" +%s)"
+        printf "%s" "$(_date "$1" +%s)"
     }
 
     echo "$(timestamp "$(minutes_to_time $1)")"
