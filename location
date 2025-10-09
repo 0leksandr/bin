@@ -3,11 +3,11 @@ set -e
 
 opts="Options: latitude longitude help"
 case "$1" in
-#	latitude)  printf -- 50.425    ;;   # Київ
-#	longitude) printf -- 30.519    ;;
+	# latitude)  printf -- 50.425    ;;   # Київ
+	# longitude) printf -- 30.519    ;;
 
-#	latitude)  printf -- 49.405    ;;  # Хмель
-#	longitude) printf -- 26.99     ;;
+	# latitude)  printf -- 49.405    ;;  # Хмель
+	# longitude) printf -- 26.99     ;;
 
 	latitude)  printf -- 38.76     ;;  # Лісабон, Віталік, Віка, Ніка
 	longitude) printf -- -9.108    ;;
