@@ -50,10 +50,10 @@ fi
 
 if [ "$has_remote" ]; then
     filename=".git/FETCH_HEAD"
-    case "$(uname)" in
-        Linux)  fetched_at="$(stat --format=%Y "$filename")" ;;
-        Darwin) fetched_at="$(stat -f %m "$filename")"       ;;
-        *)      err echo "unknown operating system"          ;;
+    case "$(_os)" in
+        linux) fetched_at="$(stat --format=%Y "$filename")" ;;
+        mac)   fetched_at="$(stat -f %m "$filename")"       ;;
+        *)     err echo "unknown operating system"          ;;
     esac
     fetched_ago=$(($(date +%s) - fetched_at))
     if [ $fetched_ago -gt 60 ]; then
