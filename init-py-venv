@@ -1,20 +1,40 @@
 #!/bin/sh
 set -e
+version="$1"
 
-reg="^Python ([0-9]+(\\.[0-9]+){2})$"
-version="$(python3 --version)"
-if echo "$version" |grep -Eq "$reg"; then
-    version="$(echo "$version" |sed -r "s/$reg/\1/")"
+if [ ! "$version" ]; then
+    version=3
+fi
+
+python="python$version"
+reg="^Python ((([0-9]+)\\.[0-9]+)\\.[0-9]+)$"
+version_str="$($python --version)"
+if echo "$version_str" |grep -Eq "$reg"; then
+    version1="$(echo "$version_str" |sed -r "s/$reg/\3/")"
+    version2="$(echo "$version_str" |sed -r "s/$reg/\2/")"
+    version3="$(echo "$version_str" |sed -r "s/$reg/\1/")"
 else
-    echo>&2 "Invalid version: $version"
+    echo>&2 "Invalid version: $version_str"
     exit 1
 fi
 
 mkdir -p .venv
-python3 -m venv ".venv/$version"
-"./.venv/$version/bin/pip" install --upgrade pip
+venv=".venv/$version3"
+$python -m venv "$venv"
+pip="./$venv/bin/pip"
+"$pip" install --upgrade pip setuptools wheel
 
-requirements="requirements.txt"
-if [ -f "$requirements" ]; then
-    "./.venv/$version/bin/pip" install -r "$requirements"
+requirements=""
+for candidate in                     \
+        "requirements.txt"           \
+        "requirements-$version1.txt" \
+        "requirements-$version2.txt" \
+        "requirements-$version3.txt" \
+        ; do
+    if [ -f "$candidate" ]; then
+        requirements="$candidate"
+    fi
+done
+if [ "$requirements" ]; then
+    "$pip" install -r "$requirements"
 fi

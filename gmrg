@@ -4,4 +4,7 @@ branch="$1"
 
 git merge "$branch"
 git branch --delete "$branch"
-git branch --delete --remotes origin/"$branch" ||:
+
+if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+    git branch --delete --remotes origin/"$branch" ||:
+fi
