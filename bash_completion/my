@@ -29,6 +29,9 @@ complete -F _complete_by_options aqi brightness errors gsubmod kube light locati
 
 
 _complete_files() {
-    COMPREPLY=( $(ls -CF --group-directories-first) )
+    case "$(_os)" in
+        linux) COMPREPLY=( $(ls -CF --group-directories-first) ) ;;
+        mac)   COMPREPLY=( $(ls -CF) )                           ;;
+    esac
 }
 complete -F _complete_files gdf git-reset nr-files

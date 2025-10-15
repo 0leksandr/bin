@@ -7,6 +7,6 @@ case "$(_os)" in
         df -h --type=ext4 --type=fuseblk --output=target,size,used,avail,pcent
         ;;
     mac)
-        df -h -I /System/Volumes/Data
+        df -h -I
         ;;
 esac
