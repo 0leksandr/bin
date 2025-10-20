@@ -2,10 +2,6 @@
 set -e
 version="$1"
 
-if [ ! "$version" ]; then
-    version=3
-fi
-
 python="python$version"
 reg="^Python ((([0-9]+)\\.[0-9]+)\\.[0-9]+)$"
 version_str="$($python --version)"
