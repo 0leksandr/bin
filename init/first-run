@@ -39,3 +39,10 @@ gh auth login
 
 printf '/.idea/\n/.venv/\n/__pycache__/\n' > "$HOME/.gitignore"
 git config --global core.excludesFile "$HOME/.gitignore"
+
+#if [ "$is_mac" ]; then
+#    :
+#    # https://support.codeweavers.com/Remap%20the%20Option%20key%20to%20be%20the%20Alt%20key#:~:text=For%20manual%20reference%20the%20registry,from%20Windows%20Applications%20using%20PDFwriter
+#    # "LeftCommandIsCtrl"="Y"
+#    # "RightCommandIsCtrl"="Y"
+#fi
