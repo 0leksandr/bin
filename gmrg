@@ -6,5 +6,5 @@ git merge "$branch"
 git branch --delete "$branch"
 
 if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
-    git branch --delete --remotes origin/"$branch" ||:
+    git push origin --delete "$branch"
 fi
