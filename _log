@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+# TODO: optimize
+name="$(
+    _parents                                              \
+    |tr '|' '\n'                                          \
+    |xargs -r -I {} -- ps -o command= {}                  \
+    |sed -r "s#^(($(_shells)) +)+##g"                     \
+    |sed -r 's#^[^ ]*/([^ /]+) .*$#\1#'                   \
+    |grep --invert-match --line-regexp "$(basename "$0")" \
+    |head --lines=1                                       \
+    &&:
+)"
+
+if echo "$name" |grep -Eq '^[0-9a-zA-Z_-]+$'; then
+    echo "$(date-ft): $*" >> "$HOME/.temp/logs/$name.log"
+else
+    echo>&2 "$(basename "$0") name[$name]"
+fi
