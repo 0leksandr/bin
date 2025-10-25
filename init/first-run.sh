@@ -15,13 +15,9 @@ if [ "$is_mac" ]; then
   [[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]] && . "/opt/homebrew/etc/profile.d/bash_completion.sh"
 fi
 
-rc_file="$HOME"/."$(basename "$(which "$SHELL")")"rc
-dir="$(dirname "$0")"
-case "$(../_os)" in
-  linux) echo "\n\n. \"$(realpath "$dir"/../rc/profile)\"" >> "$HOME/.profile" ;;
-  mac)   echo "\n\n. \"$(realpath "$dir"/../rc/profile)\"" >> "$rc_file" ;;
-esac
-echo "\n\n. \"$(realpath "$dir"/../rc/rc)\"" >> "$rc_file"
+rc="$(dirname "$0")/../rc"
+"$(dirname "$0")/../utils/register-in-profile.sh" "$rc/profile" "profile"
+"$(dirname "$0")/../utils/register-in-profile.sh" "$rc/rc" "rc"
 # sudo sh -c "echo \"\\n. $(realpath ./rc/profile_root)\" >> /etc/environment"
 
 read -p "GitHub name: " gh_name

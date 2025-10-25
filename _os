@@ -3,7 +3,10 @@ set -e
 
 os="$(uname -s)"
 case "$os" in
-    Darwin) echo "mac"                                  ;;
-    Linux)  echo "linux"                                ;;
-    *)      echo>&2 "$(realpath "$0"): unknown OS: $os" ;;
+    Darwin) echo "mac"   ;;
+    Linux)  echo "linux" ;;
+    *)
+        echo>&2 "$(realpath "$0"): unknown OS: $os"
+        exit 1
+        ;;
 esac
