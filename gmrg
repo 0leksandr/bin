@@ -7,4 +7,5 @@ git branch --delete "$branch"
 
 if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
     git push origin --delete "$branch"
+    git fetch origin --prune
 fi

@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+requirements="requirements.txt"
+
+outdated=""
+for pkg_name in $(pip list --outdated |tail --lines=+3 |sed -r 's/^([^ ]+) .*$/\1/g'); do
+    line="$(grep -E "^$pkg_name " "$requirements" ||:)"
+    if [ "$line" ]; then
+        outdated="$outdated $(echo "$line" |sed -r 's/^.*@(.+)@.*$/\1/')"
+    else
+        outdated="$outdated $pkg_name"
+    fi
+done
+eval "pip install --upgrade $outdated"
+pip freeze > "$requirements"
