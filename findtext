@@ -7,11 +7,11 @@ search1=".{0,$max_line_len}$search.{0,$max_line_len}"
 search2="$(echo "$search" |sed "s / \\\\/ g")"
 esc=$(printf '\033')
 
-# -aHrinEo
+# -HrinEo
+# -a --binary-files=text
 eval "                                                                          \
     stdbuf -o0 --                                                               \
         grep                                                                    \
-            --binary-files=text                                                 \
             --with-filename                                                     \
             --recursive                                                         \
             --ignore-case                                                       \
@@ -19,6 +19,8 @@ eval "                                                                          
             --extended-regexp                                                   \
             --only-matching                                                     \
             --exclude-dir=.git                                                  \
+            --exclude-dir=.venv                                                 \
+            --exclude-dir=.__pycache__                                          \
         -- '$search1' $(_path 2 "$@")                                           \
 "                                                                               \
     |sed -r -u "s/($search2)/${esc}[1m${esc}[91m\1${esc}[0m/ig"                 \
