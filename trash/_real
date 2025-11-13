@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+file="$1"
+
+basename="$(basename "$file")"
+case "$(_os)" in
+    linux)
+        locations=""
+        IFS=:; for dir in $PATH; do
+            location="$dir/$basename"
+            if [ -x "$location" ]; then
+                locations="$locations:$location"
+            fi
+        done
+        locations="$(echo "$locations" |tr ':' '\n' |grep -E --invert-match '^$')"
+        ;;
+    mac)
+        locations="$(type -a "$basename" |sed -r "s/^$basename is //g")"
+        ;;
+    *)     exit 1
+esac
+echo "$locations"                                                 \
+    | grep -E --invert-match "^$(dirname "$(realpath "$file")")/" \
+    | head --lines=1                                              \
+    &&:
