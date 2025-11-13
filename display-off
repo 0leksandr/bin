@@ -2,6 +2,6 @@
 set -e
 
 xset dpms force off
-root="$(dirname $(realpath $0))"
-$root/utils/mouse-set-status.sh 0
-$root/utils/mouse-set-status.sh 1
+utils=~/_/Programs/local-bin/utils
+"$utils"/mouse-set-status.sh 0
+"$utils"/mouse-set-status.sh 1

@@ -11,6 +11,7 @@ log(){
 log "this is a test 1"
 
 utils="$HOME/_/Programs/bin/utils"
+local_utils="$HOME/_/Programs/local-bin/utils"
 #bluetooth-off
 mic-off
 
@@ -27,12 +28,12 @@ daemons                                 \
     "errors listen"                     \
     "cronus $HOME/_/Programs/cronostab" \
     "brightness daemon"                 \
-    "$utils/monitor-ac-power.sh"        \
+    "$local_utils/monitor-ac-power.sh"  \
     "system-server"                     \
     "scene _all"                        \
     "conky-my"                          \
                                         &
-# $utils/external-display-settings
+# $local_utils/external-display-settings
 
 #supervisord --configuration=./supervisord.conf
 
