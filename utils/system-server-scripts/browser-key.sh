@@ -12,7 +12,7 @@ if [ $# -ge 3 ]; then
     keys=""
     i=0
     for key in "$@"; do
-        i=$(($i + 1))
+        i=$((i + 1))
         if [ $i -ge 3 ]; then
             case "$os" in
                 linux) keys="$keys key $key" ;;

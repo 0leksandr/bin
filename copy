@@ -10,7 +10,7 @@ case "$(_os)" in
         ;;
     mac)
         output="$(eval "$*")"
-        echo "$output"
-        echo "$output" |pbcopy
+        printf '%s' "$output"
+        printf '%s' "$output" |pbcopy
         ;;
 esac
