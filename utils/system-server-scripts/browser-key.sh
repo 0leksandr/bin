@@ -38,11 +38,10 @@ if [ $# -ge 3 ]; then
                 osascript -e "activate application \"$title\""
             fi
             case "$keys" in
-                "ctrl+"*) keystroke="$(echo "$keys" |sed -r 's/^ctrl\+(.+)$/\1/') using command down" ;;
-                *)        keystroke="$keys"
+                "ctrl+"*) keystroke="\"$(echo "$keys" |sed -r 's/^ctrl\+(.+)$/\1/')\" using {command down}" ;;
+                *)        keystroke="\"$keys\""
             esac
-notify "keystroke[$keystroke]"
-            osascript -e "tell application \"System Events\" to keystroke \"$keystroke\""
+            osascript -e "tell application \"System Events\" to keystroke $keystroke"
             ;;
     esac
 else
