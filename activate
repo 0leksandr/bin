@@ -4,6 +4,7 @@ window_name="$1"
 timeout="$2"
 
 [ "$(_os)" = "mac" ] || exit 1
+[ "$timeout" ] || timeout=0
 
 now (){ date +"%s" ;}
 start="$(now)"
