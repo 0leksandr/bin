@@ -1,9 +1,13 @@
-for dir in "$HOME/_/Programs/bin" "$HOME/_/Programs/bin/root" "$HOME/_/Programs/local-bin"; do
+Programs="$HOME/_/Programs"
+for dir in "$Programs/bin" "$Programs/bin/root" "$Programs/local-bin"; do
     if [ -d $dir ] ; then
         PATH="$dir:$PATH"
-        # export PATH
     fi
 done
+if [ "$(_os)" = "mac" ]; then
+    PATH="$Programs/bin/mac:$PATH"
+fi
+# export PATH
 
 export GOPATH="$HOME/go"
 #export GOROOT="$GOPATH/sdk/go1.16.3"

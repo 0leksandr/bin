@@ -3,7 +3,7 @@ set -e
 search="$1"
 max_line_len=100
 
-search1=".{0,$max_line_len}$search.{0,$max_line_len}"
+search1=".{0,$max_line_len}($search).{0,$max_line_len}"
 search2="$(echo "$search" |sed "s / \\\\/ g")"
 esc=$(printf '\033')
 

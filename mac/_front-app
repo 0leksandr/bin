@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+osascript -e 'path to frontmost application as Unicode text' |sed -r 's/^.*:([^:]+):?$/\1/'

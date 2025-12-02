@@ -3,7 +3,6 @@ set -e
 window_name="$1"
 timeout="$2"
 
-[ "$(_os)" = "mac" ] || exit 1
 [ "$timeout" ] || timeout=0
 
 now (){ date +"%s" ;}
@@ -33,10 +32,27 @@ osascript -e '
                     -- try
                     --     set position of proc to {0, 0}
                     -- end try
+
+                    -- delay '"$timeout"'
+
                     return "Activated PID: " & targetPID
+                    -- exit repeat
                 end if
             end try
         end repeat
-        return "PID " & targetPID & " not found"
+        -- return "PID " & targetPID & " not found"
+        -- display dialog "Window \"'"$window_name"'\" was not activated" with title "'"$(basename "$0")"'"
     end tell
 '
+
+start="$(now)"
+while :; do
+    if [ "$(_front-app)" = "$window_name" ]; then
+        break
+    elif [ $(($(now) - start)) -gt "$timeout" ]; then
+        notify "Window \"$window_name\" was not activated"
+        exit 1
+    else
+        sleep 0.1
+    fi
+done
