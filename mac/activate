@@ -13,6 +13,7 @@ while :; do
     if [ "$pid" ]; then
         break
     elif [ $(($(now) - start)) -gt "$timeout" ]; then
+        alert "window \"$window_name\" is not open"
         exit 1
     else
         sleep 0.1
@@ -43,14 +44,14 @@ osascript -e '
         -- return "PID " & targetPID & " not found"
         -- display dialog "Window \"'"$window_name"'\" was not activated" with title "'"$(basename "$0")"'"
     end tell
-'
+' ||:
 
 start="$(now)"
 while :; do
     if [ "$(_front-app)" = "$window_name" ]; then
         break
     elif [ $(($(now) - start)) -gt "$timeout" ]; then
-        notify "Window \"$window_name\" was not activated"
+        alert "Window \"$window_name\" was not activated"
         exit 1
     else
         sleep 0.1

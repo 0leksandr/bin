@@ -2,3 +2,6 @@
 set -e
 
 osascript -e 'path to frontmost application as Unicode text' |sed -r 's/^.*:([^:]+):?$/\1/'
+
+#reg="^[0-9]+\\) "(.+)" ASN:[^:]+: \\(in front\\)$"
+#lsappinfo list |grep -E "$reg" |sed -r "s/$reg/\1/"
