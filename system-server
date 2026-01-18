@@ -1,5 +1,0 @@
-#!/bin/bash
-set -e
-_highlander
-
-node "$(dirname "$0")/system-server.js"
