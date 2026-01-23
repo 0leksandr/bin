@@ -21,7 +21,7 @@ for arg in "$@"; do
 done
 
 if [ $nr_args -eq 1 ]; then
-    commands="$(echo "$last_arg" |sed -r 's/^ *#.*$//' |awk 'NF > 0' |sed -r "s ^.*\$ '\0' ")"
+    commands="$(echo "$last_arg" |sed -r 's/^ *#.*$//' |awk 'NF > 0' |sed -r "s ^(.*)\$ '\1' ")"
     if [ "$(echo "$commands" |wc -l)" -gt 1 ]; then
         cmd="$0 $all_or_nothing $(echo "$commands" |tr '\n' ' ')"
 
