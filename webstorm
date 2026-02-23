@@ -1,2 +1,0 @@
-#!/bin/sh
-IDE "$(IDE dir webstorm)"/bin/webstorm.sh
