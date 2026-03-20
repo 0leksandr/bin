@@ -1,30 +1,20 @@
 #!/bin/sh
 set -e
-search="$1"
+search="$1" && shift
 max_line_len=100
 
 search1=".{0,$max_line_len}($search).{0,$max_line_len}"
 search2="$(echo "$search" |sed "s / \\\\/ g")"
 esc=$(printf '\033')
 
-# -HrinEo
-# -a --binary-files=text
-eval "                                                                          \
-    stdbuf -o0 --                                                               \
-        grep                                                                    \
-            --with-filename                                                     \
-            --recursive                                                         \
-            --ignore-case                                                       \
-            --line-number                                                       \
-            --extended-regexp                                                   \
-            --only-matching                                                     \
-            --exclude-dir=.git                                                  \
-            --exclude-dir=.venv                                                 \
-            --exclude-dir=.__pycache__                                          \
-        -- '$search1' $(_path 2 "$@")                                           \
-"                                                                               \
+# grep -aHrinEo
+stdbuf -o0 --                                                                   \
+    rg                                                                          \
+        --with-filename                                                         \
+        --ignore-case                                                           \
+        --line-number                                                           \
+        --only-matching                                                         \
+    -- "$search1" "$@"                                                          \
     |sed -r -u "s/($search2)/${esc}[1m${esc}[91m\1${esc}[0m/ig"                 \
     |sed -r -u "s/^([^:]+)(:[0-9]+:)(.+)$/${esc}[35m\1${esc}[32m\2${esc}[0m\3/" \
 &&:
-
-#|grep -aiE --color=auto -- "$search"
