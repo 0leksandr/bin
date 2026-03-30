@@ -7,9 +7,12 @@ timeout="$2"
 
 now (){ date +"%s" ;}
 start="$(now)"
-reg='^ *pid = ([0-9]+) type="Foreground" .*$'
 while :; do
-    pid="$(lsappinfo list |grep -E --after-context=5 "^[0-9]+\) "'"'"$window_name"'"'"" |grep -E "$reg" |sed -r "s/$reg/\1/g")"
+#    reg='^ *pid = ([0-9]+) type="Foreground" .*$'
+#    pid="$(lsappinfo list |grep -E --after-context=5 "^[0-9]+\) "'"'"$window_name"'"'"" |grep -E "$reg" |sed -r "s/$reg/\1/g")"
+    reg="^([0-9]+) $window_name.*$"
+    pid="$(_window-names |rg "$reg" |sed -r "s/$reg/\1/g")"
+
     if [ "$pid" ]; then
         break
     elif [ $(($(now) - start)) -gt "$timeout" ]; then
@@ -34,7 +37,7 @@ osascript -e '
 
 start="$(now)"
 while :; do
-    if [ "$(_front-app)" = "$window_name" ]; then
+    if _front-app |rg -q "^[0-9]+ $window_name"; then
         break
     elif [ $(($(now) - start)) -gt "$timeout" ]; then
         alert "Window \"$window_name\" was not activated"
