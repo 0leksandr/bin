@@ -19,30 +19,16 @@ while :; do
         sleep 0.1
     fi
 done
+
 osascript -e '
     tell application "System Events"
         set targetPID to '"$pid"'
-        repeat with proc in every process
+        repeat with proc in (every process whose unix id is targetPID)
             try
-                if unix id of proc is targetPID then
-                    set frontmost of proc to true
-                    -- -- Try multiple activation methods
-                    -- try
-                    --     perform action "AXRaise" of window 1 of proc
-                    -- end try
-                    -- try
-                    --     set position of proc to {0, 0}
-                    -- end try
-
-                    -- delay '"$timeout"'
-
-                    return "Activated PID: " & targetPID
-                    -- exit repeat
-                end if
+                set frontmost of proc to true
+                return "Activated PID: " & targetPID
             end try
         end repeat
-        -- return "PID " & targetPID & " not found"
-        -- display dialog "Window \"'"$window_name"'\" was not activated" with title "'"$(basename "$0")"'"
     end tell
 ' ||:
 
