@@ -23,6 +23,9 @@ if [ "$prefix" != "" ]; then
     #     edit:
     #     - sShortDate: yyyy-MM-dd
     #     - sTimeFormat: HH:mm:ss
+
+    #WINEPREFIX="$prefix" wine reg add "HKCU\Control Panel\International" /v sShortDate /t REG_SZ /d "yyyy-MM-dd" /f
+
     WINEPREFIX="$prefix" wine "$program" "$path"
 else
     wine "$program" "$path"
