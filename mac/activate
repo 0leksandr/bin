@@ -12,6 +12,8 @@ while :; do
 #    pid="$(lsappinfo list |grep -E --after-context=5 "^[0-9]+\) "'"'"$window_name"'"'"" |grep -E "$reg" |sed -r "s/$reg/\1/g")"
     reg="^([0-9]+) $window_name.*$"
     pid="$(_window-names |rg "$reg" |sed -r "s/$reg/\1/g")"
+#    reg="^[^ ]+ +([0-9]+) .*$window_name$"
+#    pid="$(ps aux |rg "$reg" |sed -r "s/$reg/\1/g")"
 
     if [ "$pid" ]; then
         break
