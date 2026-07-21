@@ -1,9 +1,24 @@
 #!/bin/sh
 set -e
-pip="$1"
-[ "$pip" ] || pip="pip"
 
-requirements="requirements.txt"
+dir="$(pwd)"
+requirements="$dir/requirements.txt"
+if ! [ -f "$requirements" ]; then
+    echo>&2 "requirements.txt not found"
+    exit 1
+fi
+venv="$dir/.venv"
+if ! [ -d "$venv" ]; then
+    echo>&2 ".venv/ not found"
+    exit 1
+fi
+bin="$(find "$venv" -maxdepth 1 -type d |sort --version-sort |tail -1)/bin"
+if ! [ -d "$bin" ]; then
+    echo>&2 "bin/ not found"
+    exit 1
+fi
+export PATH="$bin:$PATH"
+pip="pip"
 
 outdated=""
 for pkg_name in $($pip list --outdated |tail --lines=+3 |sed -r 's/^([^ ]+) .*$/\1/g'); do

@@ -11,11 +11,4 @@ files="$(_path 2 "$@")"
 git reset
 eval "git add $files"
 
-sign="(MacPaw|macpaw|MythicalGames)"
-if [ "$sign" ]; then
-    if git remote --verbose |grep -Eq "^origin( |\t)+git@github\.com:$sign/[^/ ]+ \(push\)$"; then
-        flags="--gpg-sign $flags"
-    fi
-fi
-
-eval "git commit $flags"
+eval "git commit --gpg-sign $flags"
