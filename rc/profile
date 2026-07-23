@@ -5,7 +5,7 @@ for dir in "$Programs/bin" "$Programs/bin/root" "$Programs/local-bin"; do
     fi
 done
 if [ "$(_os)" = "mac" ]; then
-    PATH="$Programs/bin/mac:$PATH"
+    PATH="$Programs/bin/mac:/opt/homebrew/bin:$PATH"
 fi
 # export PATH
 
