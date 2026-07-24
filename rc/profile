@@ -1,11 +1,13 @@
+add_path=""
 Programs="$HOME/_/Programs"
 for dir in "$Programs/bin" "$Programs/bin/root" "$Programs/local-bin"; do
     if [ -d $dir ] ; then
-        PATH="$dir:$PATH"
+        add_path="$dir:$add_path"
     fi
 done
+PATH="$add_path:$PATH"
 if [ "$(_os)" = "mac" ]; then
-    PATH="$Programs/bin/mac:/opt/homebrew/bin:$PATH"
+    PATH="$Programs/bin/mac:$add_path/opt/homebrew/bin:$PATH"
 fi
 # export PATH
 
