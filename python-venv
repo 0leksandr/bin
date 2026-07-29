@@ -1,0 +1,49 @@
+#!/bin/sh
+set -e
+
+get_bin() {
+    dir="$1"
+    alert="$2"
+
+    venv="$dir/.venv"
+    if ! [ -d "$venv" ]; then
+        if [ "$alert" ]; then
+            echo>&2 ".venv/ not found"
+            exit 1
+        else
+            exit 0
+        fi
+    fi
+
+    bin="$(find "$venv" -maxdepth 1 -type d |sort --version-sort |tail -1)/bin"
+    if ! [ -d "$bin" ]; then
+        if [ "$alert" ]; then
+            echo>&2 "bin/ not found"
+            exit 1
+        else
+            exit 0
+        fi
+    fi
+
+    printf "%s" "$bin"
+}
+
+if [ $# -eq 0 ]; then
+    bin="$(get_bin "$(pwd)" 1)"
+    export PATH="$bin:$PATH"
+else
+    dir="$(realpath "$1")"
+    while :; do
+        if [ "$dir" = "/" ]; then
+            echo>&2 "bin not found"
+            exit 1
+        fi
+        bin="$(get_bin "$dir" "")"
+        if [ "$bin" ]; then
+            "$bin/python" "$1"
+            break
+        else
+            dir="$(dirname "$dir")"
+        fi
+    done
+fi

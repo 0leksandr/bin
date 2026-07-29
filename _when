@@ -4,13 +4,13 @@ set -e
 command="$1"
 timeout="$2"
 max_timeout="$3"
-if [ ! "$timeout" ]; then timeout=10; fi
+if [ ! "$timeout" ]; then timeout=1; fi
 if [ ! "$max_timeout" ]; then max_timeout=3600; fi
 
 start=$(date +%s)
 while ! $command ; do
     sleep "$timeout"
-    if [ $(date +%s) -gt $((start + max_timeout)) ]; then
+    if [ "$(date +%s)" -gt $((start + max_timeout)) ]; then
         exit 1
     fi
 done

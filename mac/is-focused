@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+#plutil -convert json -o - ~/Library/DoNotDisturb/DB/Assertions.json 2>/dev/null \
+#  | jq -e '.data[0].storeAssertionRecords | length > 0' >/dev/null \
+#  && echo "ON" || echo "OFF"
+
+[ -n "$(                                                                                            \
+    plutil                                                                                          \
+        -extract data.0.storeAssertionRecords.0.assertionDetails.assertionDetailsModeIdentifier raw \
+        -o - ~/Library/DoNotDisturb/DB/Assertions.json                                              \
+        2>/dev/null                                                                                 \
+)" ] && exit 0 || exit 1

@@ -1,23 +1,13 @@
 #!/bin/sh
 set -e
 
-dir="$(pwd)"
-requirements="$dir/requirements.txt"
+requirements="$(pwd)/requirements.txt"
 if ! [ -f "$requirements" ]; then
     echo>&2 "requirements.txt not found"
     exit 1
 fi
-venv="$dir/.venv"
-if ! [ -d "$venv" ]; then
-    echo>&2 ".venv/ not found"
-    exit 1
-fi
-bin="$(find "$venv" -maxdepth 1 -type d |sort --version-sort |tail -1)/bin"
-if ! [ -d "$bin" ]; then
-    echo>&2 "bin/ not found"
-    exit 1
-fi
-export PATH="$bin:$PATH"
+
+python-venv
 pip="pip"
 
 outdated=""
