@@ -7,8 +7,7 @@ if ! [ -f "$requirements" ]; then
     exit 1
 fi
 
-python-venv
-pip="pip"
+pip="$(python-venv)/pip"
 
 outdated=""
 for pkg_name in $($pip list --outdated |tail --lines=+3 |sed -r 's/^([^ ]+) .*$/\1/g'); do

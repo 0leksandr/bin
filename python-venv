@@ -30,7 +30,9 @@ get_bin() {
 
 if [ $# -eq 0 ]; then
     bin="$(get_bin "$(pwd)" 1)"
-    export PATH="$bin:$PATH"
+
+    #export PATH="$bin:$PATH"
+    echo "$bin"
 else
     dir="$(realpath "$1")"
     while :; do
@@ -40,7 +42,7 @@ else
         fi
         bin="$(get_bin "$dir" "")"
         if [ "$bin" ]; then
-            "$bin/python" "$1"
+            "$bin/python" "$@"
             break
         else
             dir="$(dirname "$dir")"
