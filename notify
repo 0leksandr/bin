@@ -2,6 +2,11 @@
 set -e
 
 case "$(_os)" in
-    linux) notify-send -- "$@"             ;;
-    mac)   terminal-notifier -message "$@" ;;
+    linux)
+        notify-send -- "$@"
+        ;;
+    mac)
+        # fix: `open /opt/homebrew/opt/terminal-notifier/terminal-notifier.app`
+        terminal-notifier -message "$@"
+        ;;
 esac
