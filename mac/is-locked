@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+ioreg -n Root -d1 -a | grep -A1 IOConsoleLocked | grep -q true
