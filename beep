@@ -1,2 +1,8 @@
 #!/bin/sh
-play -nq synth 0.1 sine 600 vol 0.4 2> /dev/null
+set -e
+
+case "$(_os)" in
+    linux) play -nq synth 0.1 sine 600 vol 0.4 2> /dev/null ;;
+    mac)   afplay /System/Library/Sounds/Glass.aiff &       ;;
+    *)     exit 1                                           ;;
+esac
