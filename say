@@ -2,6 +2,12 @@
 set -e
 
 text="$1"
+
+if [ "$(_os)" = mac ]; then
+    _transfer "$(_real "$0")" -v "Samantha" "$text"
+    exit
+fi
+
 app="$2"
 vol="$3"
 if [ ! "$app" ]; then
