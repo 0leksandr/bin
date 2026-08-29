@@ -1,12 +1,22 @@
 #!/bin/sh
 set -e
+text="$1"
+id="$2"
 
 case "$(_os)" in
     linux)
-        notify-send -- "$@"
+        notify-send -- "$text"
         ;;
     mac)
         # fix: `open /opt/homebrew/opt/terminal-notifier/terminal-notifier.app`
-        terminal-notifier -message "$@"
+        if [ "$text" ]; then
+            if [ "$id" ]; then
+                terminal-notifier -message "$text" -group "$id"
+            else
+                terminal-notifier -message "$text"
+            fi
+        else
+            terminal-notifier -remove "$id"
+        fi
         ;;
 esac

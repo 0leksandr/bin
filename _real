@@ -3,9 +3,9 @@ set -e
 file="$1"
 
 basename="$(basename "$file")"
-type -a "$basename"                                               \
-    | sed -r "s/^$basename is //g"                                \
-    | xargs realpath                                              \
-    | grep -E --invert-match "^$(dirname "$(realpath "$file")")/" \
-    | head --lines=1                                              \
+type -a "$basename"                    \
+    | sed -r "s/^$basename is //g"     \
+    | xargs realpath                   \
+    | grep -E --invert-match "^$HOME/" \
+    | head --lines=1                   \
     &&:

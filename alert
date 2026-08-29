@@ -5,5 +5,5 @@
 
 case "$(_os)" in
     linux) notify-send --urgency=critical --icon=emblem-important "$@" ;;
-    mac)   notify "$@"                                                 ;;
+    mac)   notify "$1" "$2"                                            ;;
 esac
