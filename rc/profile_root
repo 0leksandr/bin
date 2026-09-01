@@ -1,4 +1,0 @@
-dir="$HOME/_/Programs/bin/root"
-if [ -d $dir ]; then
-    export PATH="$PATH:`realpath $dir`"
-fi

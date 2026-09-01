@@ -4,7 +4,7 @@
 _complete_full()
 {
     if [ $SHELL = $(which bash) ]; then
-        local PATH=$HOME/_/Programs/bin
+        local PATH="$(dirname "$(dirname "$(realpath "$0")")")"
         _command_offset 1
     fi
     if [ $SHELL = $(which zsh) ]; then
