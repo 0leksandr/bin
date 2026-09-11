@@ -1,5 +1,23 @@
 #!/bin/sh
 set -e
+
+cat << END
+uv venv                        # create a .venv (replaces python -m venv)
+uv pip install numpy           # install into active/nearby venv (replaces pip install)
+uv pip list / uv pip freeze    # same as pip
+uv pip compile requirements.in # lockfile generation (replaces pip-compile)
+
+uv init myproject               # new project with pyproject.toml
+uv add numpy                    # add a dependency (replaces manual pip + editing pyproject.toml)
+uv run script.py                # run inside the project's venv automatically, no activation needed
+uv sync                         # install exact deps from lockfile
+
+uv tool install openai-whisper  # pipx equivalent — isolated CLI tool
+uv tool list / uv tool upgrade
+uv python install 3.12          # also manages Python versions itself (replaces pyenv)
+END
+exit 1
+
 version="$1"
 
 python="python$version"

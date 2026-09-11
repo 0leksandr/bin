@@ -83,7 +83,7 @@ if [ $nr_args -ge 2 ]; then
     fi
 fi
 if [ $nr_args -ge 3 ]; then
-    if [ "${!n2}" = "branch" ] && [ "${!n1}" = "-d" ]; then
+    if [ "${!n2}" = "branch" ] && { [ "${!n1}" = "-d" ] || [ "${!n1}" = "--delete" ] ;}; then
         target="${!n}"
         stashes_for "$target" |while read -r stash; do
             git_real stash drop "$stash"
