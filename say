@@ -4,7 +4,11 @@ set -e
 text="$1"
 
 if [ "$(_os)" = mac ]; then
-    _transfer "$(_real "$0")" -v "Samantha" "$text"
+    filename="$HOME/.temp/$(basename "$0")/$text.aiff"
+    if ! [ -f "$filename" ]; then
+        _transfer "$(_real "$0")" --voice="Samantha" --output-file="$filename" "$text"
+    fi
+    afplay "$filename"
     exit
 fi
 
