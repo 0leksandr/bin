@@ -92,15 +92,15 @@ if [ ! "$arg_local" ]; then
         fi
 
         for branch in $branches; do
-            closest_branches="$(                       \
-                git log --pretty="format:%D" "$branch" \
-                    |grep --invert-match "^$"          \
-                    |tr , \\n                          \
-                    |sed -r "s/^ //g"                  \
-                    |grep --invert-match "^HEAD ->"    \
-                    |grep --invert-match "^tag:"       \
-                    |grep --invert-match "^origin/"    \
-                ||:                                    \
+            closest_branches="$(                          \
+                git log --pretty="format:%D" "$branch" -- \
+                    |grep --invert-match "^$"             \
+                    |tr , \\n                             \
+                    |sed -r "s/^ //g"                     \
+                    |grep --invert-match "^HEAD ->"       \
+                    |grep --invert-match "^tag:"          \
+                    |grep --invert-match "^origin/"       \
+                ||:                                       \
             )"
             branches="$branches\n$closest_branches"
         done
