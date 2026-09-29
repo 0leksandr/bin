@@ -1,0 +1,46 @@
+#!/bin/sh
+set -eu
+
+# Usage: $0 [branch]
+# Prints the target (base) branches of open PRs/MRs for the branch, one per line.
+# Uses the current branch if no argument is given.
+# All gh/glab knowledge lives here: the CLI and its config directory come from
+# the git config keys my.forge (gh|glab) and my.configDir. Outside the work
+# directory these keys are absent, so the system gh is used.
+branch="${1:-$(git branch --show-current)}"
+[ -n "$branch" ] || { echo "$0: cannot determine branch (detached HEAD?)" >&2; exit 1; }
+
+
+cli=$(git config --get my.forge 2>/dev/null || echo gh)
+config_dir=$(git config --get my.configDir 2>/dev/null || true)
+
+case "$cli" in
+    glab)
+        [ -z "$config_dir" ] || export GLAB_CONFIG_DIR="$config_dir"
+        # URL-encode the branch name so characters like #, & and + do not break the query
+        encoded=$(jq -rn --arg b "$branch" '$b|@uri')
+        # ":id" is filled in by glab from the current repository's remote
+        response=$(glab api "projects/:id/merge_requests?source_branch=$encoded&state=opened")
+        printf '%s' "$response" | jq -r '.[].target_branch'
+        ;;
+    gh)
+        [ -z "$config_dir" ] || export GH_CONFIG_DIR="$config_dir"
+        gh pr list --head "$branch" --json baseRefName --jq '.[].baseRefName'
+        ;;
+    *)
+        #url=$(git remote get-url "$(git config "branch.$branch.remote" || echo origin)")
+        #host=${url#*://}; host=${host#*@}; host=${host%%[:/]*}
+        #printf "detecting remote for %s..." "$host"
+        #cli=""
+        #if gh auth status --hostname "$host" >/dev/null 2>&1; then
+        #    cli="gh"
+        #elif glab auth status --hostname "$host" >/dev/null 2>&1; then
+        #    cli="glab"
+        #else
+        #    err echo "no gh/glab login for host $host"
+        #fi
+
+        echo "$0: unknown my.forge value: $cli" >&2
+        exit 1
+        ;;
+esac

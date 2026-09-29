@@ -19,7 +19,7 @@ fi
 ok=1
 err() {
     [ "$ok" ] || echo ""
-    eval "$@"
+    eval "$@" >&2
     ok=""
 }
 
@@ -109,7 +109,7 @@ if [ ! "$arg_local" ]; then
         if [ "$branches" ]; then
             for branch in $branches; do
                 printf "querying PRs for branch %s..." "$branch"
-                remote_base_branches="$(gh pr list --head "$branch" --json baseRefName --jq '.[].baseRefName')"
+                remote_base_branches="$(git-remote-base-branches "$branch")"
                 clear_line
                 for remote_base_branch in $remote_base_branches; do
                     if echo "$all_branches" |grep -Eq "^$remote_base_branch$"; then

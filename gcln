@@ -1,13 +1,19 @@
 #!/bin/sh
 set -e
 
-destination="$2"
-if [ ! "$destination" ]; then
-    destination="$(echo "$1" |sed -r "s ^.*/([^/]+)$ \1 ")"
-fi
+#src="$1"
+#dest="$2"
 
-# git clone https://github.com/$1/$2 $3
-git clone --recurse-submodules "git@github.com:$1" "$destination"
+src=${1%/}
+name=${src##*[/:]}
+dest=${2:-${name%.git}}
+
+#git clone https://github.com/$src "$dest"
+#git clone --recurse-submodules "git@github.com:$src" "$dest"
+git clone --recurse-submodules                                                                 \
+    "$(printf %s "$src" | sed -E '/:/! { \,/.*/,! s|^|github.com/|; s|^([^/]+)/|git@\1:|; }')" \
+    "$dest"                                                                                    \
+&&:
 
 # initialize .git/FETCH_HEAD, used by `gst`
-git -C "$destination" fetch
+git -C "$dest" fetch
