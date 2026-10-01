@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -eu
 message="$1"
 
 _ignore-completion "$message"
@@ -7,7 +7,8 @@ _ignore-completion "$message"
 #message="$(echo "$message" |sed -r 's/'"'"'/'"'"'"'"'"'"'"'"'/g')"
 a="'"
 message="$(echo "$message" |sed -r "s/$a/$a\"$a\"$a/g")"
-_gcm "--message='$message'" "${@:2}"
+[ "$message" != "." ] && edit="--edit" || edit=""
+_gcm "--message='$message' $edit" "${@:2}"
 printf "\n"
 
 _is_in_script || gst
