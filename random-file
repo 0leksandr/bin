@@ -13,7 +13,7 @@ if [ $# -ge 1 ]; then
     fi
 fi
 
-random_file=$(eval "findp . $opts -type f" | shuf -n 1)
+random_file=$(_cmd "findp . $opts -type f" | shuf -n 1)
 
 echo "$random_file"
 gopen "$random_file"

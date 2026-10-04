@@ -7,4 +7,4 @@ if _is_in_script; then
 fi
 
 #procx "$0"
-eval "$0 test $*"
+_cmd "$0 test $*"

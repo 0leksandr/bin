@@ -29,7 +29,7 @@ args=$*
 ok=1
 err() {
     [ "$ok" ] || echo ""
-    eval "$@" >&2
+    "$@" >&2
     ok=""
 }
 
@@ -37,17 +37,17 @@ check_reg() {
     cmd="$1"
     reg="$2"
 
-    out="$(git $cmd |grep -E --line-number "$reg" ||:)"
+    out="$(_cmd git "$cmd" |grep -E --line-number "$reg" ||:)"
     if [ "$out" ]; then
-        err echo "'$(                                    \
-            git -c color.status=always $cmd              \
+        err echo "$(                                     \
+            _cmd git -c color.status=always "$cmd"       \
                 |sed -n "$(                              \
                     echo "$out"                          \
                         |sed -r 's/^([0-9]+):.*$/\1p;/g' \
                         |tr -d '\n'                      \
                 )"                                       \
                 |sed "s/'/'\"'\"'/g"                     \
-        )'"
+        )"
     fi
 }
 

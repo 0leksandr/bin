@@ -1,2 +1,2 @@
 #!/bin/sh
-eval "find $(_path 1 "$@") -xtype l -exec ls -la --color=auto {} \;"
+_cmd "find $(_path 1 "$@") -xtype l -exec ls -la --color=auto {} \;"

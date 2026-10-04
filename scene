@@ -233,7 +233,7 @@ case "$action" in
 #
 #        port=9473
 #        fuser -k $port/tcp ||:
-#        eval "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'"
+#        _cmd "http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'"
 #        # http-server "$(echo "$dir" |sed -r 's| |\\ |g')" -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
 #        # http-server $(echo "$dir" |sed -r 's| |\\ |g') -a 127.0.0.1 -p $port --cors='Access-Control-Allow-Origin: *'
 #        ;;

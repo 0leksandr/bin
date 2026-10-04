@@ -130,7 +130,9 @@ read_() {
         fi
     fi
 
-    eval "$name=$value"
+    #eval "$name=$value"
+    #eval "$name=\$value"
+    printf -v "$name" '%s' "$value"  # `_cmd` does not modify external values
 }
 
 # company-specific
@@ -282,7 +284,7 @@ logs() {
 
         local cmd="kubectl logs --namespace $namespace $pod"
         [ "$container" = "$any_container" ] || cmd="$cmd --container $container"
-        eval "$cmd"
+        _cmd "$cmd"
     else
         local search
         read_ search ".*"

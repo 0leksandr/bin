@@ -1,3 +1,3 @@
 #!/bin/sh
 # nautilus $@
-eval "nemo $(_path 1 "$@")"
+_cmd nemo "$(_path 1 "$@")"

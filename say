@@ -6,7 +6,7 @@ text="$1"
 if [ "$(_os)" = mac ]; then
     filename="$HOME/.temp/$(basename "$0")/$text.aiff"
     if ! [ -f "$filename" ]; then
-        _transfer "$(_real "$0")" --voice="Samantha" --output-file="$filename" "$text"
+        "$(_real "$0")" --voice="Samantha" --output-file="$filename" "$text"
     fi
     afplay "$filename"
     exit
@@ -23,7 +23,7 @@ fi
 play_file() {
     file="$HOME/.temp/$1/$text.wav"
     if ! [ -f "$file" ]; then
-        eval "$(echo "$2" |sed -r "s~\[file]~'$file'~g")"
+        _cmd "$(echo "$2" |sed -r "s~\[file]~'$file'~g")"
     fi
 
     # aplay "$file" 2> /dev/null

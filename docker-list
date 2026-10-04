@@ -5,6 +5,6 @@ for command in \
     "docker system df" \
 ; do
     echo "$command"
-    eval "$command"
+    _cmd "$command"
     printf "\n"
 done

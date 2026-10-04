@@ -18,5 +18,5 @@ for pkg_name in $($pip list --outdated |tail --lines=+3 |sed -r 's/^([^ ]+) .*$/
         outdated="$outdated $pkg_name"
     fi
 done
-eval "$pip install --upgrade $outdated"
+_cmd "$pip" install --upgrade "$outdated"
 $pip freeze > "$requirements"

@@ -9,7 +9,7 @@ case "$(_os)" in
         done
         ;;
     mac)
-        output="$(eval "$*")"
+        output="$(_cmd "$*")"
         printf '%s' "$output"
         printf '%s' "$output" |pbcopy
         ;;

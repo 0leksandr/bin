@@ -6,3 +6,4 @@ for arg in "$@"; do
     cmd="$cmd $(printf "%q" "$arg")"
 done
 eval "$cmd"
+#_cmd "$cmd"

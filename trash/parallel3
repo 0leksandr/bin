@@ -2,7 +2,7 @@
 LIST2KILL=""
 LIST2WAIT=""
 for cmd in "$@"; do {
-  eval "$cmd" & pid=$!
+  _cmd "$cmd" & pid=$!
   LIST2WAIT="$LIST2WAIT $pid"
   LIST2KILL="$LIST2KILL,$pid"
 } done

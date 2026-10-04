@@ -1,0 +1,60 @@
+#!/bin/sh
+# Run a command with arguments parsed from a shell-quoted string, without eval of untrusted code
+# Usage: $0 [-c] [CMD [ARG...]] STRING
+#   The last argument (STRING) is split into words like a shell would
+#   (quotes and backslashes only); everything before it is passed literally.
+#   The command replaces this process (exec): PID, stdin, exit code and signals are preserved.
+#   -c is optional and only makes the parsing explicit.
+# Examples:
+#   $0 "git status"
+#   $0 git add -- "$files"
+#   $0 -c git add -- "$files"
+#   $0 "$cmd" & pid=$!
+
+set -eu
+
+if [ "${1:-}" = "-c" ]; then
+    shift
+fi
+
+if [ "$#" -lt 1 ]; then
+    echo "usage: $0 [-c] [CMD [ARG...]] STRING" >&2
+    exit 2
+fi
+
+# Rotate: move the first n-1 arguments to the end, so STRING becomes $1
+n=$#
+i=1
+while [ "$i" -lt "$n" ]; do
+    set -- "$@" "$1"
+    shift
+    i=$((i + 1))
+done
+
+str=$1
+shift
+
+# Nothing to run
+case $str in
+    *[![:space:]]*) ;;
+    *) exit 0 ;;
+esac
+
+# xargs only tokenizes: it prints one word per line.
+# The sentinel "x" is printed only if xargs succeeded, and it protects
+# trailing empty words from being stripped by the command substitution.
+words=$(printf '%s\n' "$str" | xargs printf '%s\n' && printf x) || {
+    echo "$0: cannot parse string (unmatched quote?)" >&2
+    exit 2
+}
+words=${words%x}
+
+# Wrap every word in single quotes (a ' becomes '\''), join with spaces
+quoted=$(printf '%s' "$words" \
+    | sed -e "s/'/'\\\\''/g" -e "s/^/'/" -e "s/\$/'/" \
+    | tr '\n' ' ')
+
+# Safe: every word is single-quoted, so eval only rebuilds the argument list
+eval "set -- \"\$@\" $quoted"
+
+exec "$@"

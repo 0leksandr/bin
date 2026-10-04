@@ -1,22 +1,23 @@
 #!/bin/sh
+set -eu
 
 # echo "${@:2}"
 # exit 0
 
-if [ $# -gt $1 ]; then
+if [ $# -gt "$1" ]; then
     ii=0
     for arg in "$@"; do
-        if [ $ii -ge $1 ]; then
+        if [ "$ii" -ge "$1" ]; then
             if [ "$arg" = "." ]; then
-                printf "$arg"
+                printf "%s" "$arg"
             else
-                printf "'$arg'"
+                printf "'%s'" "$arg"
             fi
-            if [ $ii -ne $(($# - 1)) ]; then
+            if [ "$ii" -ne $(($# - 1)) ]; then
                 printf ' '
             fi
         fi
-        ii=$(expr $ii + 1)
+        ii=$((ii + 1))
     done
 else
     printf "."

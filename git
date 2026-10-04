@@ -4,8 +4,10 @@ set -e
 key="git-switch"  # MAYBE: update
 dir_my_submodules=".git/my-stashed-submodules"
 
+real_git="$(_real "$0")"
+
 git_real() {
-    _transfer "$(_real "$0")" "$@"
+    "$real_git" "$@"
 }
 escape() {
     local value="$1"

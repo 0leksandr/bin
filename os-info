@@ -10,6 +10,6 @@ for command in \
     "cat /etc/issue"\
 ; do
     echo "$command"
-    eval "$command"
+    _cmd "$command"
     hr
 done

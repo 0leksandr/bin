@@ -8,6 +8,6 @@ linked=$(git remote show -n origin |grep -E "^ +$current_branch +merges with rem
 if [ ! "$linked" ]; then
     command="$command --set-upstream"
 fi
-eval "$command"
+_cmd "$command"
 
 _is_in_script || gst

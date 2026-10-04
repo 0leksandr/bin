@@ -27,7 +27,7 @@ if [ $nr_args -eq 1 ]; then
 
         # broken when $on_exit_cmd has spaces
         if [ "$on_exit_cmd" ]; then cmd="$cmd -e $on_exit_cmd"; fi
-        eval "$cmd"
+        _cmd "$cmd"
 
         # if [ "$on_exit_cmd" ]; then
         #     $("$cmd" -e "$on_exit_cmd")
@@ -49,7 +49,7 @@ for cmd in "$@"; do
     elif [ "$next_is_on_exit" ]; then
         next_is_on_exit=""
     elif [ "$cmd" != "-n" ]; then
-        eval "$cmd" & pid=$!
+        _cmd "$cmd" & pid=$!
         list2wait="$list2wait $pid"
         on_exit="$on_exit pkill -P $pid;"
         # on_exit="$on_exit kill -SIGINT $pid;"
@@ -66,7 +66,7 @@ if [ "$all_or_nothing" ]; then
             # if ! ps --pid="$pid" > /dev/null; then
             # if ! procx "$pid" > /dev/null; then  # too heavy
             if ! ps |grep -E -q "^ *$pid "; then
-                eval "$on_exit"
+                _cmd "$on_exit"
                 exit 1
             fi
         done

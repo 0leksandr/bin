@@ -9,6 +9,6 @@ files="$(_path 2 "$@")"
 # git commit -a -m "$@"
 
 git reset
-eval "git add $files"
+_cmd git add -- "$files"
 
-eval "git commit --gpg-sign $flags"
+_cmd git commit --gpg-sign "$flags"
