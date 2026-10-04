@@ -1,18 +1,28 @@
 #!/bin/sh
-set -e
-args=$*
+set -eu
 
+#while [ $# -gt 0 ]; do  # example
+#    case "$1" in
+#        -o|--output)
+#            [ $# -ge 2 ] || die "--output needs a value"
+#            output=$2; shift 2 ;;
+#        -v|--verbose) verbose=1; shift ;;
+#        -h|--help) usage; exit 0 ;;
+#        --) shift; break ;;
+#        -*) die "unknown option: $1" ;;
+#        *) break ;;
+#    esac
+#done
 arg_all=""
-if [ "$args" = "-a" ]; then
-    args=""
-    arg_all=1
-fi
-
 arg_local=""
-if [ "$args" = "-l" ]; then
-    args=""
-    arg_local=1
-fi
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -a) arg_all=1; shift ;;
+        -l) arg_local=1; shift ;;
+        *)  break ;;
+    esac
+done
+args=$*
 
 
 

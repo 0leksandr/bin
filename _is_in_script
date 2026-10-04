@@ -1,12 +1,14 @@
 #!/bin/sh
+set -eu
 
 shells="$(_shells '\n')"
 shells="$shells\n$(echo "$shells" |sed -r 's ^.*/([^/]+)$ \1 g')"
 shells="$(echo "$shells" |tr '\n' '|' |sed -r 's/\|$//')"
 
 nths_parent() {
-    local n="$1"
-    local parent="$(_parent)"
+    local n parent
+    n="$1"
+    parent="$(_parent)" || return 1
     while [ "$n" -gt 0 ]; do
         n=$((n - 1))
         parent="$(_parent "$parent")"

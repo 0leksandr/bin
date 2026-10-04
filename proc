@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -eu
 
 flags="-i"
 flagX=""
@@ -7,12 +7,13 @@ flagP=""
 flagQ=""
 for input; do
     case $input in
-        -x) flags="$flags -E"; flagX="1" ;; # exact command name
-        -E) flags="$flags -E" ;;            # extended regexp
-        -P) flagP="1" ;;                    # include caller and its parents
-        -q) flagQ="1" ;;                    # do not warn about unsafe call
+        -x) flags="$flags -E"; flagX=1 ;;  # exact command name
+        -E) flags="$flags -E" ;;           # extended regexp
+        -P) flagP=1 ;;                     # include caller and its parents
+        -q) flagQ=1 ;;                     # do not warn about unsafe call
+        -*) echo "unknown option: $input" >&2; exit 1 ;;
+        *)  search=$input ;;               # last non-option wins
     esac
-    search="$input"  # last one..
 done
 
 if [ ! "$flagX" ] && [ ! "$flagQ" ]; then
