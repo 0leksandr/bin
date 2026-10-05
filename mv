@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+_mv_is_git_rename() (
+    [ "$#" -eq 2 ] || exit 1
+    case $1 in -*) exit 1 ;; esac
+    case $2 in -*) exit 1 ;; esac
+
+    src=$1
+    dst=$2
+
+    src_dir=$(dirname -- "$src")
+    if [ -d "$dst" ]; then
+        dst_dir=$dst
+    else
+        dst_dir=$(dirname -- "$dst")
+    fi
+
+    src_root=$(git -C "$src_dir" rev-parse --show-toplevel 2>/dev/null) || exit 1
+    dst_root=$(git -C "$dst_dir" rev-parse --show-toplevel 2>/dev/null) || exit 1
+    [ "$src_root" = "$dst_root" ] || exit 1
+
+    # Only tracked files can be moved with git mv
+    git -C "$src_dir" ls-files --error-unmatch -- "$(basename -- "$src")" >/dev/null 2>&1
+)
+
+if _mv_is_git_rename "$@"; then
+    git mv -- "$@"
+else
+    "$(_real "$0")" -- "$@"
+fi
