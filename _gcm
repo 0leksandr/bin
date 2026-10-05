@@ -11,4 +11,4 @@ files="$(_path 2 "$@")"
 git reset
 _cmd git add -- "$files"
 
-_cmd git commit --gpg-sign "$flags"
+_cmd git commit "$flags"
