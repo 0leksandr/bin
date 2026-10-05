@@ -24,6 +24,11 @@ read_token() {
     printf '\n' > /dev/tty
 }
 
+wait_enter() {
+    printf 'Press Enter when done... ' > /dev/tty
+    read -r _ < /dev/tty
+}
+
 # Print the primary key fingerprint of the secret key whose UID matches this email
 # $1 = email
 gpg_fingerprint() {
@@ -54,8 +59,8 @@ remove_direnv_hook() {
         -e '# direnv' \
         -e 'eval "$(direnv hook zsh)"' \
         -e 'eval "$(direnv hook bash)"' \
-        "$1" > "$tmp" || true   # grep exits 1 when no lines are left
-    cat "$tmp" > "$1"           # cat instead of mv, keeps symlinked dotfiles intact
+        "$1" > "$tmp" ||:   # grep exits 1 when no lines are left
+    cat "$tmp" > "$1"       # cat instead of mv, keeps symlinked dotfiles intact
     rm -f "$tmp"
 }
 
@@ -73,16 +78,13 @@ cleanup() {
     [ "$answer" = y ] || exit 1
 
     # Remove the key from ssh-agent (if it was added)
-    ssh-add -d "$dirname/.ssh/id_work" 2>/dev/null || true
+    ssh-add -d "$dirname/.ssh/id_work" 2>/dev/null ||:
 
-    # Delete the work GPG key (secret and public) from the keyring
-    gpg_key=$(git config -f "$dirname/.gitconfig" --get user.signingkey 2>/dev/null || true)
-    if [ -n "$gpg_key" ]; then
-        gpg --batch --yes --delete-secret-and-public-keys "$gpg_key" || echo "Failed to delete GPG key $gpg_key" >&2
-    fi
+    # Stop the dedicated gpg-agent; the key itself is deleted together with the directory
+    gpgconf --homedir "$dirname/.gnupg" --kill gpg-agent 2>/dev/null ||:
 
     # Remove the includeIf entry from the global git config
-    git config --global --remove-section "includeIf.gitdir:$dirname/" 2>/dev/null || true
+    git config --global --remove-section "includeIf.gitdir:$dirname/" 2>/dev/null ||:
 
     rm -rf "$dirname"
 
@@ -117,11 +119,10 @@ setup() {
     mkdir -p "$target"
     dirname=$(cd "$target" && pwd -P)
 
-if false; then
     # Detect the host type (only if a host was given)
     forge=""
     if [ -n "$host" ]; then
-        code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "https://$host/api/v4/version" || true)
+        code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "https://$host/api/v4/version" ||:)
         case "$code" in
             000|"") echo "Host $host is unreachable" >&2; exit 1 ;;
             200|401) forge=gitlab ;;
@@ -144,9 +145,18 @@ if false; then
 [core]
     sshCommand = ssh -i $dirname/.ssh/id_work -o IdentitiesOnly=yes -o UserKnownHostsFile=$dirname/.ssh/known_hosts
 EOF
-fi
 
-    # GPG signing key dedicated to the work email (reused if it already exists)
+    # GPG: separate home inside the directory; git calls gpg without GNUPGHOME,
+    # so gpg.program points to a wrapper that sets it
+    mkdir -p "$dirname/.gnupg"
+    chmod 700 "$dirname/.gnupg"
+    export GNUPGHOME="$dirname/.gnupg"
+    cat > "$dirname/.gnupg/gpg-wrapper" <<EOF
+#!/bin/sh
+GNUPGHOME="$dirname/.gnupg" exec gpg "\$@"
+EOF
+    chmod +x "$dirname/.gnupg/gpg-wrapper"
+
     GPG_TTY="/dev/$(ps -o tty= -p $$ | tr -d ' ')"
     export GPG_TTY
     gpg_key=$(gpg_fingerprint "$email")
@@ -157,8 +167,8 @@ fi
         gpg_key=$(gpg_fingerprint "$email")
     fi
     git config -f "$dirname/.gitconfig" user.signingkey "$gpg_key"
+    git config -f "$dirname/.gitconfig" gpg.program "$dirname/.gnupg/gpg-wrapper"
 
-if false; then
     # Service repository: ignore everything, forbid commits
     git init -q -b work "$dirname" 2>/dev/null
     git -C "$dirname" symbolic-ref HEAD refs/heads/work
@@ -214,7 +224,8 @@ Paste the whole line below:
 
 EOF
     cat "$dirname/.ssh/id_work.pub"
-fi
+    echo
+    wait_enter
 
     # Public GPG key: the user must upload it to the work account
     cat <<EOF
@@ -229,8 +240,8 @@ Paste the whole block below, including the BEGIN and END lines:
 EOF
     gpg --armor --export "$gpg_key"
     echo
+    wait_enter
 
-if false; then
     # ---- Claude Code / direnv ----
     # Claude Code: separate config dir for the work account, selected by direnv
     envrc="$dirname/.envrc"
@@ -266,7 +277,6 @@ if false; then
 Open a new terminal, cd into $dirname, run 'claude' and log in with the work account.
 EOF
     # ---- end Claude Code / direnv ----
-fi
 }
 
 case "$arg2" in
