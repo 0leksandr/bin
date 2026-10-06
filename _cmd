@@ -1,8 +1,10 @@
 #!/bin/sh
-# Run a command with arguments parsed from a shell-quoted string, without eval of untrusted code
+# Run a command with arguments parsed from a shell-quoted string, without eval
 # Usage: $0 [-c] [CMD [ARG...]] STRING
-#   The last argument (STRING) is split into words like a shell would
-#   (quotes and backslashes only); everything before it is passed literally.
+#   The last argument (STRING) is split into words on spaces and tabs, honoring
+#   ', ", \ and \<newline>; no expansions of any kind are performed.
+#   A newline outside quotes is part of the word (not a separator).
+#   Everything before STRING is passed literally.
 #   The command replaces this process (exec): PID, stdin, exit code and signals are preserved.
 #   -c is optional and only makes the parsing explicit.
 # Examples:
@@ -40,21 +42,83 @@ case $str in
     *) exit 0 ;;
 esac
 
-# xargs only tokenizes: it prints one word per line.
-# The sentinel "x" is printed only if xargs succeeded, and it protects
-# trailing empty words from being stripped by the command substitution.
-words=$(printf '%s\n' "$str" | xargs printf '%s\n' && printf x) || {
-    echo "$0: cannot parse string (unmatched quote?)" >&2
+nl=$(printf '\nx')
+nl=${nl%x}
+tab=$(printf '\t')
+
+state=out   # out | single | double
+word=
+in_word=0   # distinguishes an empty word ('') from no word
+rest=$str
+
+while [ -n "$rest" ]; do
+    tail=${rest#?}
+    ch=${rest%"$tail"}
+    rest=$tail
+
+    case $state in
+        out)
+            case $ch in
+                ' ' | "$tab")
+                    if [ "$in_word" -eq 1 ]; then
+                        set -- "$@" "$word"
+                        word=
+                        in_word=0
+                    fi
+                    ;;
+                "'") state=single; in_word=1 ;;
+                '"') state=double; in_word=1 ;;
+                \\)
+                    if [ -z "$rest" ]; then
+                        word=$word$ch
+                        in_word=1
+                    else
+                        tail=${rest#?}
+                        next=${rest%"$tail"}
+                        rest=$tail
+                        if [ "$next" != "$nl" ]; then
+                            word=$word$next
+                            in_word=1
+                        fi
+                    fi
+                    ;;
+                *) word=$word$ch; in_word=1 ;;
+            esac
+            ;;
+        single)
+            case $ch in
+                "'") state=out ;;
+                *) word=$word$ch ;;
+            esac
+            ;;
+        double)
+            case $ch in
+                '"') state=out ;;
+                \\)
+                    tail=${rest#?}
+                    next=${rest%"$tail"}
+                    case $next in
+                        '"' | \\ | '$' | '`')
+                            word=$word$next
+                            rest=$tail
+                            ;;
+                        "$nl") rest=$tail ;;
+                        *) word=$word$ch ;;
+                    esac
+                    ;;
+                *) word=$word$ch ;;
+            esac
+            ;;
+    esac
+done
+
+if [ "$state" != out ]; then
+    echo "$0: unmatched quote in string" >&2
     exit 2
-}
-words=${words%x}
+fi
 
-# Wrap every word in single quotes (a ' becomes '\''), join with spaces
-quoted=$(printf '%s' "$words" \
-    | sed -e "s/'/'\\\\''/g" -e "s/^/'/" -e "s/\$/'/" \
-    | tr '\n' ' ')
-
-# Safe: every word is single-quoted, so eval only rebuilds the argument list
-eval "set -- \"\$@\" $quoted"
+if [ "$in_word" -eq 1 ]; then
+    set -- "$@" "$word"
+fi
 
 exec "$@"
