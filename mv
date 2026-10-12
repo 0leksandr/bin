@@ -2,12 +2,27 @@
 set -eu
 
 _mv_is_git_rename() (
+    # Strip one leading "--". After it, names may start with "-".
+    if [ "${1-}" = "--" ]; then
+        shift
+    else
+        # Without "--", any argument starting with "-" is an option: leave it to the real mv
+        for arg in "$@"; do
+            case $arg in -*) exit 1 ;; esac
+        done
+    fi
+
     [ "$#" -eq 2 ] || exit 1
-    case $1 in -*) exit 1 ;; esac
-    case $2 in -*) exit 1 ;; esac
 
     src=$1
     dst=$2
+
+    # mv silently overwrites, git mv refuses: leave such cases to the real mv
+    if [ -d "$dst" ]; then
+        [ ! -e "$dst/$(basename -- "$src")" ] || exit 1
+    else
+        [ ! -e "$dst" ] || exit 1
+    fi
 
     src_dir=$(dirname -- "$src")
     if [ -d "$dst" ]; then
@@ -16,16 +31,25 @@ _mv_is_git_rename() (
         dst_dir=$(dirname -- "$dst")
     fi
 
+    # cwd, source and destination must all be in the same repository
+    cwd_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 1
     src_root=$(git -C "$src_dir" rev-parse --show-toplevel 2>/dev/null) || exit 1
     dst_root=$(git -C "$dst_dir" rev-parse --show-toplevel 2>/dev/null) || exit 1
-    [ "$src_root" = "$dst_root" ] || exit 1
+    [ "$cwd_root" = "$src_root" ] && [ "$src_root" = "$dst_root" ] || exit 1
 
-    # Only tracked files can be moved with git mv
-    git -C "$src_dir" ls-files --error-unmatch -- "$(basename -- "$src")" >/dev/null 2>&1
+    # Only tracked files/directories can be moved with git mv
+    git --literal-pathspecs -C "$src_dir" ls-files --error-unmatch -- \
+        "$(basename -- "$src")" >/dev/null 2>&1
 )
 
 if _mv_is_git_rename "$@"; then
-    git mv -- "$@"
+    # Same "--" handling as in the function (it ran in a subshell,
+    # so "$@" here is still the original argument list)
+    if [ "${1-}" = "--" ]; then
+        shift
+    fi
+    exec git mv -- "$@"
 else
-    "$(_real "$0")" -- "$@"
+    # Fallback: pass the original arguments (including "--") to the real mv
+    exec "$(_real "$0")" "$@"
 fi
