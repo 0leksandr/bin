@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 
-cat << END
+printf "uv? (y/n) "
+case "$(head -1)" in
+    y)
+        cat << END
 uv venv                        # create a .venv (replaces python -m venv)
 uv pip install numpy           # install into active/nearby venv (replaces pip install)
 uv pip list / uv pip freeze    # same as pip
@@ -17,6 +20,10 @@ uv tool list / uv tool upgrade
 uv python install 3.12          # also manages Python versions itself (replaces pyenv)
 END
 exit 1
+        ;;
+    n) break ;;
+    *) echo>&2 "unknown input"; exit 1 ;;
+esac
 
 version="$1"
 

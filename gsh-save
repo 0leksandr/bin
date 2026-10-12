@@ -2,4 +2,4 @@
 set -e
 name="${1-$(_git-current-branch-or-tag)}"  # $1 or cur branch
 
-git stash push --include-untracked --message "$name"
+_cmd git stash push --include-untracked --message "$name" -- "$(_path 2 "$@")"

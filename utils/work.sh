@@ -137,14 +137,18 @@ setup() {
         echo "Generating the SSH key, you will be asked to choose a passphrase" >&2
         ssh-keygen -t ed25519 -C "$email" -f "$dirname/.ssh/id_work"
     fi
+    cat > "$dirname/.ssh/ssh-wrapper" <<EOF
+#!/bin/sh
+exec ssh -i "$dirname/.ssh/id_work" -o IdentitiesOnly=yes -o "UserKnownHostsFile=\"$dirname/.ssh/known_hosts\"" "\$@"
+EOF
+    chmod +x "$dirname/.ssh/ssh-wrapper"
 
     # Work git config (included from the global config via includeIf)
     cat > "$dirname/.gitconfig" <<EOF
 [user]
     email = $email
-[core]
-    sshCommand = ssh -i $dirname/.ssh/id_work -o IdentitiesOnly=yes -o UserKnownHostsFile=$dirname/.ssh/known_hosts
 EOF
+    git config -f "$dirname/.gitconfig" core.sshCommand "'$dirname/.ssh/ssh-wrapper'"
 
     # GPG: separate home inside the directory; git calls gpg without GNUPGHOME,
     # so gpg.program points to a wrapper that sets it
@@ -182,30 +186,29 @@ EOF
 
     # gh/glab: separate config inside the directory + login (only if a host was given)
     if [ -n "$host" ]; then
-        mkdir -p "$dirname/.config"
-        chmod 700 "$dirname/.config"
-
         if [ "$forge" = gitlab ]; then
-            mkdir -p "$dirname/.config/glab-cli"
+            mkdir -p "$dirname/.glab-cli"
+            chmod 700 "$dirname/.glab-cli"
             git config -f "$dirname/.gitconfig" my.forge glab
-            git config -f "$dirname/.gitconfig" my.configDir "$dirname/.config/glab-cli"
+            git config -f "$dirname/.gitconfig" my.configDir "$dirname/.glab-cli"
             cat >&2 <<EOF
 glab login: create a personal access token with the 'api' scope at
 https://$host/-/user_settings/personal_access_tokens, then paste it below.
 EOF
             read_token "GitLab token (scope api): "
-            printf '%s' "$token" | GLAB_CONFIG_DIR="$dirname/.config/glab-cli" glab auth login --hostname "$host" --stdin
+            printf '%s' "$token" | GLAB_CONFIG_DIR="$dirname/.glab-cli" glab auth login --hostname "$host" --stdin
             unset token
         else
-            mkdir -p "$dirname/.config/gh"
+            mkdir -p "$dirname/.gh"
+            chmod 700 "$dirname/.gh"
             git config -f "$dirname/.gitconfig" my.forge gh
-            git config -f "$dirname/.gitconfig" my.configDir "$dirname/.config/gh"
+            git config -f "$dirname/.gitconfig" my.configDir "$dirname/.gh"
             cat >&2 <<EOF
 gh login: create a personal access token with the 'repo' and 'read:org' scopes at
 https://$host/settings/tokens, then paste it below.
 EOF
             read_token "GitHub token (scopes repo, read:org): "
-            printf '%s' "$token" | GH_CONFIG_DIR="$dirname/.config/gh" gh auth login --hostname "$host" --insecure-storage -p ssh --with-token
+            printf '%s' "$token" | GH_CONFIG_DIR="$dirname/.gh" gh auth login --hostname "$host" --insecure-storage -p ssh --with-token
             unset token
         fi
     fi
@@ -242,10 +245,23 @@ EOF
     echo
     wait_enter
 
-    # ---- Claude Code / direnv ----
+    # Go private modules
+    if [ -n "$host" ]; then
+        for line in \
+            "export GOPRIVATE=\"$host\"" \
+            "export GIT_SSH_COMMAND=\"'$dirname/.ssh/ssh-wrapper'\"" \
+            "export GIT_CONFIG_COUNT=1" \
+            "export GIT_CONFIG_KEY_0=\"url.git@$host:.insteadOf\"" \
+            "export GIT_CONFIG_VALUE_0=\"https://$host/\""
+        do
+            grep -qxF "$line" "$dirname/.envrc" 2>/dev/null || echo "$line" >> "$dirname/.envrc"
+        done
+    fi
+
+    # Claude Code / direnv
     # Claude Code: separate config dir for the work account, selected by direnv
     envrc="$dirname/.envrc"
-    line="export CLAUDE_CONFIG_DIR=\"$dirname/.config/claude\""
+    line="export CLAUDE_CONFIG_DIR=\"$dirname/.claude-config\""
     grep -qxF "$line" "$envrc" 2>/dev/null || echo "$line" >> "$envrc"
     # Install direnv via Homebrew if missing
     if ! command -v direnv >/dev/null 2>&1; then
@@ -276,7 +292,6 @@ EOF
 === NEXT STEP: Claude Code ===
 Open a new terminal, cd into $dirname, run 'claude' and log in with the work account.
 EOF
-    # ---- end Claude Code / direnv ----
 }
 
 case "$arg2" in
