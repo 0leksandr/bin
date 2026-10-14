@@ -29,13 +29,20 @@ wait_enter() {
     read -r _ < /dev/tty
 }
 
+# Queue a manual step, printed after setup is finalized
+next_steps=""
+next_step() {
+    next_steps="${next_steps}  - $1
+"
+}
+
 # Print the primary key fingerprint of the secret key whose UID matches this email
 # $1 = email
 gpg_fingerprint() {
     gpg --list-secret-keys --with-colons "<$1>" 2>/dev/null | awk -F: '/^fpr:/{print $10; exit}'
 }
 
-# ---- Claude Code / direnv definitions ----
+# ---- direnv definitions ----
 
 # direnv config directory (used by both setup and cleanup)
 direnv_conf_dir="${XDG_CONFIG_HOME:-$HOME/.config}/direnv"
@@ -46,7 +53,7 @@ add_direnv_hook() {
     mkdir -p "$(dirname "$1")"
     if ! grep -q '^[^#]*direnv hook' "$1" 2>/dev/null; then
         printf '\n# direnv\n%s\n' "$2" >> "$1"
-        echo "Added direnv hook to $1, open a new terminal to activate it" >&2
+        echo "Added direnv hook to $1" >&2
     fi
 }
 
@@ -64,7 +71,16 @@ remove_direnv_hook() {
     rm -f "$tmp"
 }
 
-# ---- end Claude Code / direnv definitions ----
+# Add a line to the work .envrc unless it is already there
+# Uses $dirname set by setup(); .envrc is approved once in setup's finalize phase
+# $1 = line
+env_set() {
+    local line="$1"
+    local envrc="$dirname/.envrc"
+    grep -qxF "$line" "$envrc" 2>/dev/null || echo "$line" >> "$envrc"
+}
+
+# ---- end direnv definitions ----
 
 cleanup() {
     [ -d "$target" ] || { echo "Directory $target does not exist" >&2; exit 1; }
@@ -85,6 +101,9 @@ cleanup() {
 
     # Remove the includeIf entry from the global git config
     git config --global --remove-section "includeIf.gitdir:$dirname/" 2>/dev/null ||:
+
+    # Go module cache is read-only, make it removable
+    [ -d "$dirname/.go" ] && chmod -R u+w "$dirname/.go"
 
     rm -rf "$dirname"
 
@@ -183,6 +202,10 @@ echo "Service repo, commits disabled" >&2
 exit 1
 EOF
     chmod +x "$dirname/.git/hooks/pre-commit"
+    # rg
+    ripgreprc="$dirname/.ripgreprc"
+    printf '%s\n' '--no-ignore-vcs' > "$ripgreprc"
+    env_set "export RIPGREP_CONFIG_PATH=\"$ripgreprc\""
 
     # gh/glab: separate config inside the directory + login (only if a host was given)
     if [ -n "$host" ]; then
@@ -247,32 +270,35 @@ EOF
 
     # Go private modules
     if [ -n "$host" ]; then
-        for line in \
-            "export GOPRIVATE=\"$host\"" \
+        for line in                                                  \
+            "export GOPRIVATE=\"$host\""                             \
             "export GIT_SSH_COMMAND=\"'$dirname/.ssh/ssh-wrapper'\"" \
-            "export GIT_CONFIG_COUNT=1" \
-            "export GIT_CONFIG_KEY_0=\"url.git@$host:.insteadOf\"" \
-            "export GIT_CONFIG_VALUE_0=\"https://$host/\""
-        do
-            grep -qxF "$line" "$dirname/.envrc" 2>/dev/null || echo "$line" >> "$dirname/.envrc"
+            "export GIT_CONFIG_COUNT=1"                              \
+            "export GIT_CONFIG_KEY_0=\"url.git@$host:.insteadOf\""   \
+            "export GIT_CONFIG_VALUE_0=\"https://$host/\""           \
+        ; do
+            env_set "$line"
         done
     fi
+    # Go isolation
+    for line in                                      \
+        "export GOPATH=\"$dirname/.go\""             \
+        "export GOMODCACHE=\"$dirname/.go/pkg/mod\"" \
+        "export GOCACHE=\"$dirname/.go/cache\""      \
+        "export GOENV=\"$dirname/.go/env\""          \
+        "export GOBIN=\"$dirname/.go/bin\""          \
+        "PATH_add \"$dirname/.go/bin\""              \
+    ; do
+        env_set "$line"
+    done
 
-    # Claude Code / direnv
-    # Claude Code: separate config dir for the work account, selected by direnv
-    envrc="$dirname/.envrc"
-    line="export CLAUDE_CONFIG_DIR=\"$dirname/.claude-config\""
-    grep -qxF "$line" "$envrc" 2>/dev/null || echo "$line" >> "$envrc"
-    # Install direnv via Homebrew if missing
+    # direnv
     if ! command -v direnv >/dev/null 2>&1; then
         if command -v brew >/dev/null 2>&1; then
             brew install direnv || echo "brew install direnv failed" >&2
         else
             echo "direnv is missing and Homebrew was not found, install direnv manually" >&2
         fi
-    fi
-    if command -v direnv >/dev/null 2>&1; then
-        direnv allow "$dirname"
     fi
     # Quiet direnv output: hide env diff and "unloading", silence status messages, keep errors
     # (existing files are never overwritten)
@@ -288,10 +314,22 @@ EOF
             ;;
         *) echo "Unsupported shell '${SHELL:-}', add the direnv hook manually" >&2 ;;
     esac
-    cat >&2 <<EOF
-=== NEXT STEP: Claude Code ===
-Open a new terminal, cd into $dirname, run 'claude' and log in with the work account.
-EOF
+
+    # Claude Code
+    env_set "export CLAUDE_CONFIG_DIR=\"$dirname/.claude-config\""
+    next_step "cd into $dirname, run 'claude' and log in with the work account"
+
+    # ---- finalize: runs after all .envrc changes ----
+
+    # Approve .envrc after its last change
+    if command -v direnv >/dev/null 2>&1; then
+        direnv allow "$dirname"
+    fi
+
+    printf '\n=== Initialization done ===\n' >&2
+    if [ -n "$next_steps" ]; then
+        printf 'Open a new terminal (so the direnv hook is active), then:\n%s' "$next_steps" >&2
+    fi
 }
 
 case "$arg2" in

@@ -2,7 +2,10 @@
 set -e
 
 case "$(_os)" in
-    linux) "$(_real "$0")" ;;
+    linux)
+        #"$(_real "$0")"
+        notify "$0 is not set"
+        ;;
     mac)
         /Applications/Vivaldi.app/Contents/MacOS/Vivaldi \
             --flag-switches-begin                        \
@@ -10,6 +13,7 @@ case "$(_os)" in
             --restore-last-session                       \
             --save-page-as-mhtml                         \
             --enable-smooth-scrolling                    \
+            --remote-debugging-port=9222                 \
         &&:
         ;;
 esac
