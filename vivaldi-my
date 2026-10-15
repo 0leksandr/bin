@@ -1,6 +1,0 @@
-#!/bin/sh
-# not `-n`, because then it's impossible to open new window
-parallel "
-    vivaldi
-    vivaldi-windows listen
-"
