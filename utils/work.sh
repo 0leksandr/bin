@@ -102,6 +102,14 @@ cleanup() {
     # Remove the includeIf entry from the global git config
     git config --global --remove-section "includeIf.gitdir:$dirname/" 2>/dev/null ||:
 
+    # glab stores tokens in the macOS Keychain; logout removes them from there
+    if [ "$(git config -f "$dirname/.gitconfig" --get my.forge 2>/dev/null)" = glab ]; then
+        glab_config_dir=$(git config -f "$dirname/.gitconfig" --get my.configDir)
+        for h in $(yq '.hosts | keys | .[]' "$glab_config_dir/config.yml"); do
+            GLAB_CONFIG_DIR="$glab_config_dir" glab auth logout --hostname "$h" ||:
+        done
+    fi
+
     # Go module cache is read-only, make it removable
     [ -d "$dirname/.go" ] && chmod -R u+w "$dirname/.go"
 
@@ -210,28 +218,41 @@ EOF
     # gh/glab: separate config inside the directory + login (only if a host was given)
     if [ -n "$host" ]; then
         if [ "$forge" = gitlab ]; then
-            mkdir -p "$dirname/.glab-cli"
-            chmod 700 "$dirname/.glab-cli"
+            glab_cli="$dirname/.glab-cli"
+            mkdir -p "$glab_cli"
+            chmod 700 "$glab_cli"
             git config -f "$dirname/.gitconfig" my.forge glab
-            git config -f "$dirname/.gitconfig" my.configDir "$dirname/.glab-cli"
+            git config -f "$dirname/.gitconfig" my.configDir "$glab_cli"
+            env_set "export GLAB_CONFIG_DIR=\"$glab_cli\""
+            env_set "export GITLAB_HOST=$host"
             cat >&2 <<EOF
 glab login: create a personal access token with the 'api' scope at
 https://$host/-/user_settings/personal_access_tokens, then paste it below.
 EOF
             read_token "GitLab token (scope api): "
-            printf '%s' "$token" | GLAB_CONFIG_DIR="$dirname/.glab-cli" glab auth login --hostname "$host" --stdin
+            printf '%s' "$token" | GLAB_CONFIG_DIR="$glab_cli" glab auth login --hostname "$host" --stdin
             unset token
+            # glab seeds a new config with a gitlab.com host entry
+            if [ "$host" != gitlab.com ]; then
+                if ! command -v yq >/dev/null 2>&1; then
+                    brew install yq || echo "brew install yq failed" >&2
+                fi
+                yq -i 'del(.hosts["gitlab.com"])' "$(git config -f "$dirname/.gitconfig" --get my.configDir)/config.yml"
+            fi
         else
-            mkdir -p "$dirname/.gh"
-            chmod 700 "$dirname/.gh"
+            gh_dir="$dirname/.gh"
+            mkdir -p "gh_dir"
+            chmod 700 "$gh_dir"
             git config -f "$dirname/.gitconfig" my.forge gh
-            git config -f "$dirname/.gitconfig" my.configDir "$dirname/.gh"
+            git config -f "$dirname/.gitconfig" my.configDir "$gh_dir"
+            env_set "export GH_CONFIG_DIR=\"$gh_dir\""
             cat >&2 <<EOF
 gh login: create a personal access token with the 'repo' and 'read:org' scopes at
 https://$host/settings/tokens, then paste it below.
 EOF
             read_token "GitHub token (scopes repo, read:org): "
-            printf '%s' "$token" | GH_CONFIG_DIR="$dirname/.gh" gh auth login --hostname "$host" --insecure-storage -p ssh --with-token
+            printf '%s' "$token" | GH_CONFIG_DIR="$gh_dir" gh auth login --hostname "$host" --insecure-storage -p ssh
+            --with-token
             unset token
         fi
     fi
