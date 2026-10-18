@@ -1,15 +1,20 @@
 #!/bin/sh
 set -e
 dir=/tmp/errors
+command_process="__process"  # internal, for `find -exec` in scan()
 
 process() {
-    file="$1"
+    path="$1"
 
-    content="$(cat "$dir/$file")"
+    content="$(cat "$path")"
     if [ "$content" ]; then
-        alert "$file: $content"
-        : > "$dir/$file"
+        : > "$path"  # right after reading, so that fewer writes are lost
+        alert "${path##*/}: $content"
     fi
+}
+
+scan() {
+    find "$dir" -mindepth 1 -maxdepth 1 -type f -exec "$0" "$command_process" {} \;
 }
 
 case "$1" in
@@ -23,39 +28,23 @@ case "$1" in
         fi
         echo "$dir/$name"
         ;;
-    #for2)
-    #    name="$2"
-    #    if ! echo "$name" |grep -Ei '^[0-9a-z .-]{1,30}$' > /dev/null; then
-    #        name="$PPID"
-    #    fi
-    #    pipe="/tmp/errors2/$name"
-    #    mkfifo "$pipe"
-    #    run-detached "$0 listen2 ${pipe}" >/dev/null
-    #    echo "$pipe"
-    #    ;;
     init)
         mkdir -p "$dir"
-        if [ $(nr-files "$dir") -gt 0 ]; then rm -f "$dir"/*; fi
+        find "$dir" -mindepth 1 -delete
         ;;
     listen)
         _highlander
-        ls -1A "$dir" |while read file; do
-            process "$file"
-        done
+        scan
         case "$(_os)" in
-            linux) inotifywait --monitor --quiet --format "%f" --event MODIFY -- "$dir" ;;
-            mac)   fswatch -- "$dir" |while read -r path; do echo "${path##*/}"; done ;;
-        esac |while read file; do
-            if [ -f "$dir/$file" ]; then
-                process "$file"
-            fi
+            linux) inotifywait --monitor --quiet --event MODIFY -- "$dir" ;;
+            mac)   fswatch -- "$dir" ;;
+        esac |while read -r _; do
+            scan
         done
         ;;
-    #listen2)
-    #    tail --follow=name "$2" |while read line; do
-    #        alert "$2: $line"
-    #    done
-    #    ;;
+    "$command_process")
+        process "$2"
+        ;;
     help) echo "Options: for init listen" ;;
-    *) echo "unknown option: $1" >"$($0 for $0)"; exit 1 ;;
+    *) echo "unknown option: $1" >>"$($0 for "$0")"; exit 1 ;;
 esac

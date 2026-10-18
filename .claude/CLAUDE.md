@@ -8,6 +8,8 @@ This repository is a personal collection of small shell scripts. There is no bui
 
 Most scripts are POSIX `sh` with `set -e` or `set -eu`. Some scripts are `bash`. Indent with four spaces. Many scripts use GNU-style long options (`head --lines`, `xargs --no-run-if-empty`, `grep --invert-match`) and `sed -r`. Keep the style of the script that you edit.
 
+Write POSIX `sh`. Use bash only when POSIX cannot do the job or is much less readable or much larger.
+
 Some scripts came from a Linux (apt) machine. Examples are `install`, `update`, and `bash_completion/`. The current machine is macOS.
 
 ## Architecture

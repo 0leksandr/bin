@@ -14,7 +14,7 @@ fi
 # nohup
 
 if [ "$name" ]; then
-    sh -c "$cmd" >/dev/null 2>"$(errors for "$name")" &
+    sh -c "$cmd" >/dev/null 2>>"$(errors for "$name")" &
 else
     sh -c "$cmd" >/dev/null &
 fi
