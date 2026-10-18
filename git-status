@@ -1,15 +1,24 @@
 #!/bin/bash
 set -eu
 
-# remote status (ahead/behind) of every repository in ~/my-repositories.txt, as a table:
+# remote status (ahead/behind) of every repository in the nearest my-repositories.txt, as a table:
 # repository in column 1, all output of `gst -r` in column 2
+# The list is searched in the current directory and its parents; repositories are relative to its directory
 # With a file argument: append each failed repository and its errors to the file, print nothing
-list="$HOME/my-repositories.txt"
+base=$PWD
+until [ -f "$base/my-repositories.txt" ]; do
+    if [ -z "$base" ]; then
+        echo "my-repositories.txt not found in $PWD or its parents" >&2
+        exit 1
+    fi
+    base=${base%/*}
+done
+list="$base/my-repositories.txt"
 
 if [ $# -gt 0 ]; then
     while IFS= read -r repo; do
         # COLUMNS=0: no `stty` call in `gst`, which fails without a terminal
-        if ! errors="$(COLUMNS=0 gst -C "$HOME/$repo" -r </dev/null 2>&1 >/dev/null)"; then
+        if ! errors="$(COLUMNS=0 gst -C "$base/$repo" -r </dev/null 2>&1 >/dev/null)"; then
             printf '%s\n%s\n\n' "$repo" "$errors" |sed $'s/\033\\[[0-9;]*m//g' >>"$1"  # without colors
         fi
     done <"$list"
@@ -23,7 +32,7 @@ while IFS= read -r repo; do
     name=$(printf "%-${width}s" "$repo")
     printf %s "$name"
     # NUL after the output marks success
-    { COLUMNS=$columns gst -C "$HOME/$repo" -r </dev/null 2>&1 && printf '\0'; } | {
+    { COLUMNS=$columns gst -C "$base/$repo" -r </dev/null 2>&1 && printf '\0'; } | {
         # byte by byte, so progress text without a line end shows at once
         prefix=$name
         need=0

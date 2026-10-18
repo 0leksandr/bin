@@ -18,13 +18,15 @@ git clone --recurse-submodules                                                  
 # initialize .git/FETCH_HEAD, used by `gst`
 git -C "$dest" fetch
 
-root="$(realpath "$HOME")"
+# add to the nearest my-repositories.txt in the parents of the repository, relative to its directory
 path="$(realpath "$dest")"
 file="my-repositories.txt"
-case "$path" in
-    "$root"/*)
-        touch "$root/$file"
-        echo "${path#"$root"/}" |sort --unique --output="$root/$file" - "$root/$file"
-        ;;
-    *) echo "not under $root, not added to $file" >&2 ;;
-esac
+root=${path%/*}
+while [ -n "$root" ] && [ ! -f "$root/$file" ]; do
+    root=${root%/*}
+done
+if [ -f "$root/$file" ]; then
+    echo "${path#"$root"/}" |sort --unique --output="$root/$file" - "$root/$file"
+else
+    echo "$file not found in the parents of $path, not added" >&2
+fi
