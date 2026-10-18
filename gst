@@ -14,11 +14,14 @@ set -eu
 #    esac
 #done
 arg_all=""
-arg_local=""
+check_local=1
+check_remote=1
 while [ $# -gt 0 ]; do
     case "$1" in
         -a) arg_all=1; shift ;;
-        -l) arg_local=1; shift ;;
+        -l) check_remote=""; shift ;;  # local only
+        -r) check_local="";  shift ;;  # remote only
+        -C) CDPATH='' cd -- "$2"; shift 2 ;;
         *)  break ;;
     esac
 done
@@ -53,15 +56,17 @@ check_reg() {
 
 clear_line() {
     printf "\r"
-    printf '%*s' "${COLUMNS:-$(tput cols)}" ""
+    printf '%*s' "${COLUMNS:-$(stty size </dev/tty |cut -d' ' -f2)}" ""
     printf "\r"
 }
 
 git status >/dev/null  # exit and print info if not in git repository
 
-check_reg "status --short $args" '.*'
+if [ "$check_local" ]; then
+    check_reg "status --short $args" '.*'
+fi
 
-if [ ! "$arg_local" ]; then
+if [ "$check_remote" ]; then
     has_remote=""
     if [ "$(git remote show)" != "" ]; then
         has_remote="1"

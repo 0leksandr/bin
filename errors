@@ -8,7 +8,7 @@ process() {
     content="$(cat "$dir/$file")"
     if [ "$content" ]; then
         alert "$file: $content"
-        echo -n > "$dir/$file"
+        : > "$dir/$file"
     fi
 }
 
@@ -42,7 +42,10 @@ case "$1" in
         ls -1A "$dir" |while read file; do
             process "$file"
         done
-        inotifywait --monitor --quiet --format "%f" --event MODIFY -- "$dir" |while read file; do
+        case "$(_os)" in
+            linux) inotifywait --monitor --quiet --format "%f" --event MODIFY -- "$dir" ;;
+            mac)   fswatch -- "$dir" |while read -r path; do echo "${path##*/}"; done ;;
+        esac |while read file; do
             if [ -f "$dir/$file" ]; then
                 process "$file"
             fi

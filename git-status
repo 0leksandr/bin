@@ -1,0 +1,53 @@
+#!/bin/bash
+set -eu
+
+# remote status (ahead/behind) of every repository in ~/my-repositories.txt, as a table:
+# repository in column 1, all output of `gst -r` in column 2
+# With a file argument: append each failed repository and its errors to the file, print nothing
+list="$HOME/my-repositories.txt"
+
+if [ $# -gt 0 ]; then
+    while IFS= read -r repo; do
+        # COLUMNS=0: no `stty` call in `gst`, which fails without a terminal
+        if ! errors="$(COLUMNS=0 gst -C "$HOME/$repo" -r </dev/null 2>&1 >/dev/null)"; then
+            printf '%s\n%s\n\n' "$repo" "$errors" |sed $'s/\033\\[[0-9;]*m//g' >>"$1"  # without colors
+        fi
+    done <"$list"
+    exit 0
+fi
+width=$(awk '{ if (length > w) w = length } END { print w + 2 }' "$list")
+columns=$(( ${COLUMNS:-$(stty size </dev/tty |cut -d' ' -f2)} - width ))  # `gst` clears rows with $COLUMNS spaces
+blank=$(printf "%${width}s" "")
+
+while IFS= read -r repo; do
+    name=$(printf "%-${width}s" "$repo")
+    printf %s "$name"
+    # NUL after the output marks success
+    { COLUMNS=$columns gst -C "$HOME/$repo" -r </dev/null 2>&1 && printf '\0'; } | {
+        # byte by byte, so progress text without a line end shows at once
+        prefix=$name
+        need=0
+        lines=0
+        while IFS= read -r -n1 -d '' c; do
+            case "$c" in
+                '')  # NUL: replace all output of this repository with ✅
+                    if [ "$lines" -gt 0 ]; then
+                        printf '\033[%dA' "$lines"
+                    fi
+                    printf '\r\033[J%s✅\n' "$name"
+                    need=1
+                    ;;
+                $'\r') printf '\r%s' "$prefix"; need=0 ;;
+                $'\n') printf '\n'; prefix=$blank; need=1; lines=$((lines + 1)) ;;
+                *)
+                    if [ "$need" = 1 ]; then
+                        printf %s "$prefix"
+                        need=0
+                    fi
+                    printf %s "$c"
+                    ;;
+            esac
+        done
+        [ "$need" = 1 ] || echo
+    }
+done <"$list"

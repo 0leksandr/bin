@@ -84,7 +84,7 @@ env_set() {
 
 cleanup() {
     [ -d "$target" ] || { echo "Directory $target does not exist" >&2; exit 1; }
-    dirname=$(cd "$target" && pwd -P)
+    dirname=$(realpath "$target")
     case "$dirname" in
         /|"$HOME") echo "Refusing to delete $dirname" >&2; exit 1 ;;
     esac
@@ -144,7 +144,7 @@ setup() {
     host="${host#*://}"
     host="${host%/}"
     mkdir -p "$target"
-    dirname=$(cd "$target" && pwd -P)
+    dirname=$(realpath "$target")
 
     # Detect the host type (only if a host was given)
     forge=""

@@ -17,3 +17,14 @@ git clone --recurse-submodules                                                  
 
 # initialize .git/FETCH_HEAD, used by `gst`
 git -C "$dest" fetch
+
+root="$(realpath "$HOME")"
+path="$(realpath "$dest")"
+file="my-repositories.txt"
+case "$path" in
+    "$root"/*)
+        touch "$root/$file"
+        echo "${path#"$root"/}" |sort --unique --output="$root/$file" - "$root/$file"
+        ;;
+    *) echo "not under $root, not added to $file" >&2 ;;
+esac
