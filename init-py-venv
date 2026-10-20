@@ -10,18 +10,24 @@ uv pip install numpy           # install into active/nearby venv (replaces pip i
 uv pip list / uv pip freeze    # same as pip
 uv pip compile requirements.in # lockfile generation (replaces pip-compile)
 
-uv init myproject               # new project with pyproject.toml
-uv add numpy                    # add a dependency (replaces manual pip + editing pyproject.toml)
-uv run script.py                # run inside the project's venv automatically, no activation needed
-uv sync                         # install exact deps from lockfile
+uv init --bare myproject       # new project with pyproject.toml
+uv add numpy                   # add a dependency (replaces manual pip + editing pyproject.toml)
+uv run script.py               # run inside the project's venv automatically, no activation needed
+uv sync                        # install exact deps from lockfile
 
-uv tool install openai-whisper  # pipx equivalent — isolated CLI tool
+uv tool install openai-whisper # pipx equivalent — isolated CLI tool
 uv tool list / uv tool upgrade
-uv python install 3.12          # also manages Python versions itself (replaces pyenv)
+uv python install 3.12         # also manages Python versions itself (replaces pyenv)
+
+uv add my --index oleksandr=https://0leksandr.github.io/my.py/
 END
-exit 1
+        uv init --bare
+        uv add -r requirements.txt
+        uv remove my
+        uv add my --index oleksandr=https://0leksandr.github.io/my.py/
+        exit
         ;;
-    n) break ;;
+    n) : ;;
     *) echo>&2 "unknown input"; exit 1 ;;
 esac
 

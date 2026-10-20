@@ -2,10 +2,23 @@
 set -e
 file="$1"
 
+# Owner of the wrapper, not the current user: works under sudo and with an overridden $HOME
+owner="$(/usr/bin/stat -f %Su "$file")"
+home="$(eval echo "~$owner")"
+
 basename="$(basename "$file")"
-type -a "$basename"                    \
-    | sed -r "s/^$basename is //g"     \
-    | xargs realpath                   \
-    | grep -E --invert-match "^$HOME/" \
-    | head --lines=1                   \
-    &&:
+real="$(                                   \
+    type -a "$basename"                    \
+        | sed -r "s/^$basename is //g"     \
+        | xargs realpath                   \
+        | grep -E --invert-match "^$home/" \
+        | head --lines=1                   \
+)"
+
+# Returning the wrapper itself would make it exec itself forever
+if [ -z "$real" ] || [ "$real" = "$(realpath "$file")" ]; then
+    echo "_real: no real '$basename' found outside $home" >&2
+    exit 1
+fi
+
+echo "$real"
