@@ -1,15 +1,22 @@
 #!/bin/sh
 set -e
 dir=/tmp/errors
+alerted_dir=/tmp/errors-alerted  # alerted sizes; outside "$dir", so that writes do not trigger `listen`
 command_process="__process"  # internal, for `find -exec` in scan()
 
 process() {
     path="$1"
+    name="${path##*/}"
 
-    content="$(cat "$path")"
-    if [ "$content" ]; then
-        : > "$path"  # right after reading, so that fewer writes are lost
-        alert "${path##*/}: $content"
+    size=$(($(wc -c < "$path")))
+    alerted=$(($(cat "$alerted_dir/$name" 2>/dev/null || echo 0)))
+    if [ $size -lt $alerted ]; then alerted=0; fi  # the file was truncated
+    if [ $size -gt $alerted ]; then
+        content="$(tail -c +$((alerted + 1)) "$path" |head -c $((size - alerted)))"
+        echo $size > "$alerted_dir/$name"
+        if [ "$content" ]; then
+            alert "$name: $content"
+        fi
     fi
 }
 
@@ -29,11 +36,12 @@ case "$1" in
         echo "$dir/$name"
         ;;
     init)
-        mkdir -p "$dir"
-        find "$dir" -mindepth 1 -delete
+        mkdir -p "$dir" "$alerted_dir"
+        find "$dir" "$alerted_dir" -mindepth 1 -delete
         ;;
     listen)
         _highlander
+        mkdir -p "$dir" "$alerted_dir"
         scan
         case "$(_os)" in
             linux) inotifywait --monitor --quiet --event MODIFY -- "$dir" ;;
