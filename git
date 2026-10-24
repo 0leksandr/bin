@@ -17,14 +17,8 @@ stashes_for() {
     local target="$1"
 
     target="$(echo "$target" |sed -r 's / \\/ g')"
-    #local reg="^(stash@\{([0-9]+)\}): (On $target: $key|On \(no branch\): $key: $target)$"
-    for reg in                                            \
-        "On [^:]+: $key: $target"                         \
-        "On $target: $key" `# for backward compatibility` \
-        ; do
-        local reg="^(stash@\{([0-9]+)\}): $reg$"
-        git_real --no-pager stash list |grep -E "$reg" |sed -r "s#$reg#\1#g"
-    done
+    # "On (no branch):" when detached HEAD, or "On <wrong branch>:" when new submodule added are possible
+    git_real --no-pager stash list |sed -nr "s#^(stash@\{[0-9]+\}): On [^:]+: $key: $target\$#\1#p"
 }
 list_submodules() {
     git config --file .gitmodules --get-regexp path |sed -r 's/^[^ ]+ +([^ ]+)$/\1/g'

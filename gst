@@ -64,6 +64,23 @@ git status >/dev/null  # exit and print info if not in git repository
 
 if [ "$check_local" ]; then
     check_reg "status --short $args" '.*'
+
+    if [ "$arg_all" ]; then
+        stashes="$(gsh-list |sed -nr 's/^(stash@\{[0-9]+\}): On [^:]+: git-switch: (.*)$/\1 \2/p')"
+        while read -r stash branch; do
+            [ "$stash" ] || continue
+            err echo "$(
+                printf '## \033[32m%s\033[m\n' "$branch"
+                git stash show --no-renames --name-status "$stash" |awk -F '\t' '{
+                    if ($1 == "A") printf "\033[32mA\033[m  %s\n", $2
+                    else           printf " \033[31m%s\033[m %s\n", $1, $2
+                }'
+                git stash show --only-untracked --name-only "$stash" |awk '{ printf "\033[31m??\033[m %s\n", $0 }'
+            )"
+        done <<EOF
+$stashes
+EOF
+    fi
 fi
 
 if [ "$check_remote" ]; then
