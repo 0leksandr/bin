@@ -2,7 +2,6 @@
 set -e
 
 key="git-switch"  # MAYBE: update
-dir_my_submodules=".git/my-stashed-submodules"
 
 real_git="$(_real "$0")"
 
@@ -11,22 +10,54 @@ git_real() {
 }
 escape() {
     local value="$1"
-    echo "$value" |tr '/' '#'
+    # URL-style: "%" is %25, "#" is %23. "%" first, so that different names never give the same result
+    # Names without "%" and "#" keep the old form
+    echo "$value" |sed 's/%/%25/g; s/#/%23/g' |tr '/' '#'
 }
 stashes_for() {
     local target="$1"
+    local stash subject
 
-    target="$(echo "$target" |sed -r 's / \\/ g')"
-    # "On (no branch):" when detached HEAD, or "On <wrong branch>:" when new submodule added are possible
-    git_real --no-pager stash list |sed -nr "s#^(stash@\{[0-9]+\}): On [^:]+: $key: $target\$#\1#p"
+    # A string compare, not a regex: branch names can contain "." or "+"
+    gsh-list --format='%gd %s' |while read -r stash subject; do
+        # "On (no branch):" when detached HEAD, or "On <wrong branch>:" when new submodule added are possible
+        case "$subject" in "On "*": $key: $target")
+            echo "$stash"
+        esac
+    done
+}
+forget_branch() {
+    local target="$1"
+    local stash
+
+    # Highest index first, so the lower indexes do not shift
+    stashes_for "$target" |sort --field-separator='{' --key=2 --numeric-sort --reverse |while read -r stash; do
+        gsh-drop "$stash"
+    done
+
+    set_submodules_dir
+    dir="$dir_my_submodules/$(escape "$target")"
+    if [ -d "$dir" ]; then
+        rm -rf "$dir"
+        submodules_cleanup
+    fi
 }
 list_submodules() {
     git config --file .gitmodules --get-regexp path |sed -r 's/^[^ ]+ +([^ ]+)$/\1/g'
+}
+set_submodules_dir() {
+    #dir_my_submodules=".git/my-stashed-submodules"
+    # Separate function - to not fail early on `git clone`, `git init`, `git --version` outside a repository
+    dir_my_submodules="$(git_real rev-parse --absolute-git-dir)/my-stashed-submodules"
 }
 submodules_cleanup() {
     if [ -z "$(ls -A "$dir_my_submodules")" ]; then
         rm -rf "$dir_my_submodules"
     fi
+}
+get_hash() {
+    # commit hash of the newest stash (stash@{0})
+    git_real rev-parse --quiet --verify refs/stash ||:
 }
 
 nr_args=$#
@@ -35,61 +66,63 @@ if [ "${!nr_args}" = "--" ]; then
 fi
 n=$nr_args
 n1=$((n - 1))
-n2=$((n - 2))
-if [ $nr_args -ge 2 ]; then
-    if [ "${!n1}" = "checkout" ]; then
-        source="$(_git-current-branch-or-tag)"
-        target="${!n}"
-
+if [ $nr_args -ge 2 ] && [ "${!n1}" = "checkout" ]; then
+    target="${!n}"
+    source="$(_git-current-branch-or-tag 2>/dev/null)" || source=""
+    # A target that is not a commit is a file to restore (or a DWIM branch): plain checkout
+    if [ "$source" ] && { [ "$target" = "-" ] || git_real rev-parse --verify --quiet "$target^{commit}" >/dev/null ;}; then
+        stash_before="$(get_hash)"
         if [ "$(git_real status --short)" ]; then
             #git_real add .
 
             message="$key: $source"  # git stash incorrectly identifies branch when new submodule is added
             git_real stash push --include-untracked --message "$message"
         fi
+        stash_after="$(get_hash)"
 
-        git_real "$@"
+        if ! git_real "$@"; then
+            # Do not leave the changes hidden in the stash
+            if [ "$stash_after" != "$stash_before" ]; then
+                gsh-pop
+            fi
+            exit 1
+        fi
 
-        submodules="$(git_real status --short |sed -r 's#^\?\? +([^ ].*[^/]|[^ /])/?$#\1#g')"
-        if [ "$submodules" ]; then
-            dir="$dir_my_submodules/$(escape "$source")"
-            mkdir -p "$dir"
-            echo "$submodules" |while read -r file; do
+        # Resolves "-", tags and DWIM to the name that the source side records
+        target="$(_git-current-branch-or-tag 2>/dev/null)" || target=""
+        cd "$(git_real rev-parse --show-toplevel)"
+        set_submodules_dir
+
+        dir="$dir_my_submodules/$(escape "$source")"
+        # -z: paths with spaces are not quoted
+        git_real status --porcelain -z |while IFS= read -r -d '' entry; do
+            case "$entry" in "?? "*)
+                file="${entry#"?? "}"
+                file="${file%/}"
                 mkdir -p "$(dirname "$dir/$file")"
                 mv "$file" "$dir/$file"
-            done
-        fi
+            esac
+        done
 
         #list_submodules |while read -r submodule; do
         #    rm -rf "$submodule"
         #done
-        dir="$dir_my_submodules/$(escape "$target")"
-        if [ -d "$dir" ]; then
-            cp -a "$dir/." .
-            rm -rf "$dir"
-            submodules_cleanup
-        fi
+        # Empty target: detached HEAD, nothing was saved for it
+        if [ "$target" ]; then
+            dir="$dir_my_submodules/$(escape "$target")"
+            if [ -d "$dir" ]; then
+                cp -a "$dir/." .
+                rm -rf "$dir"
+                submodules_cleanup
+            fi
 
-        stashes_for "$target" |while read -r stash; do
-            git_real stash pop "$stash"
-            break
-        done
+            stashes_for "$target" |while read -r stash; do
+                gsh-pop "$stash"
+                break
+            done
+        fi
 
         exit 0
-    fi
-fi
-if [ $nr_args -ge 3 ]; then
-    if [ "${!n2}" = "branch" ] && { [ "${!n1}" = "-d" ] || [ "${!n1}" = "--delete" ] ;}; then
-        target="${!n}"
-        stashes_for "$target" |while read -r stash; do
-            git_real stash drop "$stash"
-        done
-
-        dir="$dir_my_submodules/$(escape "$target")"
-        if [ -d "$dir" ]; then
-            rm -rf "$dir"
-            submodules_cleanup
-        fi
     fi
 fi
 
@@ -98,3 +131,15 @@ fi
 #eval "git_real $args"
 
 git_real "$@"
+
+# Every name after `branch -d` (or --delete, -D) is a deleted branch
+deleting=""
+previous=""
+for arg in "$@"; do
+    if [ "$deleting" ]; then
+        case "$arg" in -*) ;; *) forget_branch "$arg" ;; esac
+    elif [ "$previous" = "branch" ]; then
+        case "$arg" in -d|--delete|-D) deleting=1 ;; esac
+    fi
+    previous="$arg"
+done

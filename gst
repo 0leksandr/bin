@@ -144,7 +144,7 @@ if [ "$check_remote" ]; then
                 remote_base_branches="$(_git-remote-base-branches "$branch")"
                 clear_line
                 for remote_base_branch in $remote_base_branches; do
-                    if echo "$all_branches" |grep -Eq "^$remote_base_branch$"; then
+                    if echo "$all_branches" |grep --fixed-strings --line-regexp --quiet -- "$remote_base_branch"; then
                         last_commit="$(git show-ref --heads -s "$remote_base_branch")"
                         common_commit="$(git merge-base "$branch" "$remote_base_branch")"
                         if [ "$last_commit" != "$common_commit" ]; then
