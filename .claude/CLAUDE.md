@@ -4,11 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-This repository is a personal collection of small shell scripts. There is no build, no lint configuration, and no test suite. To try a script, run it by name.
+This repository is a personal collection of small shell scripts. There is no build and no lint configuration. To try a script, run it by name. `tests/` has tests for some scripts: `tests/git` tests the `git` wrapper in temporary repositories.
 
 Most scripts are POSIX `sh` with `set -e` or `set -eu`. Some scripts are `bash`. Indent with four spaces. Many scripts use GNU-style long options (`head --lines`, `xargs --no-run-if-empty`, `grep --invert-match`) and `sed -r`. Keep the style of the script that you edit.
 
 Write POSIX `sh`. Use bash only when POSIX cannot do the job or is much less readable or much larger.
+
+In a function, use `$1`, `$2` only in the first assignment, for example `local branch="$1"`. After that, use the meaningful names.
+
+Use long option names, for example `grep --count`, `sort --numeric-sort`, `git stash push --quiet`, when macOS supports them. macOS `rm`, `mkdir`, `tr` and `chmod` have none. Allowed short exceptions are `head`/`tail -<number>`, `grep -q`/`-E`/`-Eq`, `sed -r` and `sh -c`. A test may use short options on purpose, to check that a wrapper handles them.
+
+Prefer the most direct check, for example one regex, over clever parameter expansion or nested `case` statements.
 
 Some scripts came from a Linux (apt) machine. Examples are `install`, `update`, and `bash_completion/`. The current machine is macOS.
 
@@ -31,6 +37,7 @@ Other directories:
 - `root/`: scripts for `sudo` (see `root/README`).
 - `bash_completion/`: completion definitions for the scripts.
 - `utils/`: scripts and configuration files that are not on `PATH`.
+- `tests/`: tests for the scripts, not on `PATH`.
 - `trash/`: retired scripts and shell experiments (`trash/tests/`). Do not edit or reuse them unless the user asks.
 
 ## Working rules

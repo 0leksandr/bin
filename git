@@ -8,121 +8,146 @@ real_git="$(_real "$0")"
 git_real() {
     "$real_git" "$@"
 }
-escape() {
-    local value="$1"
-    # URL-style: "%" is %25, "#" is %23. "%" first, so that different names never give the same result
-    # Names without "%" and "#" keep the old form
-    echo "$value" |sed 's/%/%25/g; s/#/%23/g' |tr '/' '#'
+message_for() {
+    # `stash push` puts "On <branch>: " before it, but that branch is not reliable, so the message has its own:
+    # git stash incorrectly identifies branch when new submodule is added ("On <wrong branch>:"),
+    # and gives "On (no branch):" when detached HEAD
+    local branch="$1"
+
+    echo "$key: $branch"
 }
+# Prints "<stash> <message>" for each stash of the branch
 stashes_for() {
     local target="$1"
-    local stash subject
+    local message stash subject
 
-    # A string compare, not a regex: branch names can contain "." or "+"
-    gsh-list --format='%gd %s' |while read -r stash subject; do
-        # "On (no branch):" when detached HEAD, or "On <wrong branch>:" when new submodule added are possible
-        case "$subject" in "On "*": $key: $target")
-            echo "$stash"
-        esac
+    message="$(message_for "$target")"
+    # %gs: the message, as the default `stash list` shows it. The quoted part is a plain string: branch names can contain "." or "+"
+    gsh-list --format='%gd %gs' |while read -r stash subject; do
+        if [[ $subject =~ ^On\ [^:]+:\ "$message"$ ]]; then
+            echo "$stash $subject"
+        fi
     done
 }
-forget_branch() {
-    local target="$1"
-    local stash
-
-    # Highest index first, so the lower indexes do not shift
-    stashes_for "$target" |sort --field-separator='{' --key=2 --numeric-sort --reverse |while read -r stash; do
-        gsh-drop "$stash"
-    done
-
-    set_submodules_dir
-    dir="$dir_my_submodules/$(escape "$target")"
-    if [ -d "$dir" ]; then
-        rm -rf "$dir"
-        submodules_cleanup
-    fi
-}
-list_submodules() {
-    git config --file .gitmodules --get-regexp path |sed -r 's/^[^ ]+ +([^ ]+)$/\1/g'
-}
-set_submodules_dir() {
-    #dir_my_submodules=".git/my-stashed-submodules"
-    # Separate function - to not fail early on `git clone`, `git init`, `git --version` outside a repository
-    dir_my_submodules="$(git_real rev-parse --absolute-git-dir)/my-stashed-submodules"
-}
-submodules_cleanup() {
-    if [ -z "$(ls -A "$dir_my_submodules")" ]; then
-        rm -rf "$dir_my_submodules"
-    fi
+highest_first() {
+    # Drop from the highest index, so the lower indexes do not shift
+    sort --field-separator='{' --key=2 --numeric-sort --reverse
 }
 get_hash() {
     # commit hash of the newest stash (stash@{0})
     git_real rev-parse --quiet --verify refs/stash ||:
 }
 
-nr_args=$#
-if [ "${!nr_args}" = "--" ]; then
-    nr_args=$((nr_args-1))
-fi
-n=$nr_args
-n1=$((n - 1))
-if [ $nr_args -ge 2 ] && [ "${!n1}" = "checkout" ]; then
-    target="${!n}"
-    source="$(_git-current-branch-or-tag 2>/dev/null)" || source=""
-    # A target that is not a commit is a file to restore (or a DWIM branch): plain checkout
-    if [ "$source" ] && { [ "$target" = "-" ] || git_real rev-parse --verify --quiet "$target^{commit}" >/dev/null ;}; then
+# Global options, before the subcommand. Sets `dirs` (-C), `global` (the others) and `command`
+parse_global() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -C)                          dirs+=("$2");        shift 2 || return 1 ;;
+            -c|--namespace|--config-env) global+=("$1" "$2"); shift 2 || return 1 ;;
+            # Another repository: too rare to handle, no extra work
+            --git-dir*|--work-tree*)     return 1 ;;
+            -*)                          global+=("$1");      shift ;;
+            *)                           break ;;
+        esac
+    done
+    command=("$@")
+}
+apply_dirs() {
+    local dir
+    for dir in "${dirs[@]}"; do
+        cd "$dir"
+    done
+}
+# Prints the target, if `checkout`/`switch` changes the branch and keeps the local changes
+switch_target() {
+    local subcommand="$1"
+    local target="" paths=""
+    shift
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --) shift; [ $# -eq 0 ] || paths=1; break ;;
+            -) target="$1" ;;  # the previous branch
+            # Only the options known to keep "go to another branch, keep my changes" safe for a stash
+            -q|--quiet|--progress|--no-progress|--recurse-submodules|--no-recurse-submodules|--ignore-other-worktrees \
+                |--guess|--no-guess|-t|--track|--track=*|--no-track|-d|--detach|--overwrite-ignore|--no-overwrite-ignore) ;;
+            # Any other option, also one that git adds later (new branch, discarded or merged changes, files): plain git
+            -*) return 1 ;;
+            *) if [ "$target" ]; then paths=1; else target="$1"; fi ;;
+        esac
+        shift
+    done
+    [ "$target" ] && [ -z "$paths" ] || return 1
+
+    # For `checkout`, a name that is not a commit or a remote branch (DWIM) is a file to restore
+    if [ "$subcommand" = checkout ] && [ "$target" != "-" ] \
+        && ! git_real rev-parse --verify --quiet "$target^{commit}" >/dev/null \
+        && [ -z "$(git_real for-each-ref --count=1 "refs/remotes/*/$target")" ]; then
+        return 1
+    fi
+    echo "$target"
+}
+
+dirs=()
+global=()
+command=()
+parse_global "$@" ||:
+
+case "${command[0]}" in checkout|switch)
+    if (apply_dirs && switch_target "${command[@]}" >/dev/null); then
+        apply_dirs
+        # Empty on a detached HEAD without a tag
+        source="$(_git-current-branch-or-tag 2>/dev/null)" ||:
+        carried=""
         stash_before="$(get_hash)"
         if [ "$(git_real status --short)" ]; then
-            #git_real add .
+            if [ "$source" ]; then
+                #git_real add .
 
-            message="$key: $source"  # git stash incorrectly identifies branch when new submodule is added
-            git_real stash push --include-untracked --message "$message"
+                git_real stash push --include-untracked --message "$(message_for "$source")"
+            else
+                # No name to save the changes under: git carries them to the target
+                carried=1
+            fi
         fi
         stash_after="$(get_hash)"
 
-        if ! git_real "$@"; then
+        git_real "${global[@]}" "${command[@]}" || {
+            status=$?
             # Do not leave the changes hidden in the stash
             if [ "$stash_after" != "$stash_before" ]; then
                 gsh-pop
             fi
-            exit 1
-        fi
+            exit $status
+        }
 
-        # Resolves "-", tags and DWIM to the name that the source side records
-        target="$(_git-current-branch-or-tag 2>/dev/null)" || target=""
-        cd "$(git_real rev-parse --show-toplevel)"
-        set_submodules_dir
-
-        dir="$dir_my_submodules/$(escape "$source")"
-        # -z: paths with spaces are not quoted
-        git_real status --porcelain -z |while IFS= read -r -d '' entry; do
-            case "$entry" in "?? "*)
-                file="${entry#"?? "}"
-                file="${file%/}"
-                mkdir -p "$(dirname "$dir/$file")"
-                mv "$file" "$dir/$file"
-            esac
-        done
-
-        #list_submodules |while read -r submodule; do
-        #    rm -rf "$submodule"
-        #done
-        # Empty target: detached HEAD, nothing was saved for it
-        if [ "$target" ]; then
-            dir="$dir_my_submodules/$(escape "$target")"
-            if [ -d "$dir" ]; then
-                cp -a "$dir/." .
-                rm -rf "$dir"
-                submodules_cleanup
-            fi
-
-            stashes_for "$target" |while read -r stash; do
+        # Resolves "-", tags and DWIM to the name that the source side records. Empty on a detached HEAD
+        target="$(_git-current-branch-or-tag 2>/dev/null)" ||:
+        if [ "$target" ] && [ -z "$carried" ]; then
+            stashes_for "$target" |while read -r stash _; do
                 gsh-pop "$stash"
                 break
             done
         fi
-
         exit 0
+    fi
+esac
+
+# `branch -d`, `branch -m`: what to do after git succeeds
+branch_mode=""
+branch_names=()
+if [ "${command[0]}" = branch ]; then
+    for arg in "${command[@]:1}"; do
+        case "$arg" in
+            -d|--delete|-D) branch_mode=delete ;;
+            -m|--move|-M)   branch_mode=move ;;
+            -*)             ;;
+            *)              branch_names+=("$arg") ;;
+        esac
+    done
+    if [ "$branch_mode" = move ] && [ ${#branch_names[@]} -eq 1 ]; then
+        # `branch -m <new>` renames the current branch
+        branch_names=("$(apply_dirs && _git-current-branch-or-tag 2>/dev/null)" "${branch_names[0]}")
     fi
 fi
 
@@ -132,14 +157,32 @@ fi
 
 git_real "$@"
 
-# Every name after `branch -d` (or --delete, -D) is a deleted branch
-deleting=""
-previous=""
-for arg in "$@"; do
-    if [ "$deleting" ]; then
-        case "$arg" in -*) ;; *) forget_branch "$arg" ;; esac
-    elif [ "$previous" = "branch" ]; then
-        case "$arg" in -d|--delete|-D) deleting=1 ;; esac
-    fi
-    previous="$arg"
-done
+case "$branch_mode" in
+    delete)
+        apply_dirs
+        for branch in "${branch_names[@]}"; do
+            stashes_for "$branch" |highest_first |while read -r stash _; do
+                gsh-drop "$stash"
+            done
+        done
+        ;;
+    move)
+        apply_dirs
+        old="${branch_names[0]}"
+        new="${branch_names[1]}"
+        [ "$old" ] && [ "$new" ] || exit 0
+        # Oldest first. All drops come before the stores: a store shifts every index
+        stashes="$(stashes_for "$old" |highest_first)"
+        # "<hash> <message>": the same message, only the branch name after the key changes
+        renamed="$(echo "$stashes" |while read -r stash subject; do
+            [ -z "$stash" ] || echo "$(git_real rev-parse "$stash") ${subject%"$(message_for "$old")"}$(message_for "$new")"
+        done)"
+        echo "$stashes" |while read -r stash _; do
+            [ -z "$stash" ] || gsh-drop --quiet "$stash"
+        done
+        # Each store goes on top, so the order stays the same
+        echo "$renamed" |while read -r hash subject; do
+            [ -z "$hash" ] || git_real stash store --message "$subject" "$hash"
+        done
+        ;;
+esac

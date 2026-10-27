@@ -1,0 +1,299 @@
+#!/bin/bash
+# Tests for the git wrapper (the first git on PATH). Works only inside a new temporary directory
+set -u
+T="$(mktemp --directory)"
+trap '/bin/rm -rf "$T"' EXIT
+# Like the user's global configuration: submodule.recurse is true
+printf '[submodule]\n\trecurse = true\n[protocol "file"]\n\tallow = always\n' >"$T/gitconfig"
+export GIT_CONFIG_GLOBAL="$T/gitconfig" GIT_CONFIG_NOSYSTEM=1
+export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t
+fails=0
+ok()   { echo "  PASS: $*"; }
+bad()  { echo "  FAIL: $*"; fails=$((fails+1)); }
+check() { local d="$1"; shift; if "$@"; then ok "$d"; else bad "$d"; fi; }
+# For conditions with && and ||
+check_all() { if eval "$2"; then ok "$1"; else bad "$1"; fi; }
+not() { ! "$@"; }
+stashes() { git --no-pager stash list --format=%gs; }
+on() { [ "$(git symbolic-ref --quiet --short HEAD)" = "$1" ]; }
+
+# Repo with file1, file2 on branch a
+mkrepo() {
+    local r="$T/$1"
+    mkdir -p "$r" && cd "$r" || exit 1
+    git init --quiet --initial-branch=a
+    echo 1 >file1; echo 2 >file2
+    git add . && git commit --quiet --message init
+}
+# Repo "subsrc" with two commits, for submodules
+mksubsrc() {
+    [ -d "$T/subsrc" ] && return
+    mkdir -p "$T/subsrc" && (cd "$T/subsrc" && git init --quiet --initial-branch=main \
+        && echo s1 >s && git add s && git commit --quiet --message s1 \
+        && echo s2 >s && git commit --quiet --all --message s2)
+}
+
+echo "1. refused branch -d keeps the stash"
+mkrepo t1
+git switch --quiet --create u; echo u >>file1; git commit --quiet --all --message u
+echo change >>file1
+git checkout a >/dev/null 2>&1
+check "changes stashed for u" [ "$(stashes | grep --count 'git-switch: u$')" = 1 ]
+git branch --delete u >/dev/null 2>&1; rc=$?
+check "branch -d refused (rc=$rc)" [ $rc != 0 ]
+check "stash for u kept" [ "$(stashes | grep --count 'git-switch: u$')" = 1 ]
+
+echo "2. branch -D drops only that branch's stashes"
+mkrepo t2
+git branch u
+echo x >>file1; git stash push --quiet --message "git-switch: u"
+echo y >>file1; git stash push --quiet --message "keep"
+echo z >>file1; git stash push --quiet --message "git-switch: u"
+git branch -D u >/dev/null
+check "only 'keep' left: [$(stashes | tr '\n' ' ')]" [ "$(stashes)" = "On a: keep" ]
+
+echo "3. failed checkout puts changes back, keeps git's exit code"
+mkrepo t3
+git branch b
+echo change >>file1
+git checkout nosuchbranch >/dev/null 2>&1
+check "unknown branch: file1 still changed" grep --quiet change file1
+check "unknown branch: no stash" [ -z "$(stashes)" ]
+git switch nosuchbranch >/dev/null 2>&1; rc=$?
+/usr/bin/git switch nosuchbranch >/dev/null 2>&1; real_rc=$?
+check "switch unknown: rc=$rc, like git ($real_rc)" [ $rc = $real_rc ]
+check_all "switch unknown: file1 still changed, no stash" 'grep --quiet change file1 && [ -z "$(stashes)" ]'
+printf '#!/bin/sh\nexit 3\n' >.git/hooks/post-checkout; chmod +x .git/hooks/post-checkout
+git checkout b >/dev/null 2>&1; rc=$?
+check "hook failure: rc=$rc, like git (1)" [ $rc = 1 ]
+check "hook failure: file1 changed again" grep --quiet change file1
+check "hook failure: no stash left" [ -z "$(stashes)" ]
+
+echo "4. submodule at a different commit"
+mksubsrc
+mkrepo t4
+git switch --quiet --create b
+git submodule --quiet add "$T/subsrc" sub >/dev/null 2>&1
+(cd sub && git checkout --quiet HEAD~1)
+git add sub && git commit --quiet --message "sub at s1"
+git switch --quiet --create c
+(cd sub && git checkout --quiet main)
+git add sub && git commit --quiet --message "sub at s2"
+git checkout --quiet b 2>/dev/null
+echo bchange >>file1
+git checkout c >/dev/null 2>&1; rc=$?
+check "b -> c succeeded (rc=$rc)" [ $rc = 0 ]
+check "sub at s2" [ "$(cat sub/s)" = s2 ]
+echo cchange >>file2
+git checkout b >/dev/null 2>&1; rc=$?
+check "c -> b succeeded (rc=$rc)" [ $rc = 0 ]
+check "sub at s1" [ "$(cat sub/s)" = s1 ]
+check "b's change restored" grep --quiet bchange file1
+check "c's change stashed" [ "$(stashes | grep --count 'git-switch: c$')" = 1 ]
+
+echo "5. leave a detached HEAD"
+mkrepo t5
+sha="$(git rev-parse HEAD)"
+git checkout "$sha" >/dev/null 2>&1
+check "detached" [ -z "$(git symbolic-ref --quiet HEAD)" ]
+git checkout a >/dev/null 2>&1
+check "checkout a from detached" on a
+
+echo "6. git checkout <file> makes no stash"
+mkrepo t6
+echo c1 >>file1; echo c2 >>file2
+git checkout file1 >/dev/null 2>&1
+check "file1 restored" [ "$(cat file1)" = 1 ]
+check "file2 keeps its edit" grep --quiet c2 file2
+check "no stash" [ -z "$(stashes)" ]
+
+echo "7. checkout - restores each side's stash"
+mkrepo t7
+git branch b
+echo achange >>file1
+git checkout b >/dev/null 2>&1
+check "on b, a's change gone" not grep --quiet achange file1
+echo bchange >>file2
+git checkout - >/dev/null 2>&1
+check "on a" on a
+check "a's change back" grep --quiet achange file1
+check "b's change not here" not grep --quiet bchange file2
+git checkout - >/dev/null 2>&1
+check "b's change back" grep --quiet bchange file2
+check "a's change stashed again" [ "$(stashes)" = "On a: git-switch: a" ]
+
+echo "8. from a subdirectory, with a submodule on one branch"
+mksubsrc
+mkrepo t8
+mkdir d; echo x >d/x; git add d && git commit --quiet --message d
+git switch --quiet --create b
+git submodule --quiet add "$T/subsrc" sub >/dev/null 2>&1
+git commit --quiet --message sub
+cd d
+echo bchange >>x
+git checkout a >/dev/null 2>&1; rc=$?
+check "b -> a from d (rc=$rc)" [ $rc = 0 ]
+check "sub gone from work tree" [ ! -e ../sub ]
+check "work tree clean" [ -z "$(git status --short)" ]
+git checkout b >/dev/null 2>&1
+check "sub back" [ -e ../sub/s ]
+check "b's change back" grep --quiet bchange x
+check "no d/.git" [ ! -e .git ]
+
+echo "9. regex characters in branch names, text before the message"
+mkrepo t9
+git branch x.y; git branch xAy
+echo p >>file1; git stash push --quiet --message "git-switch: xAy"
+echo q >>file1; git stash push --quiet --message "git-switch: x.y"
+echo r >>file1; git stash push --quiet --message "note: git-switch: x.y"
+git branch -D x.y >/dev/null
+check "xAy and 'note' stashes kept: [$(stashes | tr '\n' ' ')]" [ "$(stashes | tr '\n' '|')" = "On a: note: git-switch: x.y|On a: git-switch: xAy|" ]
+
+echo "10. submodule as an old-style .git directory"
+mksubsrc
+mkrepo t10
+git switch --quiet --create b
+git clone --quiet "$T/subsrc" sub
+git submodule --quiet add "$T/subsrc" sub >/dev/null 2>&1
+git commit --quiet --message sub
+check "sub/.git is a directory" [ -d sub/.git ]
+echo bchange >>file1
+git checkout a >/dev/null 2>&1; rc=$?
+check_all "b -> a (rc=$rc)" '[ $rc = 0 ] && on a'
+check "sub gone" [ ! -e sub ]
+git checkout b >/dev/null 2>&1
+check_all "sub back, b's change back" '[ -e sub/s ] && grep --quiet bchange file1'
+
+echo "11. submodule path with a space"
+mksubsrc
+mkrepo t11
+git switch --quiet --create b
+git submodule --quiet add "$T/subsrc" "my sub" >/dev/null 2>&1
+git commit --quiet --message sub
+git checkout a >/dev/null 2>&1; rc=$?
+check_all "b -> a (rc=$rc)" '[ $rc = 0 ] && [ ! -e "my sub" ]'
+git checkout b >/dev/null 2>&1
+check "'my sub' back" [ -e "my sub/s" ]
+
+echo "12. branch -d with several branches, options in between"
+mkrepo t12
+git branch u1; git branch u2; git branch u3
+echo p >>file1; git stash push --quiet --message "git-switch: u1"
+echo q >>file1; git stash push --quiet --message "git-switch: u3"
+echo r >>file1; git stash push --quiet --message "git-switch: u2"
+git -c core.quotepath=false branch -q -d u1 u2 >/dev/null
+check "only u3's stash left: [$(stashes | tr '\n' ' ')]" [ "$(stashes)" = "On a: git-switch: u3" ]
+
+echo "13. IDE style: global -c options and -q"
+mkrepo t13
+git branch b
+echo achange >>file1
+git -c core.quotepath=false -c color.ui=false checkout -q b >/dev/null; rc=$?
+check "on b (rc=$rc)" on b
+check "a's change stashed" [ "$(stashes)" = "On a: git-switch: a" ]
+git -c core.quotepath=false checkout -q --progress a -- >/dev/null 2>&1
+check_all "a's change back, no stash" 'grep --quiet achange file1 && [ -z "$(stashes)" ]'
+
+echo "14. git switch"
+mkrepo t14
+git branch b
+echo achange >>file1
+git switch --quiet b >/dev/null
+check_all "on b, a's change stashed" 'on b && [ "$(stashes)" = "On a: git-switch: a" ]'
+echo bchange >>file2
+git switch --quiet - >/dev/null
+check_all "on a, a's change back" 'on a && grep --quiet achange file1'
+git switch --quiet --detach b >/dev/null
+check_all "detached at b, a's change stashed" '[ -z "$(git symbolic-ref --quiet HEAD)" ] && not grep --quiet achange file1'
+git switch --quiet a >/dev/null
+check "a's change back after detach" grep --quiet achange file1
+git switch --quiet --detach b >/dev/null
+echo detchange >>file2
+git switch --quiet a >/dev/null 2>&1
+check_all "changes from a detached HEAD are carried, a's stash not popped" 'on a && grep --quiet detchange file2 && not grep --quiet achange file1 && [ "$(stashes | grep --count "git-switch: a$")" = 1 ]'
+
+echo "15. -C from outside the repository"
+mkrepo t15
+git branch b
+echo achange >>file1
+cd "$T"
+git -C t15 checkout --quiet b >/dev/null; rc=$?
+check "rc=$rc" [ $rc = 0 ]
+cd t15
+check_all "on b, a's change stashed" 'on b && [ "$(stashes)" = "On a: git-switch: a" ]'
+cd "$T"
+git -C t15 -c core.quotepath=false checkout -q a >/dev/null
+cd t15
+check_all "a's change back" 'on a && grep --quiet achange file1'
+
+echo "16. new branch keeps the changes"
+mkrepo t16
+echo achange >>file1
+git checkout --quiet -b new1
+check_all "checkout -b: on new1, change kept, no stash" 'on new1 && grep --quiet achange file1 && [ -z "$(stashes)" ]'
+git switch --quiet --create new2
+check_all "switch -c: on new2, change kept, no stash" 'on new2 && grep --quiet achange file1 && [ -z "$(stashes)" ]'
+
+echo "17. force discards the changes"
+mkrepo t17
+git branch b
+echo achange >>file1
+git checkout --quiet -f b
+check_all "checkout -f: on b, change gone, no stash" 'on b && not grep --quiet achange file1 && [ -z "$(stashes)" ]'
+echo bchange >>file1
+git switch --quiet --discard-changes a
+check_all "switch --discard-changes: no stash" 'on a && [ -z "$(stashes)" ]'
+echo achange >>file1
+git checkout -fq b
+check_all "combined -fq: plain git, change gone, no stash" 'on b && not grep --quiet achange file1 && [ -z "$(stashes)" ]'
+echo bchange >>file1
+git checkout --no-such-option a >/dev/null 2>&1; rc=$?
+/usr/bin/git checkout --no-such-option a >/dev/null 2>&1; real_rc=$?
+check_all "unknown option: plain git (rc=$rc, like $real_rc), change kept, no stash" '[ $rc = $real_rc ] && on b && grep --quiet bchange file1 && [ -z "$(stashes)" ]'
+
+echo "18. path mode makes no stash"
+mkrepo t18
+git switch --quiet --create b; echo fromb >file1; git commit --quiet --all --message b; git checkout --quiet a 2>/dev/null
+echo c2 >>file2
+git checkout b -- file1
+check_all "checkout b -- file1: still on a, file1 from b" 'on a && [ "$(cat file1)" = fromb ]'
+check_all "file2 keeps its edit, no stash" 'grep --quiet c2 file2 && [ -z "$(stashes)" ]'
+
+echo "19. DWIM: a branch that exists only on the remote"
+mkrepo t19up
+git branch feat
+cd "$T" && git clone --quiet t19up t19 && cd t19
+echo achange >>file1
+git checkout --quiet feat >/dev/null 2>&1; rc=$?
+check_all "on feat (rc=$rc), a's change stashed" 'on feat && [ "$(stashes)" = "On a: git-switch: a" ]'
+git checkout --quiet a >/dev/null 2>&1
+check "a's change back" grep --quiet achange file1
+
+echo "20. branch -m moves the stashes, keeps the 'On' part"
+mkrepo t20
+git branch old; git branch other
+echo p >>file1; git stash push --quiet --message "git-switch: old"
+echo q >>file1; git stash push --quiet --message "git-switch: other"
+echo r >>file1; git stash push --quiet --message "git-switch: old"
+git checkout --quiet -- file1
+git branch -m old new
+check "renamed: [$(stashes | tr '\n' '|')]" [ "$(stashes | sort | tr '\n' '|')" = "On a: git-switch: new|On a: git-switch: new|On a: git-switch: other|" ]
+git checkout --quiet new >/dev/null
+check_all "on new, newest old stash (r) popped" 'on new && grep --quiet r file1 && not grep --quiet p file1'
+git stash push --quiet --message "git-switch: new"
+git branch -M newer
+check "branch -M <name> renames the current branch's stashes" [ "$(stashes | grep --count 'git-switch: newer$')" = 2 ]
+
+echo "21. other commands pass through"
+mkrepo t21
+check "git --version" git --version
+cd "$T"
+git -C nosuchdir status >/dev/null 2>&1; rc=$?
+check "git -C nosuchdir status fails (rc=$rc)" [ $rc != 0 ]
+git status >/dev/null 2>&1; rc=$?
+/usr/bin/git status >/dev/null 2>&1; real_rc=$?
+check "status outside a repo: rc=$rc like git ($real_rc)" [ $rc = $real_rc ]
+
+echo
+echo "failures: $fails"
+[ $fails = 0 ]
