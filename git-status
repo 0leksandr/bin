@@ -4,7 +4,17 @@ set -eu
 # remote status (ahead/behind) of every repository in the nearest my-repositories.txt, as a table:
 # repository in column 1, all output of `gst` (see `repo_status`) in column 2
 # The list is searched in the current directory and its parents; repositories are relative to its directory
+# Usage: git-status [<gst option>...] [<file>]
+# Options (arguments that start with "-") replace the default `-r`; a lone `-` means no options
 # With a file argument: append each failed repository and its errors to the file, print nothing
+options=()
+while [ $# -gt 0 ] && [[ $1 == -* ]]; do
+    options+=("$1")
+    shift
+done
+[ ${#options[@]} -gt 0 ] || options=(-r)
+[ "${options[*]}" = - ] && options=()
+
 base=$PWD
 until [ -f "$base/my-repositories.txt" ]; do
     if [ -z "$base" ]; then
@@ -17,7 +27,7 @@ list="$base/my-repositories.txt"
 
 # `gst` for repository $1
 repo_status() {
-    gst -C "$base/$1" -r </dev/null
+    gst -C "$base/$1" ${options[@]+"${options[@]}"} </dev/null  # bash 3.2 with `set -u` fails on an empty "${options[@]}"
 }
 
 if [ $# -gt 0 ]; then
