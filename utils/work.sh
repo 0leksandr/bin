@@ -2,25 +2,52 @@
 set -eu
 
 # Setup:   $0 <directory> <email> [GitLab / GitHub Enterprise / github.com host]
-# Cleanup: $0 <directory> [--direnv]
+# Re-run:  $0 <directory>
+#          (repeats the setup with the email and host of the first run: the email from the
+#          work .gitconfig, the host from the glab/gh login; safe to run any time)
+# Cleanup: $0 <directory> --delete [--direnv]
 #          (--direnv also removes the shell hook, all direnv config/data/cache and uninstalls direnv)
 #
 # Examples:
 #   $0 ~/work/ me@company.com                  (no gh/glab setup)
 #   $0 ~/work/ me@company.com git.company.com  (self-hosted GitLab or GHE)
 #   $0 ~/work/ me@company.com github.com       (separate work account on github.com)
-#   $0 ~/work/                                 (cleanup)
-#   $0 ~/work/ --direnv                        (cleanup + remove direnv completely)
-target="${1:?Specify a directory (usage: $0 <directory> <email> [host])}"
+#   $0 ~/work/                                 (re-run the setup)
+#   $0 ~/work/ --delete                        (cleanup)
+#   $0 ~/work/ --delete --direnv               (cleanup + remove direnv completely)
+#
+# Design: everything is automated, the setup needs no manual changes and must get none.
+# Keys, logins (glab/gh), the email, the host and the config entries written here
+# are changed only by this script, so it does not handle hand-made changes to them
+# (another glab/gh login, an edited email, a deleted config file, a different host on a re-run).
+# Existing values are kept, never overwritten, on a re-run.
+# The shared .gitignore is only created empty: its ignore rules are not written by this script.
+if [ $# -eq 0 ]; then
+    echo "Specify a directory, usage: $0 <directory> [<email> [host] | --delete [--direnv]]" >&2
+    exit 1
+fi
+target="$1"
 arg2="${2:-}"
+arg3="${3:-}"
 remove_direnv=0
 
 # Read a secret from the terminal without echo (works even if stdin is not a tty)
 read_token() {
-    printf '%s' "$1" > /dev/tty
+    local prompt="$1"
+
+    printf '%s\n' \
+        'The token is not shown while you type or paste it. Press Enter when done.' \
+        'Ctrl+C stops the setup here; nothing is lost, run the same command again to continue.' \
+        > /dev/tty
+    printf '%s' "$prompt" > /dev/tty
+    # Echo is off while the token is typed. The traps turn it back on if Ctrl+C stops the script
+    # (otherwise typed text stays invisible in this terminal until 'stty echo' or 'reset')
+    trap 'stty echo < /dev/tty' EXIT
+    trap 'printf "\nInterrupted, nothing is lost: run the same command again to continue\n" >&2; exit 130' INT TERM
     stty -echo < /dev/tty
     read -r token < /dev/tty
     stty echo < /dev/tty
+    trap - EXIT INT TERM
     printf '\n' > /dev/tty
 }
 
@@ -32,14 +59,39 @@ wait_enter() {
 # Queue a manual step, printed after setup is finalized
 next_steps=""
 next_step() {
-    next_steps="${next_steps}  - $1
+    local step="$1"
+
+    next_steps="${next_steps}  - $step
 "
 }
 
 # Print the primary key fingerprint of the secret key whose UID matches this email
-# $1 = email
 gpg_fingerprint() {
-    gpg --list-secret-keys --with-colons "<$1>" 2>/dev/null | awk -F: '/^fpr:/{print $10; exit}'
+    local email="$1"
+
+    gpg --list-secret-keys --with-colons "<$email>" 2>/dev/null | awk -F: '/^fpr:/{print $10; exit}'
+}
+
+# Append a line to a file unless the file already has exactly this line
+add_line() {
+    local file="$1"
+    local line="$2"
+
+    grep -qxF -- "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
+}
+
+# Set a key in the work .gitconfig unless it is already set, so hand-edited values survive a re-run
+# Uses $dirname set by setup()
+# With --force as the third argument the key is set even when it already has a value
+config_add() {
+    local key="$1"
+    local value="$2"
+    local force="${3:-}"
+    local config="$dirname/.gitconfig"
+
+    if [ "$force" = --force ] || ! git config -f "$config" --get "$key" >/dev/null 2>&1; then
+        git config -f "$config" "$key" "$value"
+    fi
 }
 
 # ---- direnv definitions ----
@@ -48,39 +100,75 @@ gpg_fingerprint() {
 direnv_conf_dir="${XDG_CONFIG_HOME:-$HOME/.config}/direnv"
 
 # Append the direnv hook to an rc file unless an uncommented hook line is already there
-# $1 = rc file, $2 = hook line
 add_direnv_hook() {
-    mkdir -p "$(dirname "$1")"
-    if ! grep -q '^[^#]*direnv hook' "$1" 2>/dev/null; then
-        printf '\n# direnv\n%s\n' "$2" >> "$1"
-        echo "Added direnv hook to $1" >&2
+    local rc_file="$1"
+    local hook="$2"
+
+    mkdir -p "$(dirname "$rc_file")"
+    if ! grep -q '^[^#]*direnv hook' "$rc_file" 2>/dev/null; then
+        printf '\n# direnv\n%s\n' "$hook" >> "$rc_file"
+        echo "Added direnv hook to $rc_file" >&2
     fi
 }
 
 # Remove the hook lines written by add_direnv_hook (exact-line match, other lines untouched)
-# $1 = rc file
 remove_direnv_hook() {
-    [ -f "$1" ] || return 0
+    local rc_file="$1"
+
+    [ -f "$rc_file" ] || return 0
     tmp=$(mktemp)
-    grep -vxF \
-        -e '# direnv' \
-        -e 'eval "$(direnv hook zsh)"' \
+    grep -vxF                           \
+        -e '# direnv'                   \
+        -e 'eval "$(direnv hook zsh)"'  \
         -e 'eval "$(direnv hook bash)"' \
-        "$1" > "$tmp" ||:   # grep exits 1 when no lines are left
-    cat "$tmp" > "$1"       # cat instead of mv, keeps symlinked dotfiles intact
+        "$rc_file" > "$tmp" ||:     # grep exits 1 when no lines are left
+    cat "$tmp" > "$rc_file"         # cat instead of mv, keeps symlinked dotfiles intact
     rm -f "$tmp"
 }
 
-# Add a line to the work .envrc unless it is already there
+# Export a variable in the work .envrc unless .envrc already exports it,
+# so a hand-edited value survives a re-run
 # Uses $dirname set by setup(); .envrc is approved once in setup's finalize phase
-# $1 = line
 env_set() {
-    local line="$1"
+    local name="$1"
+    local value="$2"
     local envrc="$dirname/.envrc"
-    grep -qxF "$line" "$envrc" 2>/dev/null || echo "$line" >> "$envrc"
+
+    if ! grep -Eq "^export $name=" "$envrc" 2>/dev/null; then
+        echo "export $name=\"$value\"" >> "$envrc"
+    fi
+}
+
+# Add a directory to PATH in the work .envrc (direnv's PATH_add) unless it is already added
+# Uses $dirname set by setup()
+env_path_add() {
+    local dir="$1"
+
+    add_line "$dirname/.envrc" "PATH_add \"$dir\""
 }
 
 # ---- end direnv definitions ----
+
+# Print the host that glab/gh were logged in to (their own config, written at login),
+# nothing for a setup without a host. Used by a re-run with only the directory
+login_host() {
+    local work_config="$1"
+    local forge
+    local config_dir
+
+    forge=$(git config -f "$work_config" --get my.forge 2>/dev/null ||:)
+    [ -n "$forge" ] || return 0
+    config_dir=$(git config -f "$work_config" --get my.configDir)
+    # The gh setup does not install yq
+    if ! command -v yq >/dev/null 2>&1; then
+        brew install yq >&2 || echo "brew install yq failed" >&2
+    fi
+    if [ "$forge" = glab ]; then
+        yq '.hosts | keys | .[]' "$config_dir/config.yml"
+    else
+        yq 'keys | .[]' "$config_dir/hosts.yml"
+    fi
+}
 
 cleanup() {
     [ -d "$target" ] || { echo "Directory $target does not exist" >&2; exit 1; }
@@ -139,21 +227,31 @@ EOF
 
 setup() {
     email="$arg2"
-    host="${3:-}"
+    host="$arg3"
+    # Re-run with only the directory: the email from the work .gitconfig, the host from the glab/gh login
+    if [ -z "$email" ]; then
+        email=$(git config -f "$target/.gitconfig" --get user.email 2>/dev/null ||:)
+        host=$(login_host "$target/.gitconfig") || exit
+        if [ -z "$email" ]; then
+            echo "$target is not set up yet: run $0 $target <email> [host]" >&2
+            exit 1
+        fi
+    fi
     # Normalize host: strip scheme and trailing slash
     host="${host#*://}"
     host="${host%/}"
     mkdir -p "$target"
     dirname=$(realpath "$target")
 
-    # Detect the host type (only if a host was given)
-    forge=""
-    if [ -n "$host" ]; then
+    # Detect the host type (only if a host was given) once; a re-run reuses the stored one,
+    # so a temporary error page or SSO redirect cannot change it
+    forge=$(git config -f "$dirname/.gitconfig" --get my.forge 2>/dev/null ||:)
+    if [ -n "$host" ] && [ -z "$forge" ]; then
         code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "https://$host/api/v4/version" ||:)
         case "$code" in
             000|"") echo "Host $host is unreachable" >&2; exit 1 ;;
-            200|401) forge=gitlab ;;
-            *) forge=github ;;
+            200|401) forge=glab ;;
+            *) forge=gh ;;
         esac
     fi
 
@@ -163,6 +261,8 @@ setup() {
     if [ ! -f "$dirname/.ssh/id_work" ]; then
         echo "Generating the SSH key, you will be asked to choose a passphrase" >&2
         ssh-keygen -t ed25519 -C "$email" -f "$dirname/.ssh/id_work"
+        # A new key must be uploaded again
+        git config -f "$dirname/.gitconfig" --unset my.sshKeyAdded 2>/dev/null ||:
     fi
     cat > "$dirname/.ssh/ssh-wrapper" <<EOF
 #!/bin/sh
@@ -171,11 +271,8 @@ EOF
     chmod +x "$dirname/.ssh/ssh-wrapper"
 
     # Work git config (included from the global config via includeIf)
-    cat > "$dirname/.gitconfig" <<EOF
-[user]
-    email = $email
-EOF
-    git config -f "$dirname/.gitconfig" core.sshCommand "'$dirname/.ssh/ssh-wrapper'"
+    config_add user.email "$email"
+    config_add core.sshCommand "'$dirname/.ssh/ssh-wrapper'"
 
     # GPG: separate home inside the directory; git calls gpg without GNUPGHOME,
     # so gpg.program points to a wrapper that sets it
@@ -196,64 +293,109 @@ EOF
         echo "Generating the GPG key for $email, you will be asked to choose a passphrase" >&2
         gpg --quick-generate-key "$name <$email>" ed25519 sign never
         gpg_key=$(gpg_fingerprint "$email")
+        # A new key replaces the old fingerprint and must be uploaded again.
+        # --force: without it the old fingerprint of the lost key would stay and commits could not be signed
+        config_add user.signingkey "$gpg_key" --force
+        git config -f "$dirname/.gitconfig" --unset my.gpgKeyAdded 2>/dev/null ||:
     fi
-    git config -f "$dirname/.gitconfig" user.signingkey "$gpg_key"
-    git config -f "$dirname/.gitconfig" gpg.program "$dirname/.gnupg/gpg-wrapper"
+    config_add user.signingkey "$gpg_key"
+    config_add gpg.program "$dirname/.gnupg/gpg-wrapper"
 
     # Service repository: ignore everything, forbid commits
     git init -q -b work "$dirname" 2>/dev/null
     git -C "$dirname" symbolic-ref HEAD refs/heads/work
-    grep -qxF '*' "$dirname/.git/info/exclude" 2>/dev/null || echo '*' >> "$dirname/.git/info/exclude"
+    # Its own exclude file, never the shared .gitignore below (git init may copy the template link)
+    service_exclude="$dirname/.git/info/exclude"
+    if [ -L "$service_exclude" ]; then
+        rm "$service_exclude"
+    fi
+    add_line "$service_exclude" '*'
     cat > "$dirname/.git/hooks/pre-commit" <<'EOF'
 #!/bin/sh
 echo "Service repo, commits disabled" >&2
 exit 1
 EOF
     chmod +x "$dirname/.git/hooks/pre-commit"
+
+    # Shared ignore rules for all work repositories: each repository's .git/info/exclude
+    # is a symlink to $dirname/.gitignore; ~/.gitignore still applies via the global config
+    shared_ignore="$dirname/.gitignore"
+    touch "$shared_ignore"
+    # New clones get the link from the template
+    git_template="$dirname/.git-template"
+    mkdir -p "$git_template/info"
+    ln -sf "$shared_ignore" "$git_template/info/exclude"
+    env_set GIT_TEMPLATE_DIR "$git_template"
+    # On re-run: existing clones (and clones made without the template) get the link here;
+    # an exclude file with own rules is left alone.
+    # Skips the hidden directories in the root (tool data) and does not descend into repositories
+    find "$dirname" -mindepth 1 -path "$dirname/.*" -prune -o -type d -exec test -d {}/.git \; -print -prune |
+    while read -r repo; do
+        git_dir="$repo/.git"
+        exclude="$git_dir/info/exclude"
+        [ -L "$exclude" ] && [ "$(readlink "$exclude")" = "$shared_ignore" ] && continue
+        if grep -Eq '^[^#[:space:]]' "$exclude" 2>/dev/null; then
+            echo "Not linking $exclude: it has own rules, move them to $shared_ignore" >&2
+            continue
+        fi
+        mkdir -p "$git_dir/info"
+        ln -sf "$shared_ignore" "$exclude"
+    done
     # rg
     ripgreprc="$dirname/.ripgreprc"
-    printf '%s\n' '--no-ignore-vcs' > "$ripgreprc"
-    env_set "export RIPGREP_CONFIG_PATH=\"$ripgreprc\""
+    add_line "$ripgreprc" '--no-ignore-vcs'
+    env_set RIPGREP_CONFIG_PATH "$ripgreprc"
 
     # gh/glab: separate config inside the directory + login (only if a host was given)
     if [ -n "$host" ]; then
-        if [ "$forge" = gitlab ]; then
+        if [ "$forge" = glab ]; then
             glab_cli="$dirname/.glab-cli"
             mkdir -p "$glab_cli"
             chmod 700 "$glab_cli"
-            git config -f "$dirname/.gitconfig" my.forge glab
-            git config -f "$dirname/.gitconfig" my.configDir "$glab_cli"
-            env_set "export GLAB_CONFIG_DIR=\"$glab_cli\""
-            env_set "export GITLAB_HOST=$host"
-            cat >&2 <<EOF
+            config_add my.forge glab
+            config_add my.configDir "$glab_cli"
+            env_set GLAB_CONFIG_DIR "$glab_cli"
+            env_set GITLAB_HOST "$host"
+            # Skip the login while the stored token still works
+            if ! GLAB_CONFIG_DIR="$glab_cli" glab auth status --hostname "$host" >/dev/null 2>&1; then
+                cat >&2 <<EOF
 glab login: create a personal access token with the 'api' scope at
 https://$host/-/user_settings/personal_access_tokens, then paste it below.
 EOF
-            read_token "GitLab token (scope api): "
-            printf '%s' "$token" | GLAB_CONFIG_DIR="$glab_cli" glab auth login --hostname "$host" --stdin
-            unset token
-            # glab seeds a new config with a gitlab.com host entry
-            if [ "$host" != gitlab.com ]; then
-                if ! command -v yq >/dev/null 2>&1; then
-                    brew install yq || echo "brew install yq failed" >&2
+                read_token "GitLab token (scope api): "
+                printf '%s' "$token" | GLAB_CONFIG_DIR="$glab_cli" glab auth login --hostname "$host" --stdin
+                unset token
+                # glab seeds a new config with a gitlab.com host entry
+                # (only right after the login, a gitlab.com login added later stays)
+                if [ "$host" != gitlab.com ]; then
+                    if ! command -v yq >/dev/null 2>&1; then
+                        brew install yq || echo "brew install yq failed" >&2
+                    fi
+                    yq -i 'del(.hosts["gitlab.com"])' "$glab_cli/config.yml"
                 fi
-                yq -i 'del(.hosts["gitlab.com"])' "$(git config -f "$dirname/.gitconfig" --get my.configDir)/config.yml"
             fi
         else
             gh_dir="$dirname/.gh"
-            mkdir -p "gh_dir"
+            mkdir -p "$gh_dir"
             chmod 700 "$gh_dir"
-            git config -f "$dirname/.gitconfig" my.forge gh
-            git config -f "$dirname/.gitconfig" my.configDir "$gh_dir"
-            env_set "export GH_CONFIG_DIR=\"$gh_dir\""
-            cat >&2 <<EOF
+            config_add my.forge gh
+            config_add my.configDir "$gh_dir"
+            env_set GH_CONFIG_DIR "$gh_dir"
+            # Skip the login while the stored token still works
+            if ! GH_CONFIG_DIR="$gh_dir" gh auth status --hostname "$host" >/dev/null 2>&1; then
+                cat >&2 <<EOF
 gh login: create a personal access token with the 'repo' and 'read:org' scopes at
 https://$host/settings/tokens, then paste it below.
 EOF
-            read_token "GitHub token (scopes repo, read:org): "
-            printf '%s' "$token" | GH_CONFIG_DIR="$gh_dir" gh auth login --hostname "$host" --insecure-storage -p ssh
-            --with-token
-            unset token
+                read_token "GitHub token (scopes repo, read:org): "
+                printf '%s' "$token" | GH_CONFIG_DIR="$gh_dir" gh auth login \
+                    --hostname "$host"                                       \
+                    --insecure-storage                                       \
+                    --git-protocol ssh                                       \
+                    --with-token                                             \
+                    || exit
+                unset token
+            fi
         fi
     fi
 
@@ -261,7 +403,9 @@ EOF
     git config --global "includeIf.gitdir:$dirname/.path" "$dirname/.gitconfig"
 
     # Public SSH key: the user must upload it to the work account
-    cat <<EOF
+    # (asked until confirmed once, again after a new key is generated)
+    if ! git config -f "$dirname/.gitconfig" --get my.sshKeyAdded >/dev/null 2>&1; then
+        cat <<EOF
 
 === ACTION REQUIRED: add this SSH key to your work account ===
 It lets git clone/push over SSH. Without it, cloning work repositories will fail.
@@ -270,12 +414,16 @@ It lets git clone/push over SSH. Without it, cloning work repositories will fail
 Paste the whole line below:
 
 EOF
-    cat "$dirname/.ssh/id_work.pub"
-    echo
-    wait_enter
+        cat "$dirname/.ssh/id_work.pub"
+        echo
+        wait_enter
+        git config -f "$dirname/.gitconfig" my.sshKeyAdded true
+    fi
 
     # Public GPG key: the user must upload it to the work account
-    cat <<EOF
+    # (asked until confirmed once, again after a new key is generated)
+    if ! git config -f "$dirname/.gitconfig" --get my.gpgKeyAdded >/dev/null 2>&1; then
+        cat <<EOF
 
 === ACTION REQUIRED: add this GPG key to your work account ===
 It makes your signed commits show as 'Verified'. $email must be a verified email
@@ -285,33 +433,27 @@ on the work account, otherwise the commits stay 'Unverified'.
 Paste the whole block below, including the BEGIN and END lines:
 
 EOF
-    gpg --armor --export "$gpg_key"
-    echo
-    wait_enter
+        gpg --armor --export "$gpg_key"
+        echo
+        wait_enter
+        git config -f "$dirname/.gitconfig" my.gpgKeyAdded true
+    fi
 
     # Go private modules
     if [ -n "$host" ]; then
-        for line in                                                  \
-            "export GOPRIVATE=\"$host\""                             \
-            "export GIT_SSH_COMMAND=\"'$dirname/.ssh/ssh-wrapper'\"" \
-            "export GIT_CONFIG_COUNT=1"                              \
-            "export GIT_CONFIG_KEY_0=\"url.git@$host:.insteadOf\""   \
-            "export GIT_CONFIG_VALUE_0=\"https://$host/\""           \
-        ; do
-            env_set "$line"
-        done
+        env_set GOPRIVATE           "$host"
+        env_set GIT_SSH_COMMAND     "'$dirname/.ssh/ssh-wrapper'"
+        env_set GIT_CONFIG_COUNT    1
+        env_set GIT_CONFIG_KEY_0    "url.git@$host:.insteadOf"
+        env_set GIT_CONFIG_VALUE_0  "https://$host/"
     fi
     # Go isolation
-    for line in                                      \
-        "export GOPATH=\"$dirname/.go\""             \
-        "export GOMODCACHE=\"$dirname/.go/pkg/mod\"" \
-        "export GOCACHE=\"$dirname/.go/cache\""      \
-        "export GOENV=\"$dirname/.go/env\""          \
-        "export GOBIN=\"$dirname/.go/bin\""          \
-        "PATH_add \"$dirname/.go/bin\""              \
-    ; do
-        env_set "$line"
-    done
+    env_set GOPATH      "$dirname/.go"
+    env_set GOMODCACHE  "$dirname/.go/pkg/mod"
+    env_set GOCACHE     "$dirname/.go/cache"
+    env_set GOENV       "$dirname/.go/env"
+    env_set GOBIN       "$dirname/.go/bin"
+    env_path_add "$dirname/.go/bin"
 
     # direnv
     if ! command -v direnv >/dev/null 2>&1; then
@@ -337,7 +479,7 @@ EOF
     esac
 
     # Claude Code
-    env_set "export CLAUDE_CONFIG_DIR=\"$dirname/.claude-config\""
+    env_set CLAUDE_CONFIG_DIR "$dirname/.claude-config"
     next_step "cd into $dirname, run 'claude' and log in with the work account"
 
     # ---- finalize: runs after all .envrc changes ----
@@ -354,8 +496,14 @@ EOF
 }
 
 case "$arg2" in
-    "") cleanup ;;
-    --direnv) remove_direnv=1; cleanup ;;
+    --delete)
+        if [ "$arg3" = --direnv ]; then
+            remove_direnv=1
+        elif [ -n "$arg3" ]; then
+            echo "Unknown option: $arg3" >&2; exit 1
+        fi
+        cleanup
+        ;;
     -*) echo "Unknown option: $arg2" >&2; exit 1 ;;
-    *) setup "$@" ;;
+    *) setup ;;
 esac
