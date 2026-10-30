@@ -42,7 +42,7 @@ else
         fi
         bin="$(get_bin "$dir" "")"
         if [ "$bin" ]; then
-            "$bin/python" "$@"
+            exec "$bin/python" "$@"
             break
         else
             dir="$(dirname "$dir")"
