@@ -27,7 +27,7 @@ list="$base/my-repositories.txt"
 
 # `gst` for repository $1
 repo_status() {
-    gst -C "$base/$1" ${options[@]+"${options[@]}"} </dev/null  # bash 3.2 with `set -u` fails on an empty "${options[@]}"
+    timeout 10 gst -C "$base/$1" ${options[@]+"${options[@]}"} </dev/null  # bash 3.2 with `set -u` fails on an empty "${options[@]}"
 }
 
 if [ $# -gt 0 ]; then
