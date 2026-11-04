@@ -8,5 +8,23 @@ if echo "$1" |grep -q "^-.*f"; then
     #_log "*[$*]"
     _cmd "$(_real "$0")" -rf -- "$(_path 2 "$@")"
 else
-    trash "$@"
+    # trash knows only -v and -s, so drop rm's other options (-r, -R, -i, -d, ...)
+    verbose=
+    while [ "$#" -gt 0 ]; do
+        case $1 in
+            --) shift; break ;;
+            --verbose | -[!-]*v*) verbose=--verbose; shift ;;
+            -?*) shift ;;
+            *) break ;;
+        esac
+    done
+    # trash has no `--`: keep names that start with `-` from looking like options
+    for file in "$@"; do
+        case $file in
+            -*) file=./$file ;;
+        esac
+        set -- "$@" "$file"
+        shift
+    done
+    trash $verbose "$@"
 fi
