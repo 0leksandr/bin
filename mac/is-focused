@@ -5,9 +5,11 @@ set -e
 #  | jq -e '.data[0].storeAssertionRecords | length > 0' >/dev/null \
 #  && echo "ON" || echo "OFF"
 
-[ -n "$(                                                                                            \
-    plutil                                                                                          \
-        -extract data.0.storeAssertionRecords.0.assertionDetails.assertionDetailsModeIdentifier raw \
-        -o - ~/Library/DoNotDisturb/DB/Assertions.json                                              \
-        2>/dev/null                                                                                 \
-)" ] && exit 0 || exit 1
+#[ -n "$(                                                                                            \
+#    plutil                                                                                          \
+#        -extract data.0.storeAssertionRecords.0.assertionDetails.assertionDetailsModeIdentifier raw \
+#        -o - ~/Library/DoNotDisturb/DB/Assertions.json                                              \
+#        2>/dev/null                                                                                 \
+#)" ] && exit 0 || exit 1
+
+[ -n "$(shortcuts run "Get Current Focus" 2>/dev/null | cat)" ]
