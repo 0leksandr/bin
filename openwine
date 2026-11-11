@@ -12,6 +12,9 @@ if [ "$path" != "" ]; then
     path="Z:$(echo "$path" |tr '/' "\\")"
 fi
 
+# /etc/zprofile defaults LANG to C.UTF-8, wine then resets International registry to en-US
+[ "$(_os)" = mac ] && unset LANG LC_ALL LC_CTYPE
+
 if [ "$prefix" != "" ]; then
     # to initialize:
     # - `WINEPREFIX=~/_/Programs/.wine2 regedit`
