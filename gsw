@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+branch="$1"
+
+if git show-ref --quiet "refs/heads/$branch" \
+    || [ -n "$(git for-each-ref --format=x "refs/remotes/*/$branch")" ]; then
+    git switch "$branch"
+else
+    git switch --create "$branch"
+fi
