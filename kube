@@ -114,6 +114,14 @@ options() {
 no_more_args() {
     echo>&2 "No more arguments available"
 }
+completing() {
+    # autocomplete calls the script with the typed arguments and "help"
+    [ "$(next_arg)" = help ]
+}
+action() {
+    completing && options ""
+    "$@"
+}
 read_() {
     local name="$1"
     local default="$2"
@@ -141,6 +149,9 @@ deduplicate_logs_timestamps='s/^(.*@timestamp.*),"@timestamp":[0-9]+([^0-9].*)$/
 ignored_pods="((kong|kube-janitor|alloy|linkerd|circleci)-(dev|qa|stage|sandbox|prod)|scaleops-system)"
 
 # list resources
+all_namespaces="_all-namespaces"
+available_namespaces="_available-namespaces"
+any_container="_any-container"
 projects() {
     local projects="$(gcloud projects list)"
     nth "$(strip_head "$projects")" 1
@@ -179,14 +190,27 @@ namespaces() {
 containers() {
     local namespace="$1"
 
-    kubectl get pods                                                 \
-        --namespace="$namespace"                                     \
-        --output=custom-columns="CONTAINER:.spec.containers[*].name" \
-        --no-headers                                                 \
-        |tr ',' '\n'                                                 \
-        |sort                                                        \
-        |uniq                                                        \
-    &&:
+    __containers() {
+        local namespace="$1"
+
+        _cmd "kubectl get pods                                           \
+            $namespace                                                   \
+            --output=custom-columns='CONTAINER:.spec.containers[*].name' \
+            --no-headers"                                                \
+            |tr ',' '\n'                                                 \
+            |sort                                                        \
+            |uniq                                                        \
+        &&:
+    }
+
+    if [ "$namespace" ]; then
+        __containers "$namespace"
+    else
+        for namespace in $(namespaces); do
+            __containers "--namespace='$namespace'" 2>/dev/null &
+        done
+        wait
+    fi |sort -u
 }
 statuses_all_contexts() {
     #foreach contexts
@@ -213,15 +237,20 @@ statuses_all_namespaces() {
         echo "✅"
     fi
 }
+container_option() {
+    local container="$1"
+
+    [ "$container" = "$any_container" ] || echo "--container='$container'"
+}
 pods_for_namespace_container() {
     local namespace="$1"
     local container="$2"
 
     [ "$container" = "$any_container" ] && container=".*"
-    kubectl get pods                                                                    \
-        --namespace="$namespace"                                                        \
-        --output=custom-columns="CONTAINER:.spec.containers[*].name,POD:.metadata.name" \
-        --no-headers                                                                    \
+    _cmd "kubectl get pods                                                              \
+        $namespace                                                                      \
+        --output=custom-columns='CONTAINER:.spec.containers[*].name,POD:.metadata.name' \
+        --no-headers"                                                                   \
         |grep -E "^([^ ]+,)?$container(,[^ ]+)? "                                       \
         |sed -r "s/^[^ ]+ +([^ ]+)$/\1/g"                                               \
     &&:
@@ -235,10 +264,10 @@ service_port() {
 
     # kubectl get svc --namespace="$namespace" |grep -E "^$container "
     reg="^Port: +[a-z]+ +([0-9]+)/[A-Z]+$"
-    kubectl describe service --namespace="$namespace" "$container" \
-        |grep -E "$reg"                                            \
-        |grep --invert-match "$ignored_port_services"              \
-        |sed -r "s#$reg#\1#g"                                      \
+    _cmd "kubectl describe service $namespace '$container'" \
+        |grep -E "$reg"                                     \
+        |grep --invert-match "$ignored_port_services"       \
+        |sed -r "s#$reg#\1#g"                               \
     &&:
 }
 
@@ -272,24 +301,22 @@ port_forward() {
     local pod="$(pods_for_namespace_container "$namespace" "$container" |head --lines=1)"
     local port="$(service_port "$namespace" "$container")"
 
-    kubectl port-forward --namespace="$namespace" "$pod" "$port" || alert "port-forward connection lost"
+    _cmd "kubectl port-forward $namespace '$pod' '$port'" || alert "port-forward connection lost"
 }
 logs() {
     local namespace="$1"
-    local container="$2"
+    local container="$(container_option "$2")"
     local pod="$3"
 
     if [ "$pod" ]; then
         #kubectl logs --namespace "$namespace" --container "$container" "$pod"
 
-        local cmd="kubectl logs --namespace $namespace $pod"
-        [ "$container" = "$any_container" ] || cmd="$cmd --container $container"
-        _cmd "$cmd"
+        _cmd "kubectl logs $namespace '$pod' $container"  # TODO: check namespace
     else
         local search
         read_ search ".*"
 
-        stern --namespace "$namespace" "$search" ||:
+        _cmd "stern $namespace '$search'" ||:
     fi
 }
 errors() {
@@ -326,28 +353,43 @@ execute_all_pods() {
 
     foreach "_1 $namespace" "_1 $container" pods_for_namespace_container "_1 $command" execute
 }
-execute() {
+find_pod() {
     local namespace="$1"
     local container="$2"
+
+    local regex
+    read_ regex
+
+    pods_for_namespace_container "$namespace" "$container" |grep -E "$regex"
+}
+execute() {
+    local namespace="$1"
+    local container="$(container_option "$2")"
     local pod="$3"
     local command="$4"
 
     [ "$command" ] || read_ command
 
-    kubectl exec --namespace "$namespace" --container "$container" "$pod" -- "$command"
+    _cmd "kubectl exec $namespace $container '$pod' -- '$command'"
 }
 login() {
     local namespace="$1"
-    local container="$2"
+    local container="$(container_option "$2")"
     local pod="$3"
 
-    kubectl exec -it --namespace "$namespace" --container "$container" "$pod" -- "sh"
+    _cmd "kubectl exec -it $namespace $container '$pod' -- sh -c '
+        if [ -x /vault/vault-env ]; then
+            exec /vault/vault-env sh
+        else
+            exec sh
+        fi
+    '"
 }
 describe() {
     local namespace="$1"
     local pod="$2"
 
-    kubectl describe pod --namespace "$namespace" "$pod"
+    _cmd "kubectl describe pod $namespace '$pod'"
 }
 close() {
     #kubectl config delete-context "$(current_context)"
@@ -368,12 +410,10 @@ command_logs="-logs"
 command_errors="-errors"
 command_port_forward="-port-forward"
 command_execute_all_pods="-execute-all-pods"
+command_find_pod="-find-pod"
 command_execute="-execute"
 command_login="-login"
 command_describe="-describe"
-
-each_namespace="_each-namespace"
-any_container="_any-container"
 
 #gcloud auth login
 #kubectl api-resources  # list resource types
@@ -385,10 +425,10 @@ if no "$context"; then
     options "--command: $command_hosts $command_current_context $command_status $command_close $command_authenticate .context: $(contexts)"
 fi
 case "$context" in
-    "$command_hosts")           dump_hosts            ;;
-    "$command_current_context") current_context       ;;
-    "$command_status")          statuses_all_contexts ;;
-    "$command_close")           close                 ;;
+    "$command_hosts")           action dump_hosts            ;;
+    "$command_current_context") action current_context       ;;
+    "$command_status")          action statuses_all_contexts ;;
+    "$command_close")           action close                 ;;
     "$command_authenticate")
         project="$(next_arg)"
         if no "$project"; then
@@ -399,6 +439,7 @@ case "$context" in
         if no "$cluster"; then
             options ".cluster: $(clusters "$project")"
         fi
+        completing && options ""
 
         if [ "$(current_context 2>/dev/null)" != "gke_$project""_$(echo "$cluster"| sed -r 's/^(.+):(.+)$/\2_\1/')" ]; then
             authenticate "$project" "$cluster"
@@ -423,14 +464,25 @@ fi
 # kubectl config view --minify --output=jsonpath='{..namespace}'
 namespace="$(next_arg)"
 if no "$namespace"; then
-    options "--command: $command_telepresence $command_keep $command_hosts $command_status .namespace: $(namespaces) $each_namespace"
+    options "--command: $command_telepresence $command_keep $command_hosts $command_status .namespace: $(namespaces) $all_namespaces $available_namespaces"
 fi
 case "$namespace" in
-    "$command_telepresence") telepresence_           ;;
-    "$command_keep")         keep                    ;;
-    "$command_hosts")        hosts                   ;;
-    "$command_status")       statuses_all_namespaces ;;
-    *)                       continue="1"            ;;
+    "$command_telepresence") action telepresence_           ;;
+    "$command_keep")         action keep                    ;;
+    "$command_hosts")        action hosts                   ;;
+    "$command_status")       action statuses_all_namespaces ;;
+    "$all_namespaces")
+        namespace="--all-namespaces=true"
+        continue="1"
+        ;;
+    "$available_namespaces")
+        namespace=""
+        continue="1"
+        ;;
+    *)
+        namespace="--namespace='$namespace'"
+        continue="1"
+        ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -446,9 +498,9 @@ if no "$container"; then
     options "--command: $command_logs $command_errors .container: $(containers "$namespace") $any_container"
 fi
 case "$container" in
-    "$command_logs")   logs "$namespace"   ;;
-    "$command_errors") errors "$namespace" ;;
-    *)                 continue="1"        ;;
+    "$command_logs")   action logs "$namespace"   ;;
+    "$command_errors") action errors "$namespace" ;;
+    *)                 continue="1"               ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -461,12 +513,13 @@ fi
 #<editor-fold desc="pod">
 pod="$(next_arg)"
 if no "$pod"; then
-    options "--command: $command_port_forward $command_execute_all_pods .pod: $(pods_for_namespace_container "$namespace" "$container")"
+    options "--command: $command_port_forward $command_execute_all_pods $command_find_pod .pod: $(pods_for_namespace_container "$namespace" "$container")"
 fi
 case "$pod" in
-    "$command_port_forward")     port_forward "$namespace" "$container"     ;;
-    "$command_execute_all_pods") execute_all_pods "$namespace" "$container" ;;
-    *)                           continue="1"                               ;;
+    "$command_port_forward")     action port_forward "$namespace" "$container"     ;;
+    "$command_execute_all_pods") action execute_all_pods "$namespace" "$container" ;;
+    "$command_find_pod")         action find_pod "$namespace" "$container"         ;;
+    *)                           continue="1"                                      ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -482,12 +535,12 @@ if no "$command"; then
     options "--command: $command_execute $command_login $command_describe $command_logs $command_errors"
 fi
 case "$command" in
-    "$command_execute")  execute "$namespace" "$container" "$pod" ;;
-    "$command_login")    login "$namespace" "$container" "$pod"   ;;
-    "$command_describe") describe "$namespace" "$pod"             ;;
-    "$command_logs")     logs "$namespace" "$container" "$pod"    ;;
-    "$command_errors")   errors "$namespace" "$container" "$pod"  ;;
-    *)                   continue="1"                             ;;
+    "$command_execute")  action execute "$namespace" "$container" "$pod" ;;
+    "$command_login")    action login "$namespace" "$container" "$pod"   ;;
+    "$command_describe") action describe "$namespace" "$pod"             ;;
+    "$command_logs")     action logs "$namespace" "$container" "$pod"    ;;
+    "$command_errors")   action errors "$namespace" "$container" "$pod"  ;;
+    *)                   continue="1"                                    ;;
 esac
 if [ "$continue" ]; then
     continue=""

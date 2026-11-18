@@ -22,10 +22,22 @@ _complete_by_options() {
         command="$command ${COMP_WORDS[$i]}"
         i=$(($i + 1))
     done
-    list=$($command help |sed -r 's/Options: (.*)/\1/')
-    COMPREPLY=( $(compgen -W "$list" -- ${cur}) )
+    # cache options while the same command line is being completed
+    if [ "$command" != "$_complete_by_options_key" ]; then
+        _complete_by_options_key="$command"
+        _complete_by_options_list=$($command help </dev/null |sed -r 's/Options: (.*)/\1/')
+    fi
+    COMPREPLY=( $(compgen -W "$_complete_by_options_list" -- ${cur}) )
 }
 complete -F _complete_by_options aqi brightness errors gsubmod kube light location release scene vivaldi-windows
+_complete_by_options_reset() {
+    _complete_by_options_key=""
+}
+if [ "$ZSH_VERSION" ]; then
+    precmd_functions+=(_complete_by_options_reset)
+else
+    PROMPT_COMMAND="_complete_by_options_reset${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+fi
 
 
 _complete_files() {
