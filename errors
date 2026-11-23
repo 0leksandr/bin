@@ -45,7 +45,7 @@ case "$1" in
         scan
         case "$(_os)" in
             linux) inotifywait --monitor --quiet --event MODIFY -- "$dir" ;;
-            mac)   fswatch -- "$dir" ;;
+            mac)   fswatch --monitor=kqueue_monitor --recursive -- "$dir" ;;
         esac |while read -r _; do
             scan
         done
