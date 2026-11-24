@@ -358,6 +358,23 @@ EOF
             env_set GITLAB_HOST "$host"
             # Skip the login while the stored token still works
             if ! GLAB_CONFIG_DIR="$glab_cli" glab auth status --hostname "$host" >/dev/null 2>&1; then
+                # A legacy token with the 'api' scope, not a fine-grained one (checked November 2026):
+                # - fine-grained tokens (GA in GitLab 19.2) cover all of REST but not yet all of GraphQL,
+                #   and glab uses both; GitLab gives no date for full GraphQL coverage
+                # - each glab command needs its own fine-grained permissions, and a missing one shows up
+                #   only as a 403 when you run that command
+                # - glab does not document support for fine-grained tokens
+                # - legacy tokens keep working; GitLab has announced no deprecation
+                # 'write_repository' is not needed: git uses SSH here, not HTTPS. 'read_api' alone
+                # is read-only (no MRs, comments, ...). When the token expires, re-run this script.
+                #
+                # To replace a token that still works (run in $dirname, where direnv sets
+                # GLAB_CONFIG_DIR and GITLAB_HOST):
+                # - rotate: glab token rotate --self --duration 365d
+                #   (revokes the old token, glab stores the new one; needs GitLab 17.9+;
+                #   without --duration the new token lasts 30 days)
+                # - new token: glab auth logout --hostname "$host", then re-run this script
+                #   (the host stays in the glab config; revoke the old token in GitLab yourself)
                 cat >&2 <<EOF
 glab login: create a personal access token with the 'api' scope at
 https://$host/-/user_settings/personal_access_tokens, then paste it below.
