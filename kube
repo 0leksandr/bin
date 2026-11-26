@@ -96,16 +96,13 @@ _1() {
 }
 
 # autocomplete & arguments
-args=$*
-current_arg_file=/tmp/current-arg
-echo 0 > "$current_arg_file"
+argv=("$@")
+current_arg=0
 next_arg() {
-    current_arg="$(cat "$current_arg_file")"
-    echo "$((current_arg + 1))" > "$current_arg_file"
-    reg="^([^ ]+ +){$current_arg}([^ ]+).*$"
-    if echo "$args" |grep -Eq "$reg"; then
-        echo "$args" |sed -r "s/$reg/\2/"
-    fi
+    local name="$1"
+
+    printf -v "$name" '%s' "${argv[current_arg]}"
+    current_arg=$((current_arg + 1))
 }
 options() {
     echo "Options: $*"
@@ -116,7 +113,7 @@ no_more_args() {
 }
 completing() {
     # autocomplete calls the script with the typed arguments and "help"
-    [ "$(next_arg)" = help ]
+    [ "${argv[current_arg]}" = help ]
 }
 action() {
     completing && options ""
@@ -211,6 +208,16 @@ containers() {
         done
         wait
     fi |sort -u
+}
+deployments() {
+    local namespace="$1"
+
+    _cmd "kubectl get deployments                   \
+        $namespace                                  \
+        --output=custom-columns=NAME:.metadata.name \
+        --no-headers"                               \
+        |sort -u                                    \
+    &&:
 }
 statuses_all_contexts() {
     #foreach contexts
@@ -391,12 +398,41 @@ describe() {
 
     _cmd "kubectl describe pod $namespace '$pod'"
 }
+describe_deployment() {
+    local namespace="$1"
+    local deployment="$2"
+
+    _cmd "kubectl describe deployment $namespace '$deployment'"
+}
+restart_deployment() {
+    local namespace="$1"
+    local deployment="$2"
+
+    _cmd "kubectl rollout restart deployment $namespace '$deployment'"
+    _cmd "kubectl rollout status deployment $namespace '$deployment'"
+}
+scale_deployment() {
+    local namespace="$1"
+    local deployment="$2"
+
+    local current="$(_cmd "kubectl get deployment $namespace '$deployment' --output=jsonpath='{.spec.replicas}'")"
+    printf "current nr replicas: %s\nnew nr " "$current"
+
+    local replicas
+    read_ replicas "$current"
+
+    _cmd "kubectl scale deployment $namespace '$deployment' --replicas='$replicas'"
+}
+deployment_logs() {
+    local namespace="$1"
+    local deployment="$2"
+
+    _cmd "kubectl logs $namespace 'deployment/$deployment' --all-containers=true"
+}
 close() {
     #kubectl config delete-context "$(current_context)"
     #kubectl config unset clusters
     kubectl config unset current-context
-
-    rm -f "$current_arg_file"
 }
 
 command_hosts="-hosts"
@@ -408,6 +444,9 @@ command_telepresence="-telepresence"
 command_status="-status"
 command_logs="-logs"
 command_errors="-errors"
+command_deployment="-deployment"
+command_restart="-restart"
+command_scale="-scale"
 command_port_forward="-port-forward"
 command_execute_all_pods="-execute-all-pods"
 command_find_pod="-find-pod"
@@ -420,9 +459,16 @@ command_describe="-describe"
 :
 
 #<editor-fold desc="context">
-context="$(next_arg)"
+next_arg context
 if no "$context"; then
-    options "--command: $command_hosts $command_current_context $command_status $command_close $command_authenticate .context: $(contexts)"
+    options "--command:          \
+        $command_hosts           \
+        $command_current_context \
+        $command_status          \
+        $command_close           \
+        $command_authenticate    \
+        .context: $(contexts)    \
+    "
 fi
 case "$context" in
     "$command_hosts")           action dump_hosts            ;;
@@ -430,41 +476,56 @@ case "$context" in
     "$command_status")          action statuses_all_contexts ;;
     "$command_close")           action close                 ;;
     "$command_authenticate")
-        project="$(next_arg)"
-        if no "$project"; then
-            options ".project: $(projects)"
-        fi
-
-        cluster="$(next_arg)"
-        if no "$cluster"; then
-            options ".cluster: $(clusters "$project")"
-        fi
-        completing && options ""
-
-        if [ "$(current_context 2>/dev/null)" != "gke_$project""_$(echo "$cluster"| sed -r 's/^(.+):(.+)$/\2_\1/')" ]; then
-            authenticate "$project" "$cluster"
-            echo>&2 "authenticated to project[$project]cluster[$cluster]"
-        fi
+        selected_authenticate="1"
+        continue="1"
         ;;
-    *) continue="1" ;;
+    *)
+        if [ "$(current_context 2>/dev/null)" != "$context" ]; then
+            use_context "$context"
+        fi
+        continue="1"
+        ;;
 esac
 if [ "$continue" ]; then
     continue=""
 else
     exit 0
 fi
+#</editor-fold>
 
-if [ "$(current_context 2>/dev/null)" != "$context" ]; then
-    use_context "$context"
+#<editor-fold desc="authenticate">
+if [ "$selected_authenticate" ]; then
+    next_arg project
+    if no "$project"; then
+        options ".project: $(projects)"
+    fi
+
+    next_arg cluster
+    if no "$cluster"; then
+        options ".cluster: $(clusters "$project")"
+    fi
+    completing && options ""
+
+    if [ "$(current_context 2>/dev/null)" != "gke_$project""_$(echo "$cluster"| sed -r 's/^(.+):(.+)$/\2_\1/')" ]; then
+        authenticate "$project" "$cluster"
+        echo>&2 "authenticated to project[$project]cluster[$cluster]"
+    fi
+    exit 0
 fi
 #</editor-fold>
 
 #<editor-fold desc="namespace">
 # kubens
 # kubectl config view --minify --output=jsonpath='{..namespace}'
-namespace="$(next_arg)"
+next_arg namespace
 if no "$namespace"; then
-    options "--command: $command_telepresence $command_keep $command_hosts $command_status .namespace: $(namespaces) $all_namespaces $available_namespaces"
+    options "--command:                                                 \
+        $command_telepresence                                           \
+        $command_keep                                                   \
+        $command_hosts                                                  \
+        $command_status                                                 \
+        .namespace: $(namespaces) $all_namespaces $available_namespaces \
+    "
 fi
 case "$namespace" in
     "$command_telepresence") action telepresence_           ;;
@@ -493,14 +554,20 @@ fi
 #</editor-fold>
 
 #<editor-fold desc="container">
-container="$(next_arg)"
+next_arg container
 if no "$container"; then
-    options "--command: $command_logs $command_errors .container: $(containers "$namespace") $any_container"
+    options "--command:                                       \
+        $command_logs                                         \
+        $command_errors                                       \
+        $command_deployment                                   \
+        .container: $(containers "$namespace") $any_container \
+    "
 fi
 case "$container" in
-    "$command_logs")   action logs "$namespace"   ;;
-    "$command_errors") action errors "$namespace" ;;
-    *)                 continue="1"               ;;
+    "$command_logs")       action logs "$namespace"               ;;
+    "$command_errors")     action errors "$namespace"             ;;
+    "$command_deployment") selected_deployments="1"; continue="1" ;;
+    *)                     continue="1"                           ;;
 esac
 if [ "$continue" ]; then
     continue=""
@@ -510,10 +577,37 @@ else
 fi
 #</editor-fold>
 
+#<editor-fold desc="deployment">
+if [ "$selected_deployments" ]; then
+    next_arg deployment
+    if no "$deployment"; then
+        options ".deployment: $(deployments "$namespace")"
+    fi
+
+    next_arg command
+    if no "$command"; then
+        options "--command: $command_describe $command_restart $command_scale $command_logs"
+    fi
+    case "$command" in
+        "$command_describe") action describe_deployment "$namespace" "$deployment" ;;
+        "$command_restart")  action restart_deployment "$namespace" "$deployment"  ;;
+        "$command_scale")    action scale_deployment "$namespace" "$deployment"    ;;
+        "$command_logs")     action deployment_logs "$namespace" "$deployment"     ;;
+    esac
+    close
+    exit 0
+fi
+#</editor-fold>
+
 #<editor-fold desc="pod">
-pod="$(next_arg)"
+next_arg pod
 if no "$pod"; then
-    options "--command: $command_port_forward $command_execute_all_pods $command_find_pod .pod: $(pods_for_namespace_container "$namespace" "$container")"
+    options "--command:                                                 \
+        $command_port_forward                                           \
+        $command_execute_all_pods                                       \
+        $command_find_pod                                               \
+        .pod: $(pods_for_namespace_container "$namespace" "$container") \
+    "
 fi
 case "$pod" in
     "$command_port_forward")     action port_forward "$namespace" "$container"     ;;
@@ -530,7 +624,7 @@ fi
 #</editor-fold>
 
 #<editor-fold desc="command">
-command="$(next_arg)"
+next_arg command
 if no "$command"; then
     options "--command: $command_execute $command_login $command_describe $command_logs $command_errors"
 fi
@@ -594,6 +688,6 @@ close
 #        )//g"                                \
 #)
 #table="$(kubectl get pods --all-namespaces --output=custom-columns="$columns")"
-#options "$(echo "$(next_arg) $(next_arg) $(next_arg) $(next_arg)|$table" |python3 -c "$script")"
+#options "$(echo "${argv[*]:current_arg:4}|$table" |python3 -c "$script")"
 
 #echo "project[$project] cluster_name[$cluster_name] cluster_location[$cluster_location] namespace[$namespace]"
