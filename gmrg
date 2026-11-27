@@ -3,6 +3,11 @@ set -e
 branch="$1"
 
 git merge "$branch"
+
+printf 'Delete branch %s? (y/n) ' "$branch"
+read -r answer
+[ "$answer" = y ] || exit 0
+
 git branch --delete "$branch"
 
 if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
