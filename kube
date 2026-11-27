@@ -159,7 +159,7 @@ clusters() {
     local project="$1"
 
     local clusters
-    clusters="$(gcloud container clusters --project="$project" list  2>/dev/null &&:)"
+    clusters="$(gcloud container clusters --project="$project" list  2>/dev/null)"
     strip_head "$clusters" |sed -r 's/^([^ ]+) +([^ ]+) .*$/\1:\2/g'
 }
 authenticate() {
@@ -242,7 +242,6 @@ statuses_all_namespaces() {
             --all-namespaces                                            \
             |grep -E --invert-match "^([^ ]+ +){3}(Running|Completed) " \
             |grep -E --invert-match "^$ignored_pods "                   \
-        &&:
     )"
     if [ "$(echo "$pods" |wc -l)" -gt 1 ]; then
         printf "❌\n%s\n" "$pods"
@@ -623,14 +622,15 @@ else
     exit 0
 fi
 if ! completing; then
-    pods="$(pods_for_namespace_container "$namespace" "$container")"
+    pods="$(pods_for_namespace_container "$namespace" "$container" ||:)"
     if ! echo "$pods" |grep -q --fixed-strings --line-regexp "$pod"; then
-        matched="$(echo "$pods" |grep -E --line-regexp "$pod" |head --lines=1)"
+        matched="$(echo "$pods" |grep -E --line-regexp "$pod" ||:)"
         if ! [ "$matched" ]; then
             echo>&2 "pod not found: $pod"
             exit 1
         fi
-        pod="$matched"
+        printf>&2 "matched pods:\n%s\n" "$matched"
+        pod="$(echo "$matched" |head --lines=1)"
     fi
 fi
 #</editor-fold>
